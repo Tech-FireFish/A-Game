@@ -9,7 +9,7 @@
     // Updates tutorial progress flags and renders the active step.
     function update() {
       const state = runtime.state;
-      if (!state || !state.level.tutorialSteps || !state.level.tutorialSteps.length) {
+      if (runtime.activeMode !== "tutorial" || !state || !state.level.tutorialSteps || !state.level.tutorialSteps.length) {
         hide();
         return;
       }
@@ -87,7 +87,7 @@
 
     // Reports whether the active level is a guided tutorial.
     function isTutorialLevel(state = runtime.state) {
-      return Boolean(state && state.level.tutorialSteps && state.level.tutorialSteps.length);
+      return Boolean(runtime.activeMode === "tutorial" && state && state.level.tutorialSteps && state.level.tutorialSteps.length);
     }
 
     // Returns the first incomplete tutorial step index.

@@ -1501,7 +1501,7 @@ body.pixel-style-geometry .weapon-image-frame::after {
   top: 0;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
   gap: 8px;
   padding-bottom: 2px;
   background: #121619;
@@ -5281,4 +5281,189 @@ body.pixel-style-geometry #mainMenuOverlay .control-card,
   #mainMenuOverlay .main-menu-header-actions button {
     width: 100%;
   }
+}
+
+/* Gameplay visual language pass: Start/Store background, PressStart2P text, translucent cards. */
+body.pixel-style-geometry:not(.start-menu-active) {
+  position: relative;
+  background: #050708;
+  font-family: "PressStart2P", ui-monospace, monospace;
+}
+
+body.pixel-style-geometry:not(.start-menu-active)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--ui-start-background) center / cover no-repeat;
+  filter: saturate(0.88) brightness(0.64);
+  transform: scale(1.02);
+}
+
+body.pixel-style-geometry:not(.start-menu-active)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 8, 0.54), rgba(5, 7, 8, 0.78)),
+    rgba(5, 7, 8, 0.38);
+  pointer-events: none;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .shell,
+body.pixel-style-geometry:not(.start-menu-active) .shell button,
+body.pixel-style-geometry:not(.start-menu-active) .shell input,
+body.pixel-style-geometry:not(.start-menu-active) .shell select,
+body.pixel-style-geometry:not(.start-menu-active) .settings-overlay,
+body.pixel-style-geometry:not(.start-menu-active) .settings-overlay button,
+body.pixel-style-geometry:not(.start-menu-active) .settings-overlay input,
+body.pixel-style-geometry:not(.start-menu-active) .settings-overlay select,
+body.pixel-style-geometry:not(.start-menu-active) .banner,
+body.pixel-style-geometry:not(.start-menu-active) .banner button,
+body.pixel-style-geometry:not(.start-menu-active) .banner select {
+  font-family: "PressStart2P", ui-monospace, monospace;
+  letter-spacing: 0;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .shell {
+  position: relative;
+  z-index: 0;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .brandbar h1 {
+  font-size: clamp(18px, 2.2vw, 30px);
+  line-height: 1.18;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .eyebrow,
+body.pixel-style-geometry:not(.start-menu-active) .panel-label,
+body.pixel-style-geometry:not(.start-menu-active) .selected-loadout-label,
+body.pixel-style-geometry:not(.start-menu-active) .field-stack,
+body.pixel-style-geometry:not(.start-menu-active) .level-picker,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-summary,
+body.pixel-style-geometry:not(.start-menu-active) .ammo-board,
+body.pixel-style-geometry:not(.start-menu-active) .weapon-stats,
+body.pixel-style-geometry:not(.start-menu-active) .hint-text,
+body.pixel-style-geometry:not(.start-menu-active) .tutorial-card p,
+body.pixel-style-geometry:not(.start-menu-active) .tutorial-progress {
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) button,
+body.pixel-style-geometry:not(.start-menu-active) select,
+body.pixel-style-geometry:not(.start-menu-active) input {
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) button {
+  min-height: 42px;
+  padding: 0 10px;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) select,
+body.pixel-style-geometry:not(.start-menu-active) input {
+  min-height: 38px;
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .side-panel {
+  background: rgba(7, 10, 12, 0.34) !important;
+  backdrop-filter: blur(3px);
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .control-card,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-card,
+body.pixel-style-geometry:not(.start-menu-active) .mission-status-card,
+body.pixel-style-geometry:not(.start-menu-active) .tutorial-card,
+body.pixel-style-geometry:not(.start-menu-active) .hint-card,
+body.pixel-style-geometry:not(.start-menu-active) .actions-card,
+body.pixel-style-geometry:not(.start-menu-active) .operator-health-card,
+body.pixel-style-geometry:not(.start-menu-active) .settings-panel,
+body.pixel-style-geometry:not(.start-menu-active) .settings-grid > .control-card,
+body.pixel-style-geometry:not(.start-menu-active) .settings-change-card,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-panel,
+body.pixel-style-geometry:not(.start-menu-active) .lock-panel,
+body.pixel-style-geometry:not(.start-menu-active) .laptop-panel,
+body.pixel-style-geometry:not(.start-menu-active) .laptop-screen,
+body.pixel-style-geometry:not(.start-menu-active) .pause-panel,
+body.pixel-style-geometry:not(.start-menu-active) .banner,
+body.pixel-style-geometry:not(.start-menu-active) .mission-report,
+body.pixel-style-geometry:not(.start-menu-active) #equipmentTableOverlay .inventory-panel {
+  background: rgba(12, 16, 18, 0.68) !important;
+  border-color: rgba(142, 156, 162, 0.72) !important;
+  backdrop-filter: blur(5px);
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .mission-status-grid div,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-grid div,
+body.pixel-style-geometry:not(.start-menu-active) .mission-report div,
+body.pixel-style-geometry:not(.start-menu-active) .keybinding-row,
+body.pixel-style-geometry:not(.start-menu-active) .enemy-loadout-row,
+body.pixel-style-geometry:not(.start-menu-active) .operator-card,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-item-detail,
+body.pixel-style-geometry:not(.start-menu-active) .equipment-table-options section,
+body.pixel-style-geometry:not(.start-menu-active) .lock-display {
+  background: rgba(18, 24, 27, 0.58) !important;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .settings-overlay {
+  background: rgba(5, 7, 8, 0.42);
+  backdrop-filter: none;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .settings-tabs {
+  background: rgba(12, 16, 18, 0.7) !important;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .game-panel,
+body.pixel-style-geometry:not(.start-menu-active) canvas {
+  background: #0f1112 !important;
+  backdrop-filter: none;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .mission-status-grid span,
+body.pixel-style-geometry:not(.start-menu-active) .mission-report span,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-grid span,
+body.pixel-style-geometry:not(.start-menu-active) .operator-card span {
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .mission-status-grid strong,
+body.pixel-style-geometry:not(.start-menu-active) .mission-report strong,
+body.pixel-style-geometry:not(.start-menu-active) .inventory-grid strong,
+body.pixel-style-geometry:not(.start-menu-active) .operator-card strong,
+body.pixel-style-geometry:not(.start-menu-active) .banner strong {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .banner strong {
+  min-height: 44px;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .banner-actions button,
+body.pixel-style-geometry:not(.start-menu-active) .actions button,
+body.pixel-style-geometry:not(.start-menu-active) .pause-actions button {
+  display: inline-grid;
+  place-items: center;
+  text-align: center;
+  white-space: normal;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .inventory-slot {
+  font-size: 8px;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .weapon-tooltip {
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .hidden {
+  display: none !important;
 }

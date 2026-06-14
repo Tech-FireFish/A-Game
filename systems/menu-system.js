@@ -11,12 +11,60 @@
       document.documentElement.classList.add("start-menu-active");
       document.body.classList.add("start-menu-active");
       if (elements.startMenuOverlay) elements.startMenuOverlay.classList.remove("hidden");
+      if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
       if (elements.mainMenuOverlay) elements.mainMenuOverlay.classList.add("hidden");
       if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
       if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+      runtime.onboardingReturnToStore = false;
       if (deps.refreshStartMenu) deps.refreshStartMenu();
       closePause();
       if (runtime.state) runtime.state.running = false;
+    }
+
+    // Shows the display-only Store page between Start and onboarding.
+    function showStore() {
+      document.documentElement.classList.add("start-menu-active");
+      document.body.classList.add("start-menu-active");
+      if (deps.renderStorePage) deps.renderStorePage();
+      if (elements.startMenuOverlay) elements.startMenuOverlay.classList.add("hidden");
+      if (elements.mainMenuOverlay) elements.mainMenuOverlay.classList.add("hidden");
+      if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
+      if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+      if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.remove("hidden");
+      runtime.onboardingReturnToStore = true;
+      closePause();
+      if (runtime.state) runtime.state.running = false;
+    }
+
+    // Closes the Store page and returns to the start menu.
+    function closeStore() {
+      if (!isStoreOpen()) return false;
+      if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
+      showStart();
+      return true;
+    }
+
+    // Reports whether the Store page is visible.
+    function isStoreOpen() {
+      return Boolean(elements.storeMenuOverlay && !elements.storeMenuOverlay.classList.contains("hidden"));
+    }
+
+    // Opens onboarding from the Store or Start flow.
+    function openOnboarding(options = {}) {
+      runtime.onboardingReturnToStore = Boolean(options.returnToStore);
+      if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+      if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
+      if (elements.startMenuOverlay) elements.startMenuOverlay.classList.remove("hidden");
+      if (elements.onboardingQuestion) elements.onboardingQuestion.classList.remove("hidden");
+    }
+
+    // Closes onboarding and returns to the appropriate previous menu.
+    function closeOnboarding() {
+      if (!elements.onboardingQuestion || elements.onboardingQuestion.classList.contains("hidden")) return false;
+      elements.onboardingQuestion.classList.add("hidden");
+      if (runtime.onboardingReturnToStore) showStore();
+      else showStart();
+      return true;
     }
 
     // Shows the main navigation page.
@@ -26,8 +74,10 @@
       document.documentElement.classList.remove("start-menu-active");
       document.body.classList.remove("start-menu-active");
       if (elements.startMenuOverlay) elements.startMenuOverlay.classList.add("hidden");
+      if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
       if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
       if (elements.mainMenuOverlay) elements.mainMenuOverlay.classList.remove("hidden");
+      runtime.onboardingReturnToStore = false;
       closePause({ resume: false });
       runtime.menuReturnToPause = returnToPause;
       runtime.menuReturnResumeRunning = returnResumeRunning;
@@ -41,8 +91,10 @@
       document.documentElement.classList.remove("start-menu-active");
       document.body.classList.remove("start-menu-active");
       if (elements.startMenuOverlay) elements.startMenuOverlay.classList.add("hidden");
+      if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
       if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
       if (elements.mainMenuOverlay) elements.mainMenuOverlay.classList.add("hidden");
+      runtime.onboardingReturnToStore = false;
       runtime.menuReturnToPause = false;
       runtime.menuReturnResumeRunning = false;
       closePause();
@@ -151,7 +203,8 @@
         if (elements.privilegeBoard) elements.privilegeBoard.innerHTML = "";
         return;
       }
-      deps.progression.renderPrivilegeBoard();
+      // Privilege/access card disabled while progression/access locks are disabled.
+      // deps.progression.renderPrivilegeBoard();
       renderLevelBlocks();
       renderTutorialBlocks();
       if (elements.menuDifficultySelect) elements.menuDifficultySelect.value = runtime.currentDifficulty;
@@ -180,6 +233,11 @@
 
     return {
       showStart,
+      showStore,
+      closeStore,
+      isStoreOpen,
+      openOnboarding,
+      closeOnboarding,
       showMain,
       enterGame,
       openPause,

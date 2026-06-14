@@ -115,12 +115,19 @@
       const key = event.key.toLowerCase();
       if (deps.keybindings.matches(event, "settings")) {
         event.preventDefault();
-        if (elements.onboardingQuestion && !elements.onboardingQuestion.classList.contains("hidden")) {
-          elements.onboardingQuestion.classList.add("hidden");
+        if (runtime.storeConfirmItemId && deps.closeStoreConfirmation) {
+          deps.closeStoreConfirmation({ clearSelection: true });
+        } else if (elements.onboardingQuestion && !elements.onboardingQuestion.classList.contains("hidden")) {
+          if (deps.menu.closeOnboarding) deps.menu.closeOnboarding();
+          else elements.onboardingQuestion.classList.add("hidden");
         } else if (deps.settings.isOpen()) deps.settings.closeSettings();
         else if (deps.inventoryIsOpen()) deps.inventory.closeInventory();
         else if (deps.equipmentTableIsOpen()) deps.inventory.closeEquipmentTable();
         else if (deps.laptopIsOpen()) deps.cameraHack.closeLaptop();
+        else if (deps.menu.isStoreOpen && deps.menu.isStoreOpen()) {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
+          deps.menu.closeStore();
+        }
         else if (deps.menu.isMainOpen && deps.menu.isMainOpen()) deps.menu.closeMainOverlay();
         else deps.menu.togglePause();
         return;
@@ -214,8 +221,19 @@
       }
     }
 
+    // Plays the shared guidance tone for real button clicks across the UI.
+    function onDocumentButtonClick(event) {
+      const target = event.target;
+      if (!target || typeof target.closest !== "function") return;
+      const button = target.closest("button");
+      if (!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;
+      deps.audio.unlock();
+      deps.audio.play("button-guidance");
+    }
+
     // Connects DOM events to the game systems once during boot.
     function bindEvents() {
+      document.addEventListener("click", onDocumentButtonClick);
       elements.canvas.addEventListener("click", onCanvasClick);
       elements.canvas.addEventListener("mousedown", onCanvasMouseDown);
       elements.canvas.addEventListener("mousemove", onCanvasMove);
@@ -288,19 +306,24 @@
             return;
           }
           if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
-          elements.onboardingQuestion.classList.remove("hidden");
+          if (deps.menu.showStore) deps.menu.showStore();
+          else elements.onboardingQuestion.classList.remove("hidden");
         });
       }
       if (elements.startSettingButton) {
         elements.startSettingButton.addEventListener("click", () => {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
           if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
           if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+          if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
           deps.settings.openSettings();
         });
       }
       if (elements.startInfoButton) {
         elements.startInfoButton.addEventListener("click", () => {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
           if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
+          if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
           if (elements.startInfoPanel) elements.startInfoPanel.classList.remove("hidden");
         });
       }
@@ -308,13 +331,49 @@
         elements.closeStartInfoButton.addEventListener("click", () => elements.startInfoPanel.classList.add("hidden"));
       }
       if (elements.closeOnboardingButton) {
-        elements.closeOnboardingButton.addEventListener("click", () => elements.onboardingQuestion.classList.add("hidden"));
+        elements.closeOnboardingButton.addEventListener("click", () => {
+          if (deps.menu.closeOnboarding) deps.menu.closeOnboarding();
+          else elements.onboardingQuestion.classList.add("hidden");
+        });
       }
       if (elements.startExitButton) {
         elements.startExitButton.addEventListener("click", () => {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
           if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
           if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+          if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
           deps.exitFromStartMenu();
+        });
+      }
+      if (elements.storeExitButton) {
+        elements.storeExitButton.addEventListener("click", () => {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
+          if (deps.menu.closeStore) deps.menu.closeStore();
+        });
+      }
+      if (elements.storePlayButton) {
+        elements.storePlayButton.addEventListener("click", () => {
+          if (deps.menu.openOnboarding) deps.menu.openOnboarding({ returnToStore: true });
+          else if (elements.onboardingQuestion) elements.onboardingQuestion.classList.remove("hidden");
+        });
+      }
+      if (elements.storeEquipmentGrid) {
+        elements.storeEquipmentGrid.addEventListener("click", (event) => {
+          const card = event.target.closest("[data-store-item-id]");
+          if (!card) return;
+          deps.audio.unlock();
+          if (deps.selectStoreItem) deps.selectStoreItem(card.dataset.storeItemId);
+        });
+      }
+      if (elements.storeCancelPurchaseButton) {
+        elements.storeCancelPurchaseButton.addEventListener("click", () => {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
+        });
+      }
+      if (elements.storeConfirmPurchaseButton) {
+        elements.storeConfirmPurchaseButton.addEventListener("click", () => {
+          deps.audio.unlock();
+          if (deps.confirmStorePurchase) deps.confirmStorePurchase();
         });
       }
       if (elements.playedNoButton) {
@@ -342,6 +401,11 @@
           deps.menu.enterGame();
         });
       }
+      if (elements.mainMenuBackButton) {
+        elements.mainMenuBackButton.addEventListener("click", () => {
+          deps.menu.showStore();
+        });
+      }
       if (elements.pauseResumeButton) elements.pauseResumeButton.addEventListener("click", deps.menu.closePause);
       if (elements.pauseRestartButton) {
         elements.pauseRestartButton.addEventListener("click", () => {
@@ -355,6 +419,7 @@
       if (elements.expandGameButton) elements.expandGameButton.addEventListener("click", () => deps.menu.toggleExpanded());
       if (elements.expandedPauseButton) elements.expandedPauseButton.addEventListener("click", deps.menu.togglePause);
       if (elements.exitToMenuButton) elements.exitToMenuButton.addEventListener("click", deps.menu.showStart);
+      if (elements.backToStoreButton) elements.backToStoreButton.addEventListener("click", deps.menu.showStore);
       if (elements.resultLevelSelect) {
         elements.resultLevelSelect.addEventListener("change", () => loadWithTutorialWarning(elements.resultLevelSelect.value));
       }
@@ -494,6 +559,28 @@
         };
         elements.viewRange.addEventListener("input", applyView);
         elements.viewRange.addEventListener("change", applyView);
+      }
+      if (elements.backgroundMusicRange) {
+        const applyBackgroundMusic = () => {
+          const next = Number(elements.backgroundMusicRange.value);
+          const value = Number.isFinite(next) ? next : 50;
+          deps.settings.requestSettingChange(() => {
+            runtime.backgroundMusicVolume = value;
+            if (deps.setBackgroundMusicVolume) deps.setBackgroundMusicVolume(value);
+          });
+        };
+        elements.backgroundMusicRange.addEventListener("input", applyBackgroundMusic);
+        elements.backgroundMusicRange.addEventListener("change", applyBackgroundMusic);
+      }
+      if (elements.confirmStoreScoreButton && elements.storeScoreInput) {
+        elements.confirmStoreScoreButton.addEventListener("click", () => {
+          if (deps.setStoreScore) deps.setStoreScore(elements.storeScoreInput.value);
+        });
+        elements.storeScoreInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          if (deps.setStoreScore) deps.setStoreScore(elements.storeScoreInput.value);
+        });
       }
       // if (elements.pixelArtStyleSelect) {
       //   elements.pixelArtStyleSelect.addEventListener("change", () => {

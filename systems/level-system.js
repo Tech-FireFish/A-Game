@@ -57,8 +57,9 @@
         doors: buildDoors(level),
         operators: level.operators.slice(0, maxOperators).map((op) => {
           const useSavedLoadout = !level.forceLoadouts;
-          const armorId = deps.equipment.validArmorId((useSavedLoadout && deps.operatorArmorLoadouts[op.id]) || op.armorId || "light-armor");
-          const backpackId = deps.equipment.validBackpackId((useSavedLoadout && deps.operatorBackpackLoadouts[op.id]) || op.backpackId || "medium-backpack");
+          const storeDefaults = deps.storeLoadoutDefaults ? deps.storeLoadoutDefaults() : {};
+          const armorId = deps.equipment.validArmorId((useSavedLoadout && deps.operatorArmorLoadouts[op.id]) || (useSavedLoadout && storeDefaults.armorId) || op.armorId || "light-armor");
+          const backpackId = deps.equipment.validBackpackId((useSavedLoadout && deps.operatorBackpackLoadouts[op.id]) || (useSavedLoadout && storeDefaults.backpackId) || op.backpackId || "no-backpack");
           const armor = deps.equipment.armorById(armorId);
           const backpack = deps.equipment.backpackById(backpackId);
           const baseSpeed = op.speed || 92;
@@ -74,7 +75,7 @@
             baseSpeed,
             speed: baseSpeed * armor.speedMultiplier * (backpack.speedMultiplier || 1),
             spawn: { x: op.x, y: op.y, angle: op.angle || 0 },
-            weaponId: deps.equipment.validWeaponId((useSavedLoadout && deps.operatorLoadouts[op.id]) || op.weaponId || "rifle"),
+            weaponId: deps.equipment.validWeaponId((useSavedLoadout && deps.operatorLoadouts[op.id]) || (useSavedLoadout && storeDefaults.weaponId) || op.weaponId || "rifle"),
             fireTimer: 0,
             path: [],
             aim: 0,
@@ -217,6 +218,7 @@
       runtime.lastTime = performance.now();
       elements.banner.classList.add("hidden");
       if (elements.exitTutorialButton) elements.exitTutorialButton.classList.add("hidden");
+      if (runtime.activeMode !== "tutorial" && elements.tutorialCard) elements.tutorialCard.classList.add("hidden");
       elements.levelTitle.textContent = runtime.currentLevel.title || runtime.currentLevelMeta.title;
       if (deps.saveResumePoint) deps.saveResumePoint(runtime.currentLevelMeta, runtime.activeMode);
       deps.updateHud();

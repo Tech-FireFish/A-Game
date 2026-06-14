@@ -56,14 +56,14 @@
       return armors.has(id) ? id : "light-armor";
     }
 
-    // Resolves a backpack definition, falling back to medium backpack.
+    // Resolves a backpack definition, falling back to no backpack.
     function backpackById(id) {
-      return backpacks.get(id) || backpacks.get("medium-backpack");
+      return backpacks.get(id) || backpacks.get("no-backpack");
     }
 
-    // Normalizes unknown backpack IDs to the default medium backpack.
+    // Normalizes unknown backpack IDs to the default no backpack.
     function validBackpackId(id) {
-      return backpacks.has(id) ? id : "medium-backpack";
+      return backpacks.has(id) ? id : "no-backpack";
     }
 
     // Gets the saved enemy weapon choices for the active level.

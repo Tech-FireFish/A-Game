@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=28">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -338,6 +338,7 @@
               <button type="button" data-settings-tab="mission">Mission Setup</button>
               <button type="button" data-settings-tab="operator">Operator Loadout</button>
               <button type="button" data-settings-tab="enemy">Enemy Loadout</button>
+              <button type="button" data-settings-tab="sound">Sound Effects</button>
             </nav>
 
             <section class="control-card" data-settings-panel="keys">
@@ -355,10 +356,13 @@
                 <span>Tutorial</span>
                 <select id="tutorialSelect"></select>
               </label>
+              <!-- Temporary Levels selector disabled while temp levels are recycled.
               <label class="level-picker" for="tempLevelSelect">
                 <span>Temporary Levels</span>
                 <select id="tempLevelSelect"></select>
               </label>
+              -->
+              <select id="tempLevelSelect" class="hidden" aria-hidden="true" tabindex="-1"></select>
               <label class="level-picker" for="operatorCountSelect">
                 <span>Operators</span>
                 <select id="operatorCountSelect">
@@ -441,6 +445,14 @@
               <div class="enemy-loadouts">
                 <div id="enemyLoadoutList" class="enemy-loadout-list"></div>
               </div>
+            </section>
+
+            <section class="control-card hidden" data-settings-panel="sound">
+              <p class="panel-label">Sound Effects</p>
+              <label class="level-picker" for="backgroundMusicRange">
+                <span>Background Music <strong id="backgroundMusicValue" class="range-value">50</strong></span>
+                <input id="backgroundMusicRange" type="range" min="0" max="100" step="1" value="50">
+              </label>
             </section>
           </div>
           <div class="settings-footer-actions">

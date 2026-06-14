@@ -43,3 +43,11 @@ The included server is only a static localhost server. It does not run gameplay 
 Yes, you need Node.js if you want to use `npm start` or `node server.js`. No extra npm packages are required because the server uses only built-in Node modules.
 
 If Node.js is already installed, you can run the game immediately. If not, install the current Node.js LTS version, then run `npm start` again.
+
+## Issues and Solutions.
+
+#1 If you find the scrollers operating slowly/jumpy.
+
+Solution: Turning Hardware Accerelation in you Broswer.
+
+Explain: Hardware Accerelation moves more work to GPU.

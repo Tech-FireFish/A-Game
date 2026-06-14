@@ -57,6 +57,9 @@
       const progress = storySuccess && deps.progression
         ? deps.progression.recordMission(runtime.currentLevelMeta, state.level)
         : { privilegeEarned: 0, rewardsUnlocked: [], complexity: deps.progression ? deps.progression.complexity(state.level) : 0 };
+      const score = missionScore(result, progress);
+      state.missionScore = score;
+      if (deps.addStoreScore) deps.addStoreScore(score.total);
       elements.bannerTitle.textContent = title;
       elements.banner.classList.toggle("mission-success", result === "success");
       elements.banner.classList.toggle("mission-failure", result !== "success");
@@ -84,18 +87,38 @@
       deps.updateHud();
     }
 
+    // Calculates the Store score earned by this mission result.
+    function missionScore(result, progress) {
+      const neutralized = runtime.state.enemyDownCount || 0;
+      const complexity = progress.complexity || 0;
+      const enemyScore = neutralized * 500;
+      const complexityScore = complexity * 200;
+      const baseScore = result === "success" ? 1000 : 200;
+      return {
+        neutralized,
+        complexity,
+        enemyScore,
+        complexityScore,
+        baseScore,
+        total: enemyScore + complexityScore + baseScore
+      };
+    }
+
     // Renders mission statistics and progression rewards in the result overlay.
     function renderMissionReport(result, progress) {
       if (!elements.missionReport) return;
-      const neutralized = runtime.state.enemyDownCount || 0;
-      const rewards = (progress.rewardsUnlocked || []).map((id) => deps.progression.label(id));
+      const score = runtime.state.missionScore || missionScore(result, progress);
       elements.missionReport.innerHTML = `
-        <div><span>Enemies Neutralized</span><strong>${neutralized}</strong></div>
-        <div><span>Privilege Gained</span><strong>${progress.privilegeEarned || 0}</strong></div>
-        <div><span>Complexity</span><strong>${progress.complexity || 0}</strong></div>
-        <div><span>Rewards</span><strong>${result === "success" ? (rewards.join(", ") || "No new unlocks") : "None"}</strong></div>
+        <div><span>Score Earned</span><strong>${score.total}</strong></div>
+        <!-- Score breakdown row disabled by request.
+        <div><span>Score Breakdown</span><strong>${score.neutralized} x 500 + ${score.complexity} x 200 + ${score.baseScore}</strong></div>
+        -->
+        <div><span>Enemies Neutralized</span><strong>${score.neutralized}</strong></div>
+        <div><span>Complexity</span><strong>${score.complexity}</strong></div>
+        <div><span>Report</span><strong>${result === "success" ? "Mission Complete" : "Mission Failed"}</strong></div>
       `;
-      if (deps.progression && deps.progression.renderPrivilegeBoard) deps.progression.renderPrivilegeBoard();
+      // Privilege/access board rendering disabled while progression/access locks are disabled.
+      // if (deps.progression && deps.progression.renderPrivilegeBoard) deps.progression.renderPrivilegeBoard();
     }
 
     // Populates the result-level picker with tutorial or story destinations.

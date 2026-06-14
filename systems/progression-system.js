@@ -62,47 +62,35 @@
 
     // Records story mission completion and returns unlock/report data.
     function recordMission(levelMeta, level) {
-      if (!levelMeta || deps.runtime.activeMode === "tutorial") {
-        return { privilegeEarned: 0, rewardsUnlocked: [], complexity: complexity(level) };
-      }
-      const before = state.privilege;
-      if (!state.completedLevels.includes(levelMeta.id)) {
-        state.completedLevels.push(levelMeta.id);
-      }
-      state.privilege = privilegeFromCompleted();
-      const rewardsUnlocked = [];
-      if (state.privilege >= rewardPrivilege) {
-        for (const id of rewardEquipment) {
-          if (!state.unlockedEquipment.includes(id)) {
-            state.unlockedEquipment.push(id);
-            rewardsUnlocked.push(id);
-          }
-        }
-      }
-      save();
+      /*
+      Privilege/access progression disabled: story completions no longer increase
+      privilege or unlock rewards. Store ownership remains separate.
+      */
       return {
-        privilegeEarned: Math.max(0, state.privilege - before),
-        rewardsUnlocked,
+        privilegeEarned: 0,
+        rewardsUnlocked: [],
         complexity: complexity(level)
       };
     }
 
     // Reports whether a piece of equipment can be selected by operators.
     function isEquipmentUnlocked(id, item) {
-      const needed = item && item.unlockPrivilege ? item.unlockPrivilege : (id === "heavy-armor" ? rewardPrivilege : 0);
-      return needed <= state.privilege || state.unlockedEquipment.includes(id);
+      // Privilege/access progression disabled: equipment is never locked by privilege.
+      return true;
     }
 
     // Reports whether a story level is unlocked.
     function isLevelUnlocked(index) {
-      if (index <= 1) return true;
-      return state.completedLevels.length >= index - 1;
+      // Privilege/access progression disabled: story levels are always selectable.
+      return true;
     }
 
     // Renders privilege status into menus.
     function renderPrivilegeBoard() {
       const el = deps.elements.privilegeBoard;
       if (!el) return;
+      /*
+      Privilege/access board disabled while progression/access locks are disabled.
       const rewards = rewardEquipment.map((id) => {
         const unlocked = state.unlockedEquipment.includes(id) || state.privilege >= rewardPrivilege;
         return `<span class="${unlocked ? "unlocked" : "locked"}">${label(id)} ${unlocked ? "Unlocked" : "Locked"}</span>`;
@@ -112,6 +100,8 @@
         <div class="summary-row"><span>Story Clears</span><strong>${state.completedLevels.length}</strong></div>
         <div class="reward-list">${rewards}</div>
       `;
+      */
+      el.innerHTML = "";
     }
 
     // Converts IDs to compact display labels.

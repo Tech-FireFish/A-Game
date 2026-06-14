@@ -80,6 +80,8 @@ const elements = {
   hintOpacityValue: document.getElementById("hintOpacityValue"),
   viewRange: document.getElementById("viewRange"),
   viewValueLabel: document.getElementById("viewValueLabel"),
+  backgroundMusicRange: document.getElementById("backgroundMusicRange"),
+  backgroundMusicValue: document.getElementById("backgroundMusicValue"),
   storeScoreInput: document.getElementById("storeScoreInput"),
   confirmStoreScoreButton: document.getElementById("confirmStoreScoreButton"),
   // pixelArtStyleSelect: document.getElementById("pixelArtStyleSelect"),
@@ -142,6 +144,7 @@ const ctx = elements.canvas.getContext("2d");
 const DEFAULT_WORLD = { w: 960, h: 640 };
 const RESUME_STORAGE_KEY = "delta-geometry-resume";
 const STORE_PROFILE_STORAGE_KEY = "delta-geometry-store-profile";
+const AUDIO_SETTINGS_STORAGE_KEY = "delta-geometry-audio-settings";
 const WORLD = { ...DEFAULT_WORLD };
 const TWO_PI = Math.PI * 2;
 const UNIT_RADIUS = 12;
@@ -192,7 +195,8 @@ const TUTORIAL_OPTIONS = [
 ];
 
 const TEMP_LEVEL_OPTIONS = [
-  { id: "temp-ridge-scene-source", title: "Temp: Ridge Scene Source", file: "temp/ridge-house-entry-scene-source.json" }
+  // Temporary level removed to recycle/temp.
+  // { id: "temp-ridge-scene-source", title: "Temp: Ridge Scene Source", file: "temp/ridge-house-entry-scene-source.json" }
 ];
 
 const WEAPON_OPTIONS = [
@@ -253,7 +257,8 @@ const SOUND_OPTIONS = [
   { id: "enemy-walk", file: "sounds/enemy-walk.wav" },
   { id: "button-guidance", file: "sounds/button-guidance.wav" },
   { id: "store-select", file: "sounds/store-select.wav" },
-  { id: "store-purchase", file: "sounds/store-purchase.wav" }
+  { id: "store-purchase", file: "sounds/store-purchase.wav" },
+  { id: "background-music", file: "sounds/Redline Protocol.mp3" }
 ];
 
 const MOBILE_OBJECT_SCALE_CONFIG = {
@@ -297,6 +302,7 @@ const runtime = {
   storeAvatarRenderKey: "",
   hintOpacity: 0.42,
   viewValue: 50,
+  backgroundMusicVolume: 50,
   pixelArtStyle: "geometry",
   showAllHealth: false,
   activeSettingsTab: "keys",
@@ -405,6 +411,51 @@ function setDifficulty(value) {
     runtime.state.message = runtime.currentDifficulty === "difficult" ? "Difficult mode: short sight, chase/search enemies, random enemy gear" : "Normal visibility enabled";
   }
   updateHud();
+}
+
+// Keeps the background music setting within the Settings slider range.
+function normalizeMusicVolume(value) {
+  const next = Number(value);
+  if (!Number.isFinite(next)) return 50;
+  return Math.max(0, Math.min(100, Math.round(next)));
+}
+
+// Reads saved audio settings without blocking first-screen startup.
+function loadBackgroundMusicVolume() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUDIO_SETTINGS_STORAGE_KEY) || "null");
+    if (!saved || typeof saved !== "object") return 50;
+    return normalizeMusicVolume(saved.backgroundMusicVolume);
+  } catch (error) {
+    return 50;
+  }
+}
+
+// Persists the music volume when browser storage is available.
+function writeAudioSettings() {
+  try {
+    localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify({
+      backgroundMusicVolume: runtime.backgroundMusicVolume
+    }));
+  } catch (error) {
+    // Audio settings remain usable for this session when storage is blocked.
+  }
+}
+
+// Applies the background music setting to runtime, UI, storage, and audio.
+function setBackgroundMusicVolume(value, options = {}) {
+  runtime.backgroundMusicVolume = normalizeMusicVolume(value);
+  if (options.persist !== false) writeAudioSettings();
+  if (audio && audio.setMusicVolume) {
+    audio.setMusicVolume(runtime.backgroundMusicVolume);
+    audio.playMusic("background-music");
+  }
+  if (elements.backgroundMusicRange && document.activeElement !== elements.backgroundMusicRange) {
+    setValue(elements.backgroundMusicRange, runtime.backgroundMusicVolume);
+  }
+  if (elements.backgroundMusicValue) {
+    setText(elements.backgroundMusicValue, runtime.backgroundMusicVolume);
+  }
 }
 
 // Builds the default persistent store profile and equipment ownership.
@@ -937,6 +988,10 @@ function updateHud(options = {}) {
     }
     if (elements.hintOpacityValue) setText(elements.hintOpacityValue, `${Math.round(runtime.hintOpacity * 100)}%`);
     if (elements.viewValueLabel) setText(elements.viewValueLabel, Math.round(runtime.viewValue));
+    if (elements.backgroundMusicRange && Number(elements.backgroundMusicRange.value) !== runtime.backgroundMusicVolume) {
+      setValue(elements.backgroundMusicRange, runtime.backgroundMusicVolume);
+    }
+    if (elements.backgroundMusicValue) setText(elements.backgroundMusicValue, runtime.backgroundMusicVolume);
     if (elements.storeScoreInput && document.activeElement !== elements.storeScoreInput) {
       setValue(elements.storeScoreInput, storeProfile().score);
     }
@@ -985,6 +1040,12 @@ function updateHud(options = {}) {
   }
   if (elements.viewValueLabel) {
     setText(elements.viewValueLabel, Math.round(runtime.viewValue));
+  }
+  if (elements.backgroundMusicRange && Number(elements.backgroundMusicRange.value) !== runtime.backgroundMusicVolume) {
+    setValue(elements.backgroundMusicRange, runtime.backgroundMusicVolume);
+  }
+  if (elements.backgroundMusicValue) {
+    setText(elements.backgroundMusicValue, runtime.backgroundMusicVolume);
   }
   if (elements.storeScoreInput && document.activeElement !== elements.storeScoreInput) {
     setValue(elements.storeScoreInput, storeProfile().score);
@@ -1063,11 +1124,15 @@ function initializeSystems() {
   assertSystem("Input system", window.InputSystem);
   assertSystem("Action system", window.ActionSystem);
 
+  runtime.backgroundMusicVolume = loadBackgroundMusicVolume();
   audio = window.AudioSystem.create({
     soundOptions: SOUND_OPTIONS,
     volume: 0.55,
-    loopVolume: 0.34
+    loopVolume: 0.34,
+    musicVolume: runtime.backgroundMusicVolume
   });
+  audio.setMusicVolume(runtime.backgroundMusicVolume);
+  audio.playMusic("background-music");
 
   keybindings = window.KeybindingSystem.create({
     elements
@@ -1177,6 +1242,7 @@ function initializeSystems() {
     enemyLoadouts,
     enemyArmorLoadouts,
     camera,
+    setBackgroundMusicVolume,
     renderEnemyLoadouts: () => equipment.renderEnemyLoadouts(),
     updateHud
   });
@@ -1353,6 +1419,7 @@ function initializeSystems() {
     closeStoreConfirmation,
     confirmStorePurchase,
     setStoreScore,
+    setBackgroundMusicVolume,
     ensureGameDataReady,
     updateHud,
     operatorLoadouts,
@@ -1433,6 +1500,7 @@ window.__breachline = {
   audioPreloadAll: () => audio ? audio.preloadAll() : null,
   isAudioPreloaded: (id) => audio ? audio.isPreloaded(id) : false,
   isAudioUnlocked: () => audio ? audio.isUnlocked() : false,
+  backgroundMusicVolume: () => audio ? audio.getMusicVolume() : runtime.backgroundMusicVolume,
   performanceSnapshot: () => ({
     updateMs: Number(runtime.performanceMetrics.updateMs.toFixed(2)),
     drawMs: Number(runtime.performanceMetrics.drawMs.toFixed(2)),
@@ -1440,6 +1508,7 @@ window.__breachline = {
     heavyHudInterval: runtime.heavyHudInterval,
     audioPreloaded: audio ? audio.isPreloaded() : false,
     audioUnlocked: audio ? audio.isUnlocked() : false,
+    backgroundMusicVolume: audio ? audio.getMusicVolume() : runtime.backgroundMusicVolume,
     gameDataReady: runtime.gameDataReady
   }),
   restart: () => level.restart(),

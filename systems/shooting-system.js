@@ -6,7 +6,7 @@
     // Initializes or resets ammunition for a unit's current weapon and backpack.
     function resetAmmo(unit) {
       const weapon = deps.equipment.weaponById(unit.weaponId);
-      const backpack = deps.equipment.backpackById(unit.backpackId || "medium-backpack");
+      const backpack = deps.equipment.backpackById(unit.backpackId || "no-backpack");
       if (weapon.canFire === false || weapon.attackType === "melee") {
         unit.ammo = {
           weaponId: weapon.id,

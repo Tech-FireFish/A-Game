@@ -664,7 +664,7 @@
     function resolveVisualSource(source) {
       if (!source) return "";
       if (typeof source === "string") return source;
-      return source.fallback || source.image || source.png || "";
+      return source.fallback || source.image || "";
     }
 
     // Draws an image fitted into a rectangle, returning false while unavailable.
