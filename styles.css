@@ -4561,6 +4561,107 @@ body.pixel-style-geometry [data-settings-panel] {
   grid-row: 1;
 }
 
+.dev-settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 47;
+  display: grid;
+  place-items: center end;
+  padding: 24px;
+  pointer-events: none;
+  background: transparent;
+}
+
+.dev-settings-overlay.dev-standalone {
+  place-items: center end;
+}
+
+.dev-settings-overlay.hidden {
+  display: none !important;
+}
+
+.dev-settings-overlay,
+.dev-settings-overlay button,
+.dev-settings-overlay input,
+.dev-settings-overlay select {
+  font-family: "PressStart2P", ui-monospace, monospace;
+  letter-spacing: 0;
+}
+
+.dev-settings-panel {
+  pointer-events: auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(760px, calc(50vw - 36px));
+  height: min(820px, calc(100vh - 48px));
+  padding: 16px;
+  overflow: hidden;
+  border: 0;
+  border-image: none;
+  border-radius: 0;
+  background: rgba(12, 16, 18, 0.76);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(5px);
+}
+
+.dev-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dev-settings-tabs {
+  position: static;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.dev-settings-section {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.dev-settings-section.hidden {
+  display: none !important;
+}
+
+.dev-settings-grid .settings-footer-actions {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 0;
+}
+
+.dev-mode-copy,
+.dev-mode-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.dev-mode-message {
+  min-height: 1.6em;
+  color: var(--amber);
+}
+
+body.pixel-style-geometry .settings-overlay.dev-settings-open {
+  place-items: center start;
+}
+
+body.pixel-style-geometry .settings-overlay.dev-settings-open .settings-panel {
+  width: min(760px, calc(50vw - 36px));
+}
+
 @media (max-width: 900px) {
   body.pixel-style-geometry .settings-grid {
     grid-template-columns: 1fr;
@@ -4572,6 +4673,37 @@ body.pixel-style-geometry [data-settings-panel] {
   }
 
   body.pixel-style-geometry [data-settings-panel] {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  body.pixel-style-geometry .settings-overlay.dev-settings-open {
+    place-items: start center;
+    padding-top: 14px;
+  }
+
+  body.pixel-style-geometry .settings-overlay.dev-settings-open .settings-panel,
+  .dev-settings-panel {
+    width: min(100%, calc(100vw - 28px));
+    height: min(48vh, 520px);
+  }
+
+  .dev-settings-overlay {
+    place-items: end center;
+    padding: 14px;
+  }
+
+  .dev-settings-grid {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .dev-settings-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dev-settings-section,
+  .dev-settings-grid .settings-footer-actions {
     grid-column: 1;
     grid-row: auto;
   }
@@ -4946,6 +5078,15 @@ body.pixel-style-geometry .onboarding-question {
 
 .settings-footer-actions button {
   min-width: 148px;
+}
+
+.settings-footer-actions .settings-exit-menu-button {
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1.1;
 }
 
 body.pixel-style-geometry #startMenuOverlay .start-panel {
@@ -5462,6 +5603,40 @@ body.pixel-style-geometry:not(.start-menu-active) .inventory-slot {
 body.pixel-style-geometry:not(.start-menu-active) .weapon-tooltip {
   font-size: 8px;
   line-height: 1.45;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-overlay,
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-overlay button,
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-overlay input,
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-overlay select {
+  font-family: "PressStart2P", ui-monospace, monospace;
+  letter-spacing: 0;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .settings-panel,
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-panel,
+body.pixel-style-geometry:not(.start-menu-active) .settings-grid > .control-card,
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-section {
+  border: 0 !important;
+  border-image: none !important;
+  border-radius: 0 !important;
+  background: rgba(12, 16, 18, 0.68) !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(5px);
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .settings-tabs {
+  border: 0 !important;
+  background: rgba(12, 16, 18, 0.46) !important;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-tabs {
+  border: 0 !important;
+  background: rgba(12, 16, 18, 0.46) !important;
+}
+
+body.pixel-style-geometry:not(.start-menu-active) .dev-settings-panel {
+  background: rgba(12, 16, 18, 0.74) !important;
 }
 
 body.pixel-style-geometry:not(.start-menu-active) .hidden {

@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="styles.css?v=32">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -324,7 +324,7 @@
           <header class="settings-header">
             <div>
               <p class="eyebrow">Settings</p>
-              <h2>Controls And Mission Setup</h2>
+              <h2>Controls And Sound</h2>
             </div>
             <div class="settings-actions">
               <button id="resetSettingsButton" type="button" title="Reset settings to defaults">Reset</button>
@@ -335,10 +335,8 @@
           <div class="settings-grid">
             <nav class="settings-tabs" aria-label="Settings sections">
               <button type="button" class="active" data-settings-tab="keys">Keys</button>
-              <button type="button" data-settings-tab="mission">Mission Setup</button>
-              <button type="button" data-settings-tab="operator">Operator Loadout</button>
-              <button type="button" data-settings-tab="enemy">Enemy Loadout</button>
               <button type="button" data-settings-tab="sound">Sound Effects</button>
+              <button type="button" data-settings-tab="dev">Dev Mode</button>
             </nav>
 
             <section class="control-card" data-settings-panel="keys">
@@ -346,7 +344,53 @@
               <div class="keybinding-list" id="keyBindingList"></div>
             </section>
 
-            <section class="control-card" data-settings-panel="mission">
+            <section class="control-card hidden" data-settings-panel="sound">
+              <p class="panel-label">Sound Effects</p>
+              <label class="level-picker" for="backgroundMusicRange">
+                <span>Background Music <strong id="backgroundMusicValue" class="range-value">50</strong></span>
+                <input id="backgroundMusicRange" type="range" min="0" max="100" step="1" value="50">
+              </label>
+            </section>
+
+            <section class="control-card hidden dev-mode-card" data-settings-panel="dev">
+              <p class="panel-label">Dev Mode</p>
+              <p class="dev-mode-copy">Enter the developer phrase to open advanced mission and loadout controls.</p>
+              <label class="level-picker" for="devModeCodeInput">
+                <span>Developer Code</span>
+                <div class="inline-input-action">
+                  <input id="devModeCodeInput" type="text" placeholder="Enter the code" autocomplete="off">
+                  <button id="confirmDevModeButton" type="button">Confirm</button>
+                </div>
+              </label>
+              <p id="devModeMessage" class="dev-mode-message" aria-live="polite"></p>
+            </section>
+          </div>
+          <div class="settings-footer-actions">
+            <button id="settingsExitToMenuButton" class="settings-exit-menu-button" type="button">Exit to menu</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="devSettingsOverlay" class="dev-settings-overlay hidden" aria-label="Dev Setting" aria-modal="true" role="dialog">
+        <div class="dev-settings-panel">
+          <header class="settings-header">
+            <div>
+              <p class="eyebrow">Dev Setting</p>
+              <h2>Advanced Setup</h2>
+            </div>
+            <div class="settings-actions">
+              <button id="closeDevSettingsButton" type="button" title="Close Dev Setting">Close</button>
+            </div>
+          </header>
+
+          <div class="dev-settings-grid">
+            <nav class="settings-tabs dev-settings-tabs" aria-label="Dev Setting sections">
+              <button type="button" class="active" data-dev-settings-tab="mission">Mission Setup</button>
+              <button type="button" data-dev-settings-tab="operator">Operator Loadout</button>
+              <button type="button" data-dev-settings-tab="enemy">Enemy Loadout</button>
+            </nav>
+
+            <section class="control-card dev-settings-section" data-dev-settings-panel="mission">
               <p class="panel-label">Mission Setup</p>
               <label class="level-picker" for="levelSelect">
                 <span>Level</span>
@@ -424,7 +468,7 @@
               -->
             </section>
 
-            <section class="control-card" data-settings-panel="operator">
+            <section class="control-card dev-settings-section hidden" data-dev-settings-panel="operator">
               <p class="panel-label">Operator Loadout</p>
               <label class="field-stack" for="weaponSelect">
                 <span id="settingsSelectedOperatorLabel">Selected Operator Weapon</span>
@@ -440,23 +484,16 @@
               </label>
             </section>
 
-            <section class="control-card" data-settings-panel="enemy">
+            <section class="control-card dev-settings-section hidden" data-dev-settings-panel="enemy">
               <p class="panel-label">Enemy Loadouts</p>
               <div class="enemy-loadouts">
                 <div id="enemyLoadoutList" class="enemy-loadout-list"></div>
               </div>
             </section>
 
-            <section class="control-card hidden" data-settings-panel="sound">
-              <p class="panel-label">Sound Effects</p>
-              <label class="level-picker" for="backgroundMusicRange">
-                <span>Background Music <strong id="backgroundMusicValue" class="range-value">50</strong></span>
-                <input id="backgroundMusicRange" type="range" min="0" max="100" step="1" value="50">
-              </label>
-            </section>
-          </div>
-          <div class="settings-footer-actions">
-            <button id="settingsExitToMenuButton" type="button">Exit to menu</button>
+            <div class="settings-footer-actions">
+              <button id="devSettingsExitToMenuButton" class="settings-exit-menu-button" type="button">Exit to menu</button>
+            </div>
           </div>
         </div>
       </section>
@@ -591,14 +628,14 @@
     <script src="systems/equipment-system.js?v=1"></script>
     <script src="systems/level-system.js?v=3"></script>
     <script src="systems/visibility-system.js?v=1"></script>
-    <script src="systems/settings-system.js?v=1"></script>
+    <script src="systems/settings-system.js?v=6"></script>
     <script src="systems/digital-lock-system.js?v=1"></script>
     <script src="systems/enemy-behavior-system.js?v=1"></script>
     <script src="systems/mission-system.js?v=2"></script>
     <script src="systems/render-system.js?v=1"></script>
-    <script src="systems/input-system.js?v=4"></script>
+    <script src="systems/input-system.js?v=7"></script>
     <script src="systems/action-system.js?v=3"></script>
     <script src="css-pixel-art/store-pixel-art.js?v=1"></script>
-    <script src="main.js?v=28"></script>
+    <script src="main.js?v=31"></script>
   </body>
 </html>
