@@ -2,6 +2,24 @@
 
 ![Delta Geometry start menu screenshot](docs/start-menu-showcase.png)
 
+## Gameplay Showcase
+
+![Start, store, and main menu](docs/gifs/01-start-store-main.gif)
+
+Start, Store, equipment ownership, and the Main Page flow before a mission begins.
+
+![Tactical breach combat](docs/gifs/02-tactical-breach-combat.gif)
+
+Route planning, door entry, controlled fire, and objective securing in a story mission.
+
+![Digital lock tutorial](docs/gifs/03-digital-lock-tutorial.gif)
+
+Paper clue pickup, inventory reading, keypad entry, unlocking, and opening a digital-lock door.
+
+![Advanced interactions](docs/gifs/04-advanced-interactions.gif)
+
+Laptop hacking, camera labels, revealed zones, windows, stairs, and objective discovery.
+
 ## Gameplay
 
 Delta Geometry is a top-down tactical breach game. You choose one or two operators, assign each operator a weapon, plan routes through the level, open doors manually with `E` or by clicking nearby doors, and let operators automatically engage enemies when they have clear line-of-sight. You can pause and replan at any time with `Space`.
