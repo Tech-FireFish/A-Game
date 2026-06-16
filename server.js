@@ -23,6 +23,7 @@ const MIME_TYPES = {
 };
 
 const CACHEABLE_EXTENSIONS = new Set([".css", ".js", ".wav", ".ttf", ".png"]);
+const LEVEL_MANIFEST = scanLevelManifest();
 
 function cacheControlFor(filePath) {
   const ext = path.extname(filePath).toLowerCase();
@@ -38,6 +39,38 @@ function send(res, statusCode, body, contentType = "text/plain; charset=utf-8") 
     "Cache-Control": "no-store"
   });
   res.end(body);
+}
+
+function scanLevelManifest() {
+  const levelDir = path.join(ROOT, "level");
+  if (!fs.existsSync(levelDir)) return [];
+  return fs.readdirSync(levelDir)
+    .filter((file) => file.toLowerCase().endsWith(".json"))
+    .sort((a, b) => a.localeCompare(b))
+    .map((file) => {
+      const filePath = path.join(levelDir, file);
+      const id = path.basename(file, ".json");
+      try {
+        const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        return {
+          id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : id,
+          title: typeof raw.title === "string" && raw.title.trim() ? raw.title.trim() : titleFromSlug(id),
+          file: `level/${file}`
+        };
+      } catch (error) {
+        console.warn(`Skipping invalid level JSON ${path.relative(ROOT, filePath)}: ${error.message}`);
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function titleFromSlug(value) {
+  return String(value || "level")
+    .split(/[^a-z0-9]+/i)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || "Level";
 }
 
 function resolveRequestPath(urlPath) {
@@ -60,7 +93,18 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const filePath = resolveRequestPath(req.url || "/");
+  const requestUrl = req.url || "/";
+  if (requestUrl.split("?")[0] === "/api/levels") {
+    const body = JSON.stringify({ levels: LEVEL_MANIFEST });
+    res.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store"
+    });
+    res.end(req.method === "HEAD" ? "" : body);
+    return;
+  }
+
+  const filePath = resolveRequestPath(requestUrl);
 
   if (!filePath) {
     send(res, 403, "Forbidden");

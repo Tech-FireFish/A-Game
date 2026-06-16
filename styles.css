@@ -5642,3 +5642,129 @@ body.pixel-style-geometry:not(.start-menu-active) .dev-settings-panel {
 body.pixel-style-geometry:not(.start-menu-active) .hidden {
   display: none !important;
 }
+
+/* Universal UI surface pass: Settings can open from Start, so these rules must not depend on start-menu-active. */
+body.pixel-style-geometry,
+body.pixel-style-geometry button,
+body.pixel-style-geometry input,
+body.pixel-style-geometry select,
+body.pixel-style-geometry textarea,
+body.pixel-style-geometry .settings-overlay,
+body.pixel-style-geometry .dev-settings-overlay,
+body.pixel-style-geometry .banner {
+  font-family: "PressStart2P", ui-monospace, monospace;
+  letter-spacing: 0;
+}
+
+body.pixel-style-geometry .settings-overlay,
+body.pixel-style-geometry .settings-panel,
+body.pixel-style-geometry .dev-settings-panel,
+body.pixel-style-geometry .settings-grid > .control-card,
+body.pixel-style-geometry .dev-settings-section,
+body.pixel-style-geometry .settings-change-card,
+body.pixel-style-geometry .inventory-panel,
+body.pixel-style-geometry .lock-panel,
+body.pixel-style-geometry .laptop-panel,
+body.pixel-style-geometry .laptop-screen,
+body.pixel-style-geometry .pause-panel,
+body.pixel-style-geometry .banner,
+body.pixel-style-geometry .mission-report,
+body.pixel-style-geometry .control-card,
+body.pixel-style-geometry .inventory-card,
+body.pixel-style-geometry .mission-status-card,
+body.pixel-style-geometry .tutorial-card,
+body.pixel-style-geometry .hint-card,
+body.pixel-style-geometry .actions-card,
+body.pixel-style-geometry .operator-health-card,
+body.pixel-style-geometry .side-panel,
+body.pixel-style-geometry #equipmentTableOverlay .inventory-panel {
+  border: 0 !important;
+  border-image: none !important;
+  border-radius: 0 !important;
+  background: rgba(12, 16, 18, 0.68) !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(5px);
+}
+
+body.pixel-style-geometry .settings-tabs,
+body.pixel-style-geometry .dev-settings-tabs,
+body.pixel-style-geometry .settings-actions button,
+body.pixel-style-geometry .settings-footer-actions button,
+body.pixel-style-geometry .keybinding-row,
+body.pixel-style-geometry .enemy-loadout-row,
+body.pixel-style-geometry .operator-card,
+body.pixel-style-geometry .inventory-item-detail,
+body.pixel-style-geometry .equipment-table-options section,
+body.pixel-style-geometry .lock-display,
+body.pixel-style-geometry .mission-status-grid div,
+body.pixel-style-geometry .inventory-grid div {
+  border: 0 !important;
+  border-image: none !important;
+  background: rgba(18, 24, 27, 0.5) !important;
+}
+
+body.pixel-style-geometry .settings-tabs button,
+body.pixel-style-geometry .dev-settings-tabs button {
+  border: 0 !important;
+  border-image: none !important;
+  background: rgba(18, 24, 27, 0.42) !important;
+}
+
+body.pixel-style-geometry .settings-tabs button.active,
+body.pixel-style-geometry .dev-settings-tabs button.active {
+  background: rgba(36, 48, 52, 0.62) !important;
+}
+
+body.pixel-style-geometry .game-panel,
+body.pixel-style-geometry canvas {
+  background: #0f1112 !important;
+  border-image: none !important;
+  backdrop-filter: none !important;
+}
+
+body.pixel-style-geometry .left-panel,
+body.pixel-style-geometry .side-panel,
+body.pixel-style-geometry .selected-loadout-card,
+body.pixel-style-geometry .weapon-pixel-preview {
+  overflow: visible;
+}
+
+body.pixel-style-geometry .selected-loadout-card {
+  z-index: 1;
+}
+
+body.pixel-style-geometry .selected-loadout-card:has(.weapon-pixel-preview:hover),
+body.pixel-style-geometry .selected-loadout-card:focus-within {
+  z-index: 60;
+}
+
+body.pixel-style-geometry .weapon-pixel-preview {
+  z-index: 61;
+}
+
+body.pixel-style-geometry .weapon-pixel-preview:hover,
+body.pixel-style-geometry .weapon-pixel-preview:focus-within {
+  z-index: 80;
+}
+
+body.pixel-style-geometry .weapon-tooltip {
+  z-index: 120;
+  background: rgba(12, 16, 18, 0.94) !important;
+  border: 0 !important;
+  border-image: none !important;
+  box-shadow: 0 20px 64px rgba(0, 0, 0, 0.58);
+}
+
+/* Dev Setting is a right-side page inside the Settings workflow; its full-screen shell must not become a blocking card. */
+body.pixel-style-geometry .dev-settings-overlay {
+  border: 0 !important;
+  border-image: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  pointer-events: none;
+}
+
+body.pixel-style-geometry .dev-settings-panel {
+  pointer-events: auto;
+}

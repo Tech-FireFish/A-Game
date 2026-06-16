@@ -88,6 +88,7 @@ h2 {
 }
 
 .board-wrap {
+  position: relative;
   overflow: auto;
 }
 
@@ -95,6 +96,101 @@ canvas {
   display: block;
   background: #15191b;
   cursor: crosshair;
+}
+
+canvas.is-hand {
+  cursor: grab;
+}
+
+canvas.is-panning {
+  cursor: grabbing;
+}
+
+canvas.is-dragging {
+  cursor: move;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.view-controls {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(16, 18, 20, 0.86);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38);
+}
+
+.view-controls strong {
+  min-width: 56px;
+  color: var(--cyan);
+  text-align: center;
+}
+
+.download-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.download-dialog.hidden {
+  display: none;
+}
+
+.download-card {
+  display: grid;
+  gap: 12px;
+  width: min(420px, calc(100vw - 40px));
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+}
+
+.download-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.download-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.object-context-menu {
+  position: fixed;
+  z-index: 20;
+  display: grid;
+  min-width: 120px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(23, 27, 30, 0.96);
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.45);
+}
+
+.object-context-menu.hidden {
+  display: none;
+}
+
+.object-context-menu button {
+  justify-content: start;
+  text-align: left;
 }
 
 .property-panel {

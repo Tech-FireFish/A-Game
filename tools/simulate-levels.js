@@ -19,15 +19,9 @@ const ARMOR_FILES = [
   "medium-armor.json",
   "heavy-armor.json"
 ];
-const LEVEL_FILES = [
-  "ridge-house-entry.json",
-  "warehouse-pinch.json",
-  "hardpoint-gallery.json",
-  "terminal-breach.json",
-  "house-blueprint.json",
-  "camera-house.json",
-  "passage-boat-blueprint.json"
-];
+const LEVEL_FILES = fs.existsSync("level")
+  ? fs.readdirSync("level").filter((file) => file.endsWith(".json")).sort()
+  : [];
 const TUTORIAL_FILES = fs.existsSync("tutorials")
   ? fs.readdirSync("tutorials").filter((file) => file.endsWith(".json")).sort()
   : [];
