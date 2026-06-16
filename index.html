@@ -335,6 +335,7 @@
           <div class="settings-grid">
             <nav class="settings-tabs" aria-label="Settings sections">
               <button type="button" class="active" data-settings-tab="keys">Keys</button>
+              <button type="button" data-settings-tab="general">Generals</button>
               <button type="button" data-settings-tab="sound">Sound Effects</button>
               <button type="button" data-settings-tab="dev">Dev Mode</button>
             </nav>
@@ -342,6 +343,17 @@
             <section class="control-card" data-settings-panel="keys">
               <p class="panel-label">Keys</p>
               <div class="keybinding-list" id="keyBindingList"></div>
+            </section>
+
+            <section class="control-card hidden" data-settings-panel="general">
+              <p class="panel-label">Generals</p>
+              <label class="level-picker" for="shootingModeSelect">
+                <span>Shooting</span>
+                <select id="shootingModeSelect">
+                  <option value="automatic">Automatic</option>
+                  <option value="manual">Manual</option>
+                </select>
+              </label>
             </section>
 
             <section class="control-card hidden" data-settings-panel="sound">
@@ -419,13 +431,6 @@
                 <select id="difficultySelect">
                   <option value="normal">Normal</option>
                   <option value="difficult">Difficult</option>
-                </select>
-              </label>
-              <label class="level-picker" for="shootingModeSelect">
-                <span>Shooting</span>
-                <select id="shootingModeSelect">
-                  <option value="automatic">Automatic</option>
-                  <option value="manual">Manual</option>
                 </select>
               </label>
               <label class="level-picker" for="enemyTraceSelect">
@@ -626,16 +631,16 @@
     <script src="mobile/object-scale-system.js?v=1"></script>
     <script src="mobile/mobile-control-system.js?v=1"></script>
     <script src="systems/equipment-system.js?v=1"></script>
-    <script src="systems/level-system.js?v=3"></script>
+    <script src="systems/level-system.js?v=4"></script>
     <script src="systems/visibility-system.js?v=1"></script>
-    <script src="systems/settings-system.js?v=6"></script>
+    <script src="systems/settings-system.js?v=7"></script>
     <script src="systems/digital-lock-system.js?v=1"></script>
     <script src="systems/enemy-behavior-system.js?v=1"></script>
-    <script src="systems/mission-system.js?v=2"></script>
+    <script src="systems/mission-system.js?v=3"></script>
     <script src="systems/render-system.js?v=1"></script>
     <script src="systems/input-system.js?v=7"></script>
     <script src="systems/action-system.js?v=3"></script>
     <script src="css-pixel-art/store-pixel-art.js?v=1"></script>
-    <script src="main.js?v=32"></script>
+    <script src="main.js?v=33"></script>
   </body>
 </html>

@@ -153,6 +153,8 @@ const DEFAULT_WORLD = { w: 960, h: 640 };
 const RESUME_STORAGE_KEY = "delta-geometry-resume";
 const STORE_PROFILE_STORAGE_KEY = "delta-geometry-store-profile";
 const AUDIO_SETTINGS_STORAGE_KEY = "delta-geometry-audio-settings";
+const EDITOR_PREVIEW_STORAGE_KEY = "delta-geometry-editor-preview";
+const EDITOR_PREVIEW_FALLBACK_STORAGE_KEY = "delta-geometry-editor-preview-transfer";
 const WORLD = { ...DEFAULT_WORLD };
 const TWO_PI = Math.PI * 2;
 const UNIT_RADIUS = 12;
@@ -206,6 +208,8 @@ const TEMP_LEVEL_OPTIONS = [
   // Temporary level removed to recycle/temp.
   // { id: "temp-ridge-scene-source", title: "Temp: Ridge Scene Source", file: "temp/ridge-house-entry-scene-source.json" }
 ];
+
+const FALLBACK_LEVEL_OPTIONS = LEVEL_OPTIONS.map((level) => ({ ...level }));
 
 const WEAPON_OPTIONS = [
   { id: "no-weapon", file: "equipment/no-weapon.json" },
@@ -1617,6 +1621,7 @@ async function preloadGameData() {
   if (runtime.gameDataReady) return true;
   if (runtime.gameDataLoading) return runtime.gameDataLoading;
   runtime.gameDataLoading = (async () => {
+    await loadServerLevelOptions();
     level.populateLevelSelect();
     await equipment.loadEquipment();
     syncStoreDefaultsToLoadouts();
@@ -1648,9 +1653,98 @@ async function ensureGameDataReady() {
   return preloadGameData();
 }
 
+// Replaces the story level list with the server-scanned /level manifest when available.
+async function loadServerLevelOptions() {
+  try {
+    const response = await fetch("/api/levels", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Level manifest request failed: ${response.status}`);
+    const data = await response.json();
+    const levels = Array.isArray(data && data.levels) ? data.levels.map(normalizeLevelOption).filter(Boolean) : [];
+    if (!levels.length) throw new Error("Level manifest is empty");
+    LEVEL_OPTIONS.splice(0, LEVEL_OPTIONS.length, ...levels);
+  } catch (error) {
+    LEVEL_OPTIONS.splice(0, LEVEL_OPTIONS.length, ...FALLBACK_LEVEL_OPTIONS.map((level) => ({ ...level })));
+    console.warn(`Using fallback level list: ${error.message}`);
+  }
+}
+
+function normalizeLevelOption(level) {
+  if (!level || typeof level !== "object") return null;
+  const id = typeof level.id === "string" ? level.id.trim() : "";
+  const title = typeof level.title === "string" ? level.title.trim() : "";
+  const file = typeof level.file === "string" ? level.file.trim() : "";
+  if (!id || !title || !/^level\/[^/\\]+\.json$/i.test(file)) return null;
+  return { id, title, file };
+}
+
+function isEditorPreviewRequest() {
+  try {
+    return new URLSearchParams(window.location.search).get("preview") === "scene-editor";
+  } catch (error) {
+    return false;
+  }
+}
+
+function readEditorPreviewPayload() {
+  let raw = "";
+  try {
+    raw = sessionStorage.getItem(EDITOR_PREVIEW_STORAGE_KEY) || "";
+    if (!raw) {
+      raw = localStorage.getItem(EDITOR_PREVIEW_FALLBACK_STORAGE_KEY) || "";
+    }
+    if (raw) localStorage.removeItem(EDITOR_PREVIEW_FALLBACK_STORAGE_KEY);
+  } catch (error) {
+    throw new Error("Preview data unavailable. Return to Scene Editor and press Start Preview again.");
+  }
+  if (!raw) throw new Error("Preview data unavailable. Return to Scene Editor and press Start Preview again.");
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    throw new Error("Preview data is invalid. Return to Scene Editor and press Start Preview again.");
+  }
+  if (!payload || payload.source !== "scene-editor" || !payload.level || typeof payload.level !== "object") {
+    throw new Error("Preview data unavailable. Return to Scene Editor and press Start Preview again.");
+  }
+  return payload;
+}
+
+function showPreviewLoadFailed(error) {
+  document.documentElement.classList.remove("start-menu-active");
+  document.body.classList.remove("start-menu-active");
+  if (elements.startMenuOverlay) elements.startMenuOverlay.classList.add("hidden");
+  if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
+  if (elements.mainMenuOverlay) elements.mainMenuOverlay.classList.add("hidden");
+  runtime.state = null;
+  elements.levelTitle.textContent = "Preview Load Failed";
+  elements.bannerTitle.textContent = "Preview Load Failed";
+  elements.bannerText.textContent = error.message || "Preview data unavailable. Return to Scene Editor and press Start Preview again.";
+  elements.banner.classList.remove("hidden");
+  updateHud();
+}
+
+async function bootEditorPreview() {
+  try {
+    const payload = readEditorPreviewPayload();
+    await preloadGameData();
+    await level.loadLevelObject(payload.level, {
+      id: payload.level.id || "editor-preview",
+      title: payload.level.title || "Editor Preview",
+      mode: "preview"
+    });
+    if (menu) menu.enterGame();
+  } catch (error) {
+    showPreviewLoadFailed(error);
+  }
+}
+
 // Shows the start menu first, then preloads game data after the first paint.
 async function boot() {
   try {
+    if (isEditorPreviewRequest()) {
+      await bootEditorPreview();
+      return;
+    }
     if (menu) menu.showStart();
     updateHud();
     requestAnimationFrame(() => {

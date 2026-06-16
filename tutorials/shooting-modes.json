@@ -43,10 +43,7 @@
   ],
   "objective": { "x": 720, "y": 398, "radius": 16, "secured": false, "harmed": false },
   "tutorialSteps": [
-    { "id": "auto", "title": "Automatic Shooting", "text": "Leave Shooting on Automatic and face the target. Operators fire when they have range and line of sight.", "completeWhen": "automaticShotFired" },
-    { "id": "down-target", "title": "Neutralize A Target", "text": "Down the target once. It will return every 3 seconds so you can practice.", "completeWhen": "enemyNeutralized", "enemyId": "TARGET" },
-    { "id": "manual-mode", "title": "Switch To Manual", "text": "Open Settings > Mission Setup > Shooting, choose Manual, then close Settings.", "completeWhen": "shootingMode", "mode": "manual" },
-    { "id": "manual-fire", "title": "Hold To Fire", "text": "Hold the left mouse button on the canvas to fire manually, then release to stop.", "completeWhen": "manualShotFired" },
-    { "id": "finish", "title": "Secure The VIP", "text": "Move to the VIP marker when you are done testing both modes.", "completeWhen": "objectiveSecured" }
+    { "id": "practice-target", "title": "Neutralize The Target 3 Times", "text": "Practice with your current shooting mode. The target returns every 3 seconds; neutralize it 3 times before touching the VIP.", "textAutomatic": "Automatic mode: face the target and keep range plus line of sight. The operator fires when ready. Neutralize the respawning target 3 times.", "textManual": "Manual mode: move the mouse to aim, press and hold the left mouse button to shoot, and release to stop. Neutralize the respawning target 3 times.", "completeWhen": "enemyNeutralizedCount", "enemyId": "TARGET", "count": 3, "modeAware": true },
+    { "id": "finish", "title": "Secure The VIP", "text": "Move to the VIP marker after neutralizing the target 3 times in the detected shooting mode.", "completeWhen": "objectiveSecured" }
   ]
 }

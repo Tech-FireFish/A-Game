@@ -4,85 +4,525 @@
   "width": 1280,
   "height": 760,
   "floorZones": [
-    { "x": 150, "y": 100, "w": 760, "h": 560, "hiddenZone": "living" },
-    { "x": 930, "y": 100, "w": 220, "h": 560, "hiddenZone": "bedrooms" }
+    {
+      "x": 150,
+      "y": 100,
+      "w": 760,
+      "h": 560,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 930,
+      "y": 100,
+      "w": 220,
+      "h": 560,
+      "hiddenZone": "bedrooms"
+    }
   ],
   "rooms": [
-    { "id": "living-room", "label": "Living Room", "x": 180, "y": 140, "w": 300, "h": 250, "hiddenZone": "living" },
-    { "id": "kitchen", "label": "Kitchen", "x": 500, "y": 140, "w": 220, "h": 250, "hiddenZone": "kitchen" },
-    { "id": "dining-room", "label": "Dining Room", "x": 740, "y": 140, "w": 170, "h": 250, "hiddenZone": "kitchen" },
-    { "id": "bathroom", "label": "Bathroom", "x": 180, "y": 420, "w": 220, "h": 220, "hiddenZone": "living" },
-    { "id": "closet", "label": "Closet", "x": 420, "y": 420, "w": 150, "h": 220, "hiddenZone": "living" },
-    { "id": "bedroom", "label": "Bedroom", "x": 590, "y": 420, "w": 320, "h": 220, "hiddenZone": "bedrooms" },
-    { "id": "second-bedroom", "label": "Bedroom", "x": 950, "y": 140, "w": 200, "h": 250, "hiddenZone": "bedrooms" },
-    { "id": "storage", "label": "Closet", "x": 950, "y": 420, "w": 200, "h": 220, "hiddenZone": "bedrooms" }
+    {
+      "id": "living-room",
+      "label": "Living Room",
+      "x": 180,
+      "y": 140,
+      "w": 300,
+      "h": 250,
+      "hiddenZone": "living"
+    },
+    {
+      "id": "kitchen",
+      "label": "Kitchen",
+      "x": 500,
+      "y": 140,
+      "w": 220,
+      "h": 250,
+      "hiddenZone": "kitchen"
+    },
+    {
+      "id": "dining-room",
+      "label": "Dining Room",
+      "x": 740,
+      "y": 140,
+      "w": 170,
+      "h": 250,
+      "hiddenZone": "kitchen"
+    },
+    {
+      "id": "bathroom",
+      "label": "Bathroom",
+      "x": 180,
+      "y": 420,
+      "w": 220,
+      "h": 220,
+      "hiddenZone": "living"
+    },
+    {
+      "id": "closet",
+      "label": "Closet",
+      "x": 420,
+      "y": 420,
+      "w": 150,
+      "h": 220,
+      "hiddenZone": "living"
+    },
+    {
+      "id": "bedroom",
+      "label": "Bedroom",
+      "x": 590,
+      "y": 420,
+      "w": 320,
+      "h": 220,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "id": "second-bedroom",
+      "label": "Bedroom",
+      "x": 950,
+      "y": 140,
+      "w": 200,
+      "h": 250,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "id": "storage",
+      "label": "Closet",
+      "x": 950,
+      "y": 420,
+      "w": 200,
+      "h": 220,
+      "hiddenZone": "bedrooms"
+    }
   ],
   "labels": [
-    { "text": "EXTERIOR CAMERA ENTRY", "x": 560, "y": 58 },
-    { "text": "INTERIOR HIDDEN UNTIL CAMERA HACK", "x": 690, "y": 710, "hiddenZone": "living" }
+    {
+      "text": "EXTERIOR CAMERA ENTRY",
+      "x": 560,
+      "y": 58
+    },
+    {
+      "text": "INTERIOR HIDDEN UNTIL CAMERA HACK",
+      "x": 690,
+      "y": 710,
+      "hiddenZone": "living"
+    }
   ],
   "walls": [
-    { "x": 0, "y": 0, "w": 1280, "h": 20 },
-    { "x": 0, "y": 740, "w": 1280, "h": 20 },
-    { "x": 0, "y": 0, "w": 20, "h": 760 },
-    { "x": 1260, "y": 0, "w": 20, "h": 760 },
-
-    { "x": 150, "y": 100, "w": 1000, "h": 20 },
-    { "x": 150, "y": 660, "w": 1000, "h": 20 },
-    { "x": 150, "y": 100, "w": 20, "h": 245 },
-    { "x": 150, "y": 455, "w": 20, "h": 225 },
-    { "x": 1130, "y": 100, "w": 20, "h": 560 },
-
-    { "x": 480, "y": 120, "w": 20, "h": 115, "hiddenZone": "living" },
-    { "x": 480, "y": 315, "w": 20, "h": 75, "hiddenZone": "living" },
-    { "x": 720, "y": 120, "w": 20, "h": 115, "hiddenZone": "kitchen" },
-    { "x": 720, "y": 315, "w": 20, "h": 75, "hiddenZone": "kitchen" },
-    { "x": 170, "y": 390, "w": 130, "h": 20, "hiddenZone": "living" },
-    { "x": 410, "y": 390, "w": 180, "h": 20, "hiddenZone": "living" },
-    { "x": 700, "y": 390, "w": 210, "h": 20, "hiddenZone": "bedrooms" },
-    { "x": 400, "y": 410, "w": 20, "h": 115, "hiddenZone": "living" },
-    { "x": 400, "y": 605, "w": 20, "h": 55, "hiddenZone": "living" },
-    { "x": 570, "y": 410, "w": 20, "h": 115, "hiddenZone": "bedrooms" },
-    { "x": 570, "y": 605, "w": 20, "h": 55, "hiddenZone": "bedrooms" },
-    { "x": 930, "y": 100, "w": 20, "h": 245, "hiddenZone": "bedrooms" },
-    { "x": 930, "y": 455, "w": 20, "h": 225, "hiddenZone": "bedrooms" },
-    { "x": 950, "y": 390, "w": 200, "h": 20, "hiddenZone": "bedrooms" }
+    {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 20
+    },
+    {
+      "x": 0,
+      "y": 740,
+      "w": 1280,
+      "h": 20
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "w": 20,
+      "h": 760
+    },
+    {
+      "x": 1260,
+      "y": 0,
+      "w": 20,
+      "h": 760
+    },
+    {
+      "x": 150,
+      "y": 100,
+      "w": 1000,
+      "h": 20
+    },
+    {
+      "x": 150,
+      "y": 660,
+      "w": 1000,
+      "h": 20
+    },
+    {
+      "x": 150,
+      "y": 100,
+      "w": 20,
+      "h": 245
+    },
+    {
+      "x": 150,
+      "y": 410,
+      "w": 20,
+      "h": 270
+    },
+    {
+      "x": 1130,
+      "y": 100,
+      "w": 20,
+      "h": 560
+    },
+    {
+      "x": 480,
+      "y": 120,
+      "w": 20,
+      "h": 115,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 480,
+      "y": 315,
+      "w": 20,
+      "h": 75,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 720,
+      "y": 120,
+      "w": 20,
+      "h": 115,
+      "hiddenZone": "kitchen"
+    },
+    {
+      "x": 720,
+      "y": 315,
+      "w": 20,
+      "h": 75,
+      "hiddenZone": "kitchen"
+    },
+    {
+      "x": 150,
+      "y": 390,
+      "w": 150,
+      "h": 20,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 400,
+      "y": 390,
+      "w": 190,
+      "h": 20,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 700,
+      "y": 390,
+      "w": 210,
+      "h": 20,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "x": 400,
+      "y": 410,
+      "w": 20,
+      "h": 115,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 400,
+      "y": 605,
+      "w": 20,
+      "h": 55,
+      "hiddenZone": "living"
+    },
+    {
+      "x": 570,
+      "y": 410,
+      "w": 20,
+      "h": 115,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "x": 570,
+      "y": 605,
+      "w": 20,
+      "h": 55,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "x": 930,
+      "y": 100,
+      "w": 20,
+      "h": 245,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "x": 930,
+      "y": 455,
+      "w": 20,
+      "h": 225,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "x": 910,
+      "y": 390,
+      "w": 240,
+      "h": 20,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "x": 150,
+      "y": 325,
+      "w": 120,
+      "h": 20
+    }
   ],
   "doors": [
-    { "id": "front-door", "x": 150, "y": 345, "w": 20, "h": 110, "orientation": "vertical", "state": "closed" },
-    { "id": "kitchen-door", "x": 480, "y": 235, "w": 20, "h": 80, "orientation": "vertical", "state": "closed", "hiddenZone": "living" },
-    { "id": "dining-door", "x": 720, "y": 235, "w": 20, "h": 80, "orientation": "vertical", "state": "closed", "hiddenZone": "kitchen" },
-    { "id": "bath-door", "x": 300, "y": 390, "w": 110, "h": 20, "orientation": "horizontal", "state": "closed", "hiddenZone": "living" },
-    { "id": "closet-door", "x": 400, "y": 525, "w": 20, "h": 80, "orientation": "vertical", "state": "closed", "hiddenZone": "living" },
-    { "id": "bedroom-door", "x": 590, "y": 390, "w": 110, "h": 20, "orientation": "horizontal", "state": "closed", "hiddenZone": "bedrooms" },
-    { "id": "east-bedroom-door", "x": 930, "y": 345, "w": 20, "h": 110, "orientation": "vertical", "state": "closed", "hiddenZone": "bedrooms" }
+    {
+      "id": "front-door",
+      "x": 250,
+      "y": 345,
+      "w": 20,
+      "h": 45,
+      "orientation": "vertical",
+      "state": "closed"
+    },
+    {
+      "id": "kitchen-door",
+      "x": 480,
+      "y": 235,
+      "w": 20,
+      "h": 80,
+      "orientation": "vertical",
+      "state": "closed",
+      "hiddenZone": "living"
+    },
+    {
+      "id": "dining-door",
+      "x": 720,
+      "y": 235,
+      "w": 20,
+      "h": 80,
+      "orientation": "vertical",
+      "state": "closed",
+      "hiddenZone": "kitchen"
+    },
+    {
+      "id": "bath-door",
+      "x": 300,
+      "y": 390,
+      "w": 100,
+      "h": 20,
+      "orientation": "horizontal",
+      "state": "closed",
+      "hiddenZone": "living"
+    },
+    {
+      "id": "closet-door",
+      "x": 400,
+      "y": 525,
+      "w": 20,
+      "h": 80,
+      "orientation": "vertical",
+      "state": "closed",
+      "hiddenZone": "living"
+    },
+    {
+      "id": "bedroom-door",
+      "x": 590,
+      "y": 390,
+      "w": 110,
+      "h": 20,
+      "orientation": "horizontal",
+      "state": "closed",
+      "hiddenZone": "bedrooms"
+    }
   ],
   "windows": [
-    { "id": "living-window", "x": 260, "y": 100, "w": 130, "h": 20, "orientation": "horizontal", "state": "closed", "damage": 8 },
-    { "id": "kitchen-window", "x": 560, "y": 100, "w": 130, "h": 20, "orientation": "horizontal", "state": "closed", "damage": 8, "hiddenZone": "kitchen" },
-    { "id": "bedroom-window", "x": 680, "y": 660, "w": 130, "h": 20, "orientation": "horizontal", "state": "closed", "damage": 8, "hiddenZone": "bedrooms" },
-    { "id": "east-window", "x": 1130, "y": 240, "w": 20, "h": 120, "orientation": "vertical", "state": "closed", "damage": 8, "hiddenZone": "bedrooms" }
+    {
+      "id": "living-window",
+      "x": 260,
+      "y": 100,
+      "w": 130,
+      "h": 20,
+      "orientation": "horizontal",
+      "state": "closed",
+      "damage": 8
+    },
+    {
+      "id": "kitchen-window",
+      "x": 560,
+      "y": 100,
+      "w": 130,
+      "h": 20,
+      "orientation": "horizontal",
+      "state": "closed",
+      "damage": 8,
+      "hiddenZone": "kitchen"
+    },
+    {
+      "id": "bedroom-window",
+      "x": 680,
+      "y": 660,
+      "w": 130,
+      "h": 20,
+      "orientation": "horizontal",
+      "state": "closed",
+      "damage": 8,
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "id": "east-window",
+      "x": 1130,
+      "y": 240,
+      "w": 20,
+      "h": 120,
+      "orientation": "vertical",
+      "state": "closed",
+      "damage": 8,
+      "hiddenZone": "bedrooms"
+    }
   ],
-  "laptops": [
-    { "id": "outside-laptop", "name": "Outside Camera Laptop", "x": 70, "y": 480, "w": 76, "h": 44 }
-  ],
-  "cameras": [
-    { "id": "c1", "label": "C1", "x": 330, "y": 175, "revealZones": ["living"] },
-    { "id": "c2", "label": "C2", "x": 615, "y": 175, "revealZones": ["kitchen"] },
-    { "id": "c3", "label": "C3", "x": 760, "y": 520, "revealZones": ["bedrooms"] }
-  ],
+  "stairs": [],
   "items": [],
   "equipmentTables": [
-    { "id": "outside-gear-table", "name": "Outside Gear Table", "x": 70, "y": 560, "w": 76, "h": 60 }
+    {
+      "id": "outside-gear-table",
+      "name": "Outside Gear Table",
+      "x": 50,
+      "y": 550,
+      "w": 76,
+      "h": 60
+    }
   ],
   "operators": [
-    { "id": "ALPHA", "x": 82, "y": 360, "color": "#67c98f", "floor": "Exterior", "zone": "Driveway" },
-    { "id": "BRAVO", "x": 82, "y": 410, "color": "#72b7ce", "floor": "Exterior", "zone": "Driveway" }
+    {
+      "id": "ALPHA",
+      "x": 82,
+      "y": 360,
+      "color": "#67c98f",
+      "floor": "Exterior",
+      "zone": "Driveway"
+    },
+    {
+      "id": "BRAVO",
+      "x": 82,
+      "y": 410,
+      "color": "#72b7ce",
+      "floor": "Exterior",
+      "zone": "Driveway"
+    }
   ],
   "enemies": [
-    { "id": "E1", "x": 325, "y": 250, "angle": 3.141592653589793, "watch": { "x": 355, "y": 400 }, "patrol": [{ "x": 325, "y": 250 }, { "x": 420, "y": 320 }], "hiddenZone": "living" },
-    { "id": "E2", "x": 610, "y": 190, "angle": 3.141592653589793, "watch": { "x": 730, "y": 275 }, "hiddenZone": "kitchen" },
-    { "id": "E3", "x": 780, "y": 520, "angle": -1.5707963267948966, "watch": { "x": 645, "y": 400 }, "hiddenZone": "bedrooms" }
+    {
+      "id": "E1",
+      "x": 325,
+      "y": 250,
+      "angle": 3.141592653589793,
+      "watch": {
+        "x": 355,
+        "y": 400
+      },
+      "patrol": [
+        {
+          "x": 325,
+          "y": 250
+        },
+        {
+          "x": 420,
+          "y": 320
+        }
+      ],
+      "hiddenZone": "living"
+    },
+    {
+      "id": "E2",
+      "x": 610,
+      "y": 190,
+      "angle": 3.141592653589793,
+      "watch": {
+        "x": 730,
+        "y": 275
+      },
+      "hiddenZone": "kitchen"
+    },
+    {
+      "id": "E3",
+      "x": 780,
+      "y": 520,
+      "angle": -1.5707963267948966,
+      "watch": {
+        "x": 645,
+        "y": 400
+      },
+      "hiddenZone": "bedrooms"
+    },
+    {
+      "id": "E-16955",
+      "x": 1010,
+      "y": 540,
+      "angle": 3.14159,
+      "watch": {
+        "x": 980,
+        "y": 550
+      }
+    },
+    {
+      "id": "E-39507",
+      "x": 1020,
+      "y": 270,
+      "angle": 3.14159,
+      "watch": {
+        "x": 940,
+        "y": 300
+      }
+    },
+    {
+      "id": "E-44926",
+      "x": 1030,
+      "y": 160,
+      "angle": 3.14159,
+      "watch": {
+        "x": 960,
+        "y": 190
+      }
+    },
+    {
+      "id": "E-50906",
+      "x": 990,
+      "y": 150,
+      "angle": 3.14159,
+      "watch": {
+        "x": 900,
+        "y": 150
+      }
+    },
+    {
+      "id": "E-71996",
+      "x": 990,
+      "y": 300,
+      "angle": 3.14159,
+      "watch": {
+        "x": 910,
+        "y": 150
+      }
+    },
+    {
+      "id": "E-27769",
+      "x": 1020,
+      "y": 500,
+      "angle": 3.14159,
+      "watch": {
+        "x": 980,
+        "y": 500
+      }
+    },
+    {
+      "id": "E-70558",
+      "x": 990,
+      "y": 190,
+      "angle": 3.14159,
+      "watch": {
+        "x": 870,
+        "y": 190
+      }
+    }
   ],
-  "objective": { "x": 820, "y": 575, "radius": 16, "secured": false, "harmed": false, "hiddenZone": "bedrooms" }
+  "objective": {
+    "x": 820,
+    "y": 575,
+    "radius": 16,
+    "secured": false,
+    "harmed": false,
+    "hiddenZone": "bedrooms"
+  }
 }
