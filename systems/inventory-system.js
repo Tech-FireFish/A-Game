@@ -24,6 +24,7 @@
       if (deps.runtime.state) deps.runtime.state.running = false;
       deps.keysDown.clear();
       deps.elements.inventoryOverlay.classList.remove("hidden");
+      if (deps.audio) deps.audio.play("inventory-open");
       renderInventory();
       deps.updateHud();
     }
@@ -37,6 +38,7 @@
         deps.runtime.state.running = true;
       }
       deps.runtime.inventoryResumeRunning = false;
+      if (deps.audio) deps.audio.play("inventory-close");
       deps.updateHud();
     }
 
@@ -100,6 +102,7 @@
       }
       addStack(op, stack);
       item.picked = true;
+      if (deps.audio) deps.audio.play(item.type === "paper" ? "paper-pickup" : "store-select");
       state.message = `${op.id} picked up ${item.name || item.id}`;
       if (deps.runtime.inventoryOpen) renderInventory();
       renderSummary();
@@ -172,6 +175,7 @@
       } else if (type === "backpack") {
         deps.equipment.applyOperatorBackpack(op, id);
       }
+      if (deps.audio) deps.audio.play("gear-equip");
       renderInventory();
       renderSummary();
     }

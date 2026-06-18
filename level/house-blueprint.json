@@ -460,7 +460,7 @@
       "y": 300,
       "w": 20,
       "h": 60,
-      "orientation": "horizontal",
+      "orientation": "vertical",
       "state": "closed"
     }
   ],

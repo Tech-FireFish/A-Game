@@ -24,6 +24,7 @@
           return;
         }
         obj.secured = true;
+        deps.audio.play("objective-secured");
       }
     }
 
@@ -39,6 +40,10 @@
       if (state.level.objective.secured || allEnemiesDown) {
         finishMission("success", "Mission Complete", "Objective secured. The route held together.");
       } else if (!liveOps || state.level.objective.harmed) {
+        if (state.level.objective.harmed && !state.level.objective.harmedSoundPlayed) {
+          state.level.objective.harmedSoundPlayed = true;
+          deps.audio.play("vip-harmed");
+        }
         finishMission("failure", "Mission Failed", "Restart and adjust the entry plan.");
       }
     }
@@ -54,12 +59,13 @@
       const tutorialSuccess = runtime.activeMode === "tutorial" && result === "success";
       const storySuccess = runtime.activeMode === "level" && result === "success";
       const tempSuccess = runtime.activeMode === "temp" && result === "success";
+      const previewMode = runtime.activeMode === "preview";
       const progress = storySuccess && deps.progression
         ? deps.progression.recordMission(runtime.currentLevelMeta, state.level)
         : { privilegeEarned: 0, rewardsUnlocked: [], complexity: deps.progression ? deps.progression.complexity(state.level) : 0 };
-      const score = missionScore(result, progress);
+      const score = previewMode ? { neutralized: runtime.state.enemyDownCount || 0, complexity: progress.complexity || 0, enemyScore: 0, complexityScore: 0, baseScore: 0, total: 0 } : missionScore(result, progress);
       state.missionScore = score;
-      if (deps.addStoreScore) deps.addStoreScore(score.total);
+      if (!previewMode && deps.addStoreScore) deps.addStoreScore(score.total);
       elements.bannerTitle.textContent = title;
       elements.banner.classList.toggle("mission-success", result === "success");
       elements.banner.classList.toggle("mission-failure", result !== "success");
@@ -68,16 +74,21 @@
         const nextTutorial = deps.tutorialOptions[nextIndex];
         elements.bannerText.textContent = `${text} Continue to ${nextTutorial.title}, exit to the main page, or restart this tutorial.`;
         elements.nextLevelButton.textContent = nextIndex === 0 ? "First Tutorial" : "Next Tutorial";
+      } else if (previewMode) {
+        elements.bannerText.textContent = `${text} Preview complete. Restart this preview, choose a configured level, or return to the menu.`;
+        elements.nextLevelButton.textContent = "First Level";
       } else if (tempSuccess) {
         elements.bannerText.textContent = `${text} Temporary test level complete. Choose another destination, return to the main page, or restart.`;
         elements.nextLevelButton.textContent = "First Level";
       } else {
-        const nextIndex = (deps.currentLevelIndex() + 1) % deps.levelOptions.length;
+        const nextIndex = deps.currentLevelIndex() + 1;
         const nextLevel = deps.levelOptions[nextIndex];
         elements.bannerText.textContent = result === "success"
-          ? `${text} Continue to ${nextLevel.title}, choose another level, or return to the main page.`
+          ? (nextLevel
+            ? `${text} Continue to ${nextLevel.title}, choose another level, or return to the main page.`
+            : `${text} Return to the Store for the final report, or view the credits now.`)
           : `${text} Choose another level, return to the main page, or restart.`;
-        elements.nextLevelButton.textContent = nextIndex === 0 ? "First Level" : "Next Level";
+        elements.nextLevelButton.textContent = nextLevel ? "Next Level" : "Credits";
       }
       if (elements.exitTutorialButton) elements.exitTutorialButton.classList.add("hidden");
       renderMissionReport(result, progress);

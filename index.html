@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-    <link rel="stylesheet" href="styles.css?v=34">
+    <link rel="stylesheet" href="styles.css?v=40">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -30,6 +30,7 @@
           <button id="playMenuButton" type="button">Start</button>
           <button id="startSettingButton" type="button">Setting</button>
           <button id="startInfoButton" type="button">Information</button>
+          <button id="startCreditsButton" type="button">Credits</button>
           <button id="startExitButton" type="button">Exit</button>
         </nav>
         <p id="startExitMessage" class="start-menu-message hidden" role="status"></p>
@@ -267,7 +268,7 @@
               <button id="exitTutorialButton" class="hidden" type="button">Exit To First Level</button>
               <button id="bannerRestartButton" type="button">Restart</button>
               <button id="exitToMenuButton" type="button">Exit</button>
-              <button id="backToStoreButton" type="button">Back to Store</button>
+              <button id="backToStoreButton" type="button">Go to Store</button>
             </div>
           </div>
         </section>
@@ -360,7 +361,10 @@
               <p class="panel-label">Sound Effects</p>
               <label class="level-picker" for="backgroundMusicRange">
                 <span>Background Music <strong id="backgroundMusicValue" class="range-value">50</strong></span>
-                <input id="backgroundMusicRange" type="range" min="0" max="100" step="1" value="50">
+                <span class="range-control">
+                  <input id="backgroundMusicRange" type="range" min="0" max="100" step="1" value="50">
+                  <output id="backgroundMusicBubble" class="range-bubble" for="backgroundMusicRange">50</output>
+                </span>
               </label>
             </section>
 
@@ -442,11 +446,17 @@
               </label>
               <label class="level-picker" for="hintOpacityRange">
                 <span>Hint Transparency <strong id="hintOpacityValue" class="range-value">42%</strong></span>
-                <input id="hintOpacityRange" type="range" min="0.18" max="0.78" step="0.04" value="0.42">
+                <span class="range-control">
+                  <input id="hintOpacityRange" type="range" min="0.18" max="0.78" step="0.04" value="0.42">
+                  <output id="hintOpacityBubble" class="range-bubble" for="hintOpacityRange">42%</output>
+                </span>
               </label>
               <label class="level-picker" for="viewRange">
                 <span>View <strong id="viewValueLabel" class="range-value">50</strong></span>
-                <input id="viewRange" type="range" min="0" max="100" step="1" value="50">
+                <span class="range-control">
+                  <input id="viewRange" type="range" min="0" max="100" step="1" value="50">
+                  <output id="viewBubble" class="range-bubble" for="viewRange">50</output>
+                </span>
               </label>
               <label class="level-picker store-score-setting" for="storeScoreInput">
                 <span>Store Score</span>
@@ -617,6 +627,30 @@
       </div>
       -->
     </div>
+    <section id="endSequenceOverlay" class="end-sequence-overlay hidden" aria-label="End credits" aria-modal="true" role="dialog">
+      <div id="endCongratulationCard" class="end-congratulation-card">
+        <p>You have accomplished all challenges, congratulation.</p>
+      </div>
+      <!-- Visible transition text disabled; transition is now timing-only. -->
+      <div id="endTransitionCard" class="end-transition-card hidden" aria-hidden="true">
+        <p>Transmission complete.</p>
+      </div>
+      <div id="endCreditsCard" class="end-credits-card hidden">
+        <p class="panel-label">Credits</p>
+        <h2>Delta Geometry</h2>
+        <ul>
+          <li><span>Sound effect</span><strong>Tech-FireFish</strong></li>
+          <li><span>Art design</span><strong>Tech-FireFish</strong></li>
+          <li><span>Game design</span><strong>Tech-FireFish</strong></li>
+          <li><span>UI design</span><strong>Tech-FireFish</strong></li>
+          <li><span>Level design</span><strong>Tech-FireFish</strong></li>
+          <li><span>Tutorial design</span><strong>Tech-FireFish</strong></li>
+          <li><span>Engineering</span><strong>Tech-FireFish</strong></li>
+          <li><span>Music</span><strong>Redline Protocol</strong></li>
+        </ul>
+        <button id="endReturnMenuButton" type="button">Return to Menu</button>
+      </div>
+    </section>
     <script src="systems/audio-system.js?v=3"></script>
     <script src="systems/keybinding-system.js?v=1"></script>
     <script src="systems/camera-system.js?v=1"></script>
@@ -631,16 +665,16 @@
     <script src="mobile/object-scale-system.js?v=1"></script>
     <script src="mobile/mobile-control-system.js?v=1"></script>
     <script src="systems/equipment-system.js?v=1"></script>
-    <script src="systems/level-system.js?v=4"></script>
+    <script src="systems/level-system.js?v=5"></script>
     <script src="systems/visibility-system.js?v=1"></script>
-    <script src="systems/settings-system.js?v=7"></script>
+    <script src="systems/settings-system.js?v=8"></script>
     <script src="systems/digital-lock-system.js?v=1"></script>
     <script src="systems/enemy-behavior-system.js?v=1"></script>
-    <script src="systems/mission-system.js?v=3"></script>
+    <script src="systems/mission-system.js?v=4"></script>
     <script src="systems/render-system.js?v=1"></script>
-    <script src="systems/input-system.js?v=7"></script>
+    <script src="systems/input-system.js?v=11"></script>
     <script src="systems/action-system.js?v=3"></script>
     <script src="css-pixel-art/store-pixel-art.js?v=1"></script>
-    <script src="main.js?v=33"></script>
+    <script src="main.js?v=38"></script>
   </body>
 </html>

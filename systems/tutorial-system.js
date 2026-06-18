@@ -26,6 +26,9 @@
         lockOpened: false,
         tableOpened: false,
         completedEnemies: new Set(),
+        enemyNeutralizedCounts: {},
+        enemyNeutralizedModeCounts: {},
+        completedNeutralizeMode: null,
         prematureObjectiveTouches: 0,
         objectiveTouchLatched: false,
         warningText: "",
@@ -60,6 +63,10 @@
       if (step.completeWhen === "doorUnlocked") return Boolean(door && door.locked === false);
       if (step.completeWhen === "doorOpen") return Boolean(door && door.state !== "closed");
       if (step.completeWhen === "movementStarted") return state.level.operators.some((unit) => unit.movedBefore);
+      if (step.completeWhen === "shootingPracticeStarted") return state.level.operators.some((unit) => unit.movedBefore)
+        || Boolean(state.tutorial.automaticShotFired)
+        || Boolean(state.tutorial.manualShotFired)
+        || (state.tutorial.enemyNeutralizedCounts && Object.values(state.tutorial.enemyNeutralizedCounts).some((count) => count > 0));
       if (step.completeWhen === "sneaked") return Boolean(state.tutorial.sneaked);
       if (step.completeWhen === "sprinted") return Boolean(state.tutorial.sprinted);
       if (step.completeWhen === "operatorSelected") return Boolean(step.operatorId && state.selectedId === step.operatorId);
@@ -67,6 +74,7 @@
       if (step.completeWhen === "automaticShotFired") return Boolean(state.tutorial.automaticShotFired);
       if (step.completeWhen === "manualShotFired") return Boolean(state.tutorial.manualShotFired);
       if (step.completeWhen === "enemyNeutralized") return enemy ? enemy.down || state.tutorial.completedEnemies?.has(enemy.id) : state.enemyDownCount > 0;
+      if (step.completeWhen === "enemyNeutralizedCount") return enemyNeutralizedCount(state, step) >= (step.count || 1);
       if (step.completeWhen === "tableOpened") return state.tutorial.tableOpened;
       if (step.completeWhen === "weaponEquipped") return state.level.operators.some((unit) => unit.weaponId !== "no-weapon");
       if (step.completeWhen === "armorEquipped") return state.level.operators.some((unit) => unit.armorId !== "no-armor" && unit.maxArmor > 0);
@@ -77,6 +85,47 @@
       if (step.completeWhen === "stairUsed") return Boolean(stair && stair.used);
       if (step.completeWhen === "objectiveSecured") return Boolean(state.level.objective.secured);
       return false;
+    }
+
+    // Reads total or mode-specific repeated enemy-down counts for respawning target practice.
+    function enemyNeutralizedCount(state, step) {
+      const targetId = step.enemyId || "any";
+      if (step.modeAware) {
+        const modeCounts = state.tutorial.enemyNeutralizedModeCounts || {};
+        const automatic = modeCounts.automatic?.[targetId] || 0;
+        const manual = modeCounts.manual?.[targetId] || 0;
+        const required = step.count || 1;
+        if (!state.tutorial.completedNeutralizeMode) {
+          if (automatic >= required) state.tutorial.completedNeutralizeMode = "automatic";
+          if (manual >= required) state.tutorial.completedNeutralizeMode = "manual";
+        }
+        const completedMode = state.tutorial.completedNeutralizeMode;
+        return completedMode ? (modeCounts[completedMode]?.[targetId] || 0) : Math.max(automatic, manual);
+      }
+      return (state.tutorial.enemyNeutralizedCounts || {})[targetId] || 0;
+    }
+
+    // Builds mode-aware tutorial copy for steps that branch on automatic/manual shooting.
+    function stepText(state, step) {
+      if (!step.modeAware) return step.text;
+      const mode = state.tutorial.completedNeutralizeMode || state.shootingMode || "automatic";
+      if (mode === "manual" && step.textManual) return step.textManual;
+      if (mode === "automatic" && step.textAutomatic) return step.textAutomatic;
+      return step.text;
+    }
+
+    // Shows count progress for mode-aware practice without adding extra authored steps.
+    function stepProgress(state, step, fallback) {
+      if (step.completeWhen !== "enemyNeutralizedCount") return fallback;
+      const targetId = step.enemyId || "any";
+      const required = step.count || 1;
+      const mode = state.tutorial.completedNeutralizeMode || state.shootingMode || "automatic";
+      const modeCounts = state.tutorial.enemyNeutralizedModeCounts || {};
+      const count = step.modeAware
+        ? Math.min(modeCounts[mode]?.[targetId] || 0, required)
+        : Math.min((state.tutorial.enemyNeutralizedCounts || {})[targetId] || 0, required);
+      const label = step.modeAware ? `${mode.charAt(0).toUpperCase()}${mode.slice(1)} practice` : "Practice";
+      return `${label}: ${count} / ${required}`;
     }
 
     // Finds the selected operator for distance-based checks.
@@ -133,7 +182,7 @@
       }
       const step = activeStep(state);
       state.tutorial.warningText = step
-        ? `Finish this checkpoint before the VIP: ${step.title}. ${step.text}`
+        ? `Finish this checkpoint before the VIP: ${step.title}. ${stepText(state, step)}`
         : "Finish the tutorial checkpoints before touching the VIP.";
       if (state.tutorial.prematureObjectiveTouches >= 2) {
         state.tutorial.attentionUntil = performance.now() + 1800;
@@ -147,7 +196,7 @@
       if (!state.tutorial) initState(state);
       const step = activeStep(state);
       state.tutorial.warningText = step
-        ? `Leaving tutorial before completion. Current checkpoint: ${step.title}. ${step.text}`
+        ? `Leaving tutorial before completion. Current checkpoint: ${step.title}. ${stepText(state, step)}`
         : "Leaving tutorial before completion.";
       state.tutorial.attentionUntil = performance.now() + 2200;
       render(state);
@@ -175,8 +224,10 @@
       elements.tutorialTitle.textContent = complete ? "Tutorial Complete" : step.title;
       elements.tutorialText.textContent = state.tutorial.warningText && attention
         ? state.tutorial.warningText
-        : (complete ? "Lesson complete. Try another tutorial or return to the main levels." : step.text);
-      elements.tutorialProgress.textContent = complete ? `${steps.length} / ${steps.length} Complete` : `Step ${index + 1} / ${steps.length}`;
+        : (complete ? "Lesson complete. Try another tutorial or return to the main levels." : stepText(state, step));
+      elements.tutorialProgress.textContent = complete
+        ? `${steps.length} / ${steps.length} Complete`
+        : stepProgress(state, step, `Step ${index + 1} / ${steps.length}`);
     }
 
     // Hides tutorial UI when the active level has no tutorial data.

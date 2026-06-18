@@ -43,6 +43,7 @@
       const limit = currentPasswordLength();
       if (enteredCode.length >= limit) return;
       enteredCode += digit;
+      deps.audio.play("digital-lock-keypad-press");
       elements.digitalLockError.textContent = "";
       renderDisplay();
     }
@@ -51,6 +52,7 @@
     function deleteDigit() {
       if (!runtime.digitalLockOpen) return;
       enteredCode = enteredCode.slice(0, -1);
+      deps.audio.play("digital-lock-keypad-press");
       elements.digitalLockError.textContent = "";
       renderDisplay();
     }
@@ -59,6 +61,7 @@
     function clearCode() {
       if (!runtime.digitalLockOpen) return;
       enteredCode = "";
+      deps.audio.play("digital-lock-keypad-press");
       elements.digitalLockError.textContent = "";
       renderDisplay();
     }
@@ -92,6 +95,7 @@
         door.locked = false;
         door.state = "closed";
         runtime.state.message = `${door.id} unlocked`;
+        deps.audio.play("digital-lock-correct");
         closeDigitalLock();
       } else {
         deps.audio.play("door-locked");

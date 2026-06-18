@@ -6,6 +6,7 @@ const elements = {
   playMenuButton: document.getElementById("playMenuButton"),
   startSettingButton: document.getElementById("startSettingButton"),
   startInfoButton: document.getElementById("startInfoButton"),
+  startCreditsButton: document.getElementById("startCreditsButton"),
   startExitButton: document.getElementById("startExitButton"),
   startExitMessage: document.getElementById("startExitMessage"),
   startInfoPanel: document.getElementById("startInfoPanel"),
@@ -28,6 +29,11 @@ const elements = {
   storeConfirmPurchaseButton: document.getElementById("storeConfirmPurchaseButton"),
   storeExitButton: document.getElementById("storeExitButton"),
   storePlayButton: document.getElementById("storePlayButton"),
+  endSequenceOverlay: document.getElementById("endSequenceOverlay"),
+  endCongratulationCard: document.getElementById("endCongratulationCard"),
+  endTransitionCard: document.getElementById("endTransitionCard"),
+  endCreditsCard: document.getElementById("endCreditsCard"),
+  endReturnMenuButton: document.getElementById("endReturnMenuButton"),
   // startPngRenderingCheckbox: document.getElementById("startPngRenderingCheckbox"),
   mainMenuOverlay: document.getElementById("mainMenuOverlay"),
   mainMenuCloseButton: document.getElementById("mainMenuCloseButton"),
@@ -86,10 +92,13 @@ const elements = {
   enemyTraceSelect: document.getElementById("enemyTraceSelect"),
   hintOpacityRange: document.getElementById("hintOpacityRange"),
   hintOpacityValue: document.getElementById("hintOpacityValue"),
+  hintOpacityBubble: document.getElementById("hintOpacityBubble"),
   viewRange: document.getElementById("viewRange"),
   viewValueLabel: document.getElementById("viewValueLabel"),
+  viewBubble: document.getElementById("viewBubble"),
   backgroundMusicRange: document.getElementById("backgroundMusicRange"),
   backgroundMusicValue: document.getElementById("backgroundMusicValue"),
+  backgroundMusicBubble: document.getElementById("backgroundMusicBubble"),
   storeScoreInput: document.getElementById("storeScoreInput"),
   confirmStoreScoreButton: document.getElementById("confirmStoreScoreButton"),
   // pixelArtStyleSelect: document.getElementById("pixelArtStyleSelect"),
@@ -341,6 +350,9 @@ const runtime = {
   storeConfirmItemId: null,
   storeGridRenderKey: "",
   storeAvatarRenderKey: "",
+  storeMissionReturn: null,
+  endSequenceTimer: null,
+  endSequenceStage: "hidden",
   hintOpacity: 0.42,
   viewValue: 50,
   backgroundMusicVolume: 50,
@@ -494,6 +506,7 @@ function setBackgroundMusicVolume(value, options = {}) {
   if (elements.backgroundMusicRange && document.activeElement !== elements.backgroundMusicRange) {
     setValue(elements.backgroundMusicRange, runtime.backgroundMusicVolume);
   }
+  syncSettingsRangeMarkers();
   if (elements.backgroundMusicValue) {
     setText(elements.backgroundMusicValue, runtime.backgroundMusicVolume);
   }
@@ -752,9 +765,164 @@ function addStoreScore(amount) {
   return earned;
 }
 
+// Finds the story level that follows the provided completed level id.
+function nextStoryLevelAfter(levelId) {
+  const index = LEVEL_OPTIONS.findIndex((option) => option.id === levelId);
+  if (index < 0 || index >= LEVEL_OPTIONS.length - 1) return null;
+  return LEVEL_OPTIONS[index + 1];
+}
+
+// Clears the temporary Store bridge created by returning from a completed mission.
+function clearStoreMissionReturn() {
+  runtime.storeMissionReturn = null;
+  refreshStorePlayButton();
+}
+
+// Records the completed story mission so Store can offer NEXT LEVEL.
+function recordStoreReturnFromMission() {
+  const state = runtime.state;
+  const meta = runtime.currentLevelMeta;
+  if (!state || !meta || runtime.activeMode !== "level" || state.result !== "success") {
+    clearStoreMissionReturn();
+    return null;
+  }
+  const nextLevel = nextStoryLevelAfter(meta.id);
+  runtime.storeMissionReturn = {
+    fromMission: true,
+    completedLevelId: meta.id,
+    completedTitle: meta.title || meta.id,
+    nextLevelId: nextLevel ? nextLevel.id : null,
+    nextTitle: nextLevel ? nextLevel.title : null
+  };
+  refreshStorePlayButton();
+  return runtime.storeMissionReturn;
+}
+
+// Keeps the Store action button aligned with the mission-return state.
+function refreshStorePlayButton() {
+  if (!elements.storePlayButton) return;
+  elements.storePlayButton.textContent = runtime.storeMissionReturn && runtime.storeMissionReturn.fromMission
+    ? "NEXT LEVEL"
+    : "Play";
+}
+
+// Hides the end sequence and resets its transition state.
+function hideEndSequence() {
+  if (runtime.endSequenceTimer) {
+    window.clearTimeout(runtime.endSequenceTimer);
+    runtime.endSequenceTimer = null;
+  }
+  runtime.endSequenceStage = "hidden";
+  if (elements.endSequenceOverlay) {
+    elements.endSequenceOverlay.classList.add("hidden");
+    elements.endSequenceOverlay.classList.remove("stage-congratulation", "stage-transition", "stage-credits", "blackout", "credits-visible");
+  }
+  if (elements.endCongratulationCard) elements.endCongratulationCard.classList.remove("hidden");
+  if (elements.endTransitionCard) elements.endTransitionCard.classList.add("hidden");
+  if (elements.endCreditsCard) elements.endCreditsCard.classList.add("hidden");
+}
+
+// Applies one visible end-sequence stage.
+function setEndSequenceStage(stage) {
+  runtime.endSequenceStage = stage;
+  if (elements.endSequenceOverlay) {
+    elements.endSequenceOverlay.classList.remove("stage-congratulation", "stage-transition", "stage-credits");
+    elements.endSequenceOverlay.classList.add(`stage-${stage}`);
+  }
+  if (elements.endCongratulationCard) {
+    elements.endCongratulationCard.classList.toggle("hidden", stage !== "congratulation");
+  }
+  // Transition stage is timing-only; no visible transition card/text is shown.
+  if (elements.endTransitionCard) elements.endTransitionCard.classList.add("hidden");
+  if (elements.endCreditsCard) {
+    elements.endCreditsCard.classList.toggle("hidden", stage !== "credits");
+  }
+}
+
+// Opens the credits flow directly or through the full end-of-game sequence.
+function openCreditsPage(options = {}) {
+  const skipIntro = Boolean(options.skipIntro);
+  clearStoreMissionReturn();
+  hideEndSequence();
+  if (runtime.state) runtime.state.running = false;
+  if (elements.banner) elements.banner.classList.add("hidden");
+  if (elements.startMenuOverlay) elements.startMenuOverlay.classList.add("hidden");
+  if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
+  if (elements.mainMenuOverlay) elements.mainMenuOverlay.classList.add("hidden");
+  if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
+  if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+  document.documentElement.classList.add("start-menu-active");
+  document.body.classList.add("start-menu-active");
+  if (elements.endSequenceOverlay) elements.endSequenceOverlay.classList.remove("hidden");
+  if (skipIntro) {
+    setEndSequenceStage("credits");
+    return;
+  }
+  setEndSequenceStage("congratulation");
+  runtime.endSequenceTimer = window.setTimeout(() => {
+    setEndSequenceStage("transition");
+    runtime.endSequenceTimer = window.setTimeout(() => {
+      setEndSequenceStage("credits");
+      runtime.endSequenceTimer = null;
+    }, 900);
+  }, 1800);
+}
+
+// Shows the final congratulations, transition, then credits.
+function showEndSequence() {
+  openCreditsPage({ skipIntro: false });
+}
+
+// Returns from the end credits to the normal start menu.
+function returnToStartFromEnd() {
+  hideEndSequence();
+  clearStoreMissionReturn();
+  if (menu) menu.showStart();
+}
+
+// Loads the next story level when one exists, otherwise opens the end sequence.
+async function advanceToNextStoryOrEnd() {
+  const meta = runtime.currentLevelMeta;
+  const nextLevel = meta ? nextStoryLevelAfter(meta.id) : LEVEL_OPTIONS[0];
+  if (!nextLevel) {
+    showEndSequence();
+    return false;
+  }
+  clearStoreMissionReturn();
+  await preloadGameData();
+  await level.loadLevel(nextLevel.id);
+  if (menu) menu.enterGame();
+  return true;
+}
+
+// Handles the Store Play/NEXT LEVEL action.
+async function handleStorePlayButton() {
+  if (runtime.storeMissionReturn && runtime.storeMissionReturn.fromMission) {
+    if (runtime.storeMissionReturn.nextLevelId) {
+      const nextLevelId = runtime.storeMissionReturn.nextLevelId;
+      clearStoreMissionReturn();
+      await preloadGameData();
+      await level.loadLevel(nextLevelId);
+      if (menu) menu.enterGame();
+      return;
+    }
+    showEndSequence();
+    return;
+  }
+  if (menu && menu.openOnboarding) menu.openOnboarding({ returnToStore: true });
+  else if (elements.onboardingQuestion) elements.onboardingQuestion.classList.remove("hidden");
+}
+
+// Records a mission return, then opens Store from the result overlay.
+function goToStoreFromMissionResult() {
+  recordStoreReturnFromMission();
+  if (menu) menu.showStore();
+}
+
 // Renders the Store profile and catalog without loading equipment JSON.
 function renderStorePage() {
   const profile = storeProfile();
+  refreshStorePlayButton();
   if (elements.storeProfileName) elements.storeProfileName.textContent = profile.name;
   if (elements.storeProfileId) elements.storeProfileId.textContent = profile.id;
   if (elements.storeScoreValue) elements.storeScoreValue.textContent = String(profile.score);
@@ -977,6 +1145,47 @@ function setValue(element, value) {
   if (element.value !== next) element.value = next;
 }
 
+// Updates the visual marker and persistent bubble on range sliders without changing their value.
+function syncRangeMarker(element, value, bubble, formatter = (next) => String(Math.round(next))) {
+  if (!element) return;
+  const min = Number(element.min || 0);
+  const max = Number(element.max || 100);
+  const numeric = Number(value);
+  const safeValue = Number.isFinite(numeric) ? numeric : Number(element.value || min);
+  const span = max - min || 1;
+  const progress = Math.max(0, Math.min(100, ((safeValue - min) / span) * 100));
+  const progressText = `${progress}%`;
+  element.style.setProperty("--range-progress", progressText);
+  const control = element.closest(".range-control");
+  if (control) control.style.setProperty("--range-progress", progressText);
+  if (bubble) {
+    bubble.style.setProperty("--range-progress", progressText);
+    setText(bubble, formatter(safeValue));
+  }
+}
+
+// Syncs all settings range marker lines and floating bubbles with current runtime values.
+function syncSettingsRangeMarkers() {
+  syncRangeMarker(
+    elements.hintOpacityRange,
+    runtime.hintOpacity,
+    elements.hintOpacityBubble,
+    (next) => `${Math.round(next * 100)}%`
+  );
+  syncRangeMarker(
+    elements.viewRange,
+    runtime.viewValue,
+    elements.viewBubble,
+    (next) => String(Math.round(next))
+  );
+  syncRangeMarker(
+    elements.backgroundMusicRange,
+    runtime.backgroundMusicVolume,
+    elements.backgroundMusicBubble,
+    (next) => String(Math.round(next))
+  );
+}
+
 // Toggles a class only when the class state is different.
 function setClass(element, className, enabled) {
   if (!element) return;
@@ -1036,6 +1245,7 @@ function updateHud(options = {}) {
     if (elements.storeScoreInput && document.activeElement !== elements.storeScoreInput) {
       setValue(elements.storeScoreInput, storeProfile().score);
     }
+    syncSettingsRangeMarkers();
     if (refreshHeavy) clearHudDirtyFlags(now);
     recordPerformanceMetric("hudMs", performance.now() - hudStart);
     return;
@@ -1088,6 +1298,7 @@ function updateHud(options = {}) {
   if (elements.backgroundMusicValue) {
     setText(elements.backgroundMusicValue, runtime.backgroundMusicVolume);
   }
+  syncSettingsRangeMarkers();
   if (elements.storeScoreInput && document.activeElement !== elements.storeScoreInput) {
     setValue(elements.storeScoreInput, storeProfile().score);
   }
@@ -1458,11 +1669,18 @@ function initializeSystems() {
     refreshStartMenu,
     resumeFromStartMenu,
     exitFromStartMenu,
+    clearStoreMissionReturn,
+    handleStorePlayButton,
+    goToStoreFromMissionResult,
+    advanceToNextStoryOrEnd,
+    openCreditsPage,
+    returnToStartFromEnd,
     selectStoreItem,
     closeStoreConfirmation,
     confirmStorePurchase,
     setStoreScore,
     setBackgroundMusicVolume,
+    syncSettingsRangeMarkers,
     ensureGameDataReady,
     updateHud,
     operatorLoadouts,

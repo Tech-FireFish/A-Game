@@ -3,9 +3,24 @@
 (function () {
   const LOOP_SOUND_IDS = new Set(["operator-walk", "enemy-walk"]);
   const WEAPON_SOUND_IDS = new Set(["rifle-shot", "smg-shot", "pistol-shot"]);
-  const HIGH_FREQUENCY_SOUND_IDS = new Set(["button-guidance", "rifle-shot", "smg-shot", "pistol-shot"]);
+  const HIGH_FREQUENCY_SOUND_IDS = new Set([
+    "button-guidance",
+    "rifle-shot",
+    "smg-shot",
+    "pistol-shot",
+    "empty-magazine-click",
+    "armor-hit",
+    "body-hit",
+    "melee-hit",
+    "digital-lock-keypad-press",
+    "no-ammo-warning",
+    "low-health-warning",
+    "enemy-alert",
+    "enemy-suspicious"
+  ]);
   const BUTTON_POOL_SIZE = 3;
   const WEAPON_POOL_SIZE = 4;
+  const EFFECT_POOL_SIZE = 3;
 
   // Builds sound loading, browser unlock, and playback helpers.
   function create(deps) {
@@ -28,7 +43,8 @@
     function poolSizeFor(id) {
       if (LOOP_SOUND_IDS.has(id)) return 0;
       if (id === "button-guidance") return BUTTON_POOL_SIZE;
-      return WEAPON_SOUND_IDS.has(id) ? WEAPON_POOL_SIZE : 0;
+      if (WEAPON_SOUND_IDS.has(id)) return WEAPON_POOL_SIZE;
+      return HIGH_FREQUENCY_SOUND_IDS.has(id) ? EFFECT_POOL_SIZE : 0;
     }
 
     // Marks a sound entry ready once any of its preloaded elements can decode.

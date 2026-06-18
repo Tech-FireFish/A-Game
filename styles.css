@@ -400,8 +400,19 @@ input[type="range"] {
   height: 34px;
   padding: 0;
   background:
-    var(--ui-slider-track) center / 100% 20px no-repeat;
+    linear-gradient(90deg, transparent calc(var(--range-progress, 50%) - 2px), rgba(227, 180, 86, 0.98) 0 calc(var(--range-progress, 50%) + 2px), transparent 0),
+    linear-gradient(90deg, rgba(96, 198, 137, 0.34) 0 var(--range-progress, 50%), rgba(142, 156, 162, 0.22) 0 100%),
+    var(--ui-slider-track);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 24px, 100% 18px, 100% 20px;
   appearance: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 24px;
+  border: 0;
+  background: transparent;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -410,6 +421,14 @@ input[type="range"]::-webkit-slider-thumb {
   border: 0;
   background: var(--ui-slider-thumb) center / contain no-repeat;
   appearance: none;
+  margin-top: -6px;
+  position: relative;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 24px;
+  border: 0;
+  background: transparent;
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -417,6 +436,47 @@ input[type="range"]::-moz-range-thumb {
   height: 36px;
   border: 0;
   background: var(--ui-slider-thumb) center / contain no-repeat;
+}
+
+.range-control {
+  --range-progress: 50%;
+  position: relative;
+  display: block;
+  width: 100%;
+  padding-top: 24px;
+}
+
+.range-control input[type="range"] {
+  width: 100%;
+}
+
+.range-bubble {
+  position: absolute;
+  left: clamp(20px, var(--range-progress, 50%), calc(100% - 20px));
+  top: 0;
+  transform: translateX(-50%);
+  min-width: 36px;
+  padding: 4px 6px;
+  border: 0 !important;
+  background: rgba(5, 9, 10, 0.68) !important;
+  box-shadow: none !important;
+  color: var(--cyan);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 8px;
+  line-height: 1.45;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  opacity: 0.76;
+  transition: color 140ms ease, opacity 140ms ease, transform 140ms ease;
+  z-index: 1;
+}
+
+.range-control:hover .range-bubble,
+.range-control:focus-within .range-bubble {
+  color: var(--amber);
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
 }
 
 button:hover {
@@ -5079,6 +5139,13 @@ body.pixel-style-geometry .onboarding-question {
   font-variant-numeric: tabular-nums;
 }
 
+.level-picker .range-control,
+body.pixel-style-geometry .level-picker .range-control {
+  display: block !important;
+  align-items: initial;
+  min-height: 0;
+}
+
 .settings-footer-actions {
   display: flex;
   justify-content: flex-end;
@@ -5443,6 +5510,234 @@ body.pixel-style-geometry #tutorialCard.tutorial-card,
 
   #mainMenuOverlay .main-menu-header-actions button {
     width: 100%;
+  }
+}
+
+.end-sequence-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 5vw, 72px);
+  background: #000;
+  color: var(--text);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  text-align: center;
+}
+
+.end-sequence-overlay.hidden {
+  display: none !important;
+}
+
+.end-sequence-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(96, 198, 137, 0.14), transparent 28%),
+    radial-gradient(circle at 78% 72%, rgba(114, 183, 206, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.82));
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+.end-sequence-overlay.stage-transition::before {
+  opacity: 0.12;
+}
+
+.end-sequence-overlay.stage-credits::before {
+  opacity: 0.46;
+}
+
+.end-congratulation-card,
+.end-transition-card,
+.end-credits-card {
+  position: relative;
+  z-index: 1;
+  width: min(760px, calc(100vw - 40px));
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.end-congratulation-card {
+  padding: clamp(28px, 6vw, 72px);
+  font-size: clamp(16px, 2.4vw, 28px);
+  line-height: 1.8;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.85);
+  animation: endTextFloatIn 700ms ease both;
+}
+
+.end-sequence-overlay.stage-transition .end-congratulation-card {
+  animation: endTextFadeOut 900ms ease both;
+}
+
+.end-transition-card {
+  display: none !important;
+  padding: clamp(24px, 5vw, 54px);
+  color: var(--accent-cyan);
+  font-size: clamp(13px, 1.7vw, 20px);
+  line-height: 1.8;
+  letter-spacing: 0;
+}
+
+.end-transition-card.hidden {
+  display: none !important;
+}
+
+.end-credits-card {
+  display: grid;
+  gap: 18px;
+  justify-items: stretch;
+  padding: clamp(22px, 4vw, 42px);
+  opacity: 0;
+  animation: endCreditsFadeIn 1300ms ease forwards;
+}
+
+.end-credits-card.hidden {
+  display: none !important;
+}
+
+.end-credits-card h2 {
+  margin: 0;
+  color: var(--green);
+  font-size: clamp(22px, 3.6vw, 38px);
+  line-height: 1.5;
+}
+
+.end-credits-card ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.end-credits-card li {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(160px, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 38px;
+  padding: 8px 0;
+  border-bottom: 0;
+}
+
+.end-credits-card li span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.end-credits-card li strong {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.end-credits-card button {
+  justify-self: center;
+  min-height: 48px;
+  margin-top: 8px;
+  padding: 0 20px;
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 12px;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#endReturnMenuButton,
+#closeStartInfoButton,
+#settingsExitToMenuButton,
+#resetSettingsButton,
+#closeSettingsButton {
+  border: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#endReturnMenuButton:hover,
+#endReturnMenuButton:focus-visible,
+#closeStartInfoButton:hover,
+#closeStartInfoButton:focus-visible,
+#settingsExitToMenuButton:hover,
+#settingsExitToMenuButton:focus-visible,
+#resetSettingsButton:hover,
+#resetSettingsButton:focus-visible,
+#closeSettingsButton:hover,
+#closeSettingsButton:focus-visible {
+  border: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--accent-cyan);
+  transform: translateX(8px);
+}
+
+#endReturnMenuButton:active,
+#closeStartInfoButton:active,
+#settingsExitToMenuButton:active,
+#resetSettingsButton:active,
+#closeSettingsButton:active {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--accent-amber);
+  transform: translateX(8px) translateY(1px);
+}
+
+@keyframes endTextFloatIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes endTextFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes endCreditsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .end-credits-card li {
+    grid-template-columns: 1fr;
+  }
+
+  .end-credits-card li strong {
+    text-align: left;
   }
 }
 

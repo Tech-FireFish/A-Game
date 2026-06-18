@@ -14,6 +14,8 @@ const ctx = canvas.getContext("2d");
 const propertyPanel = document.getElementById("propertyPanel");
 const openLevelButton = document.getElementById("openLevelButton");
 const openLevelInput = document.getElementById("openLevelInput");
+const closeFileButton = document.getElementById("closeFileButton");
+const clearMapButton = document.getElementById("clearMapButton");
 const downloadDialog = document.getElementById("downloadDialog");
 const downloadFileNameInput = document.getElementById("downloadFileNameInput");
 const downloadLevelButton = document.getElementById("downloadLevelButton");
@@ -53,14 +55,14 @@ const resourceDefaults = {
 document.querySelectorAll("[data-resource]").forEach((button) => {
   button.addEventListener("click", () => {
     hideContextMenu();
-    state.selectedResource = button.dataset.resource;
-    document.querySelectorAll("[data-resource]").forEach((item) => item.classList.toggle("active", item === button));
-    updateCursor();
+    setActiveResource(button.dataset.resource);
   });
 });
 
 openLevelButton.addEventListener("click", () => openLevelInput.click());
 openLevelInput.addEventListener("change", openSelectedFile);
+closeFileButton.addEventListener("click", closeCurrentFile);
+clearMapButton.addEventListener("click", clearMapObjects);
 downloadLevelButton.addEventListener("click", () => {
   hideContextMenu();
   openDownloadDialog();
@@ -77,6 +79,7 @@ canvas.addEventListener("pointermove", handlePointerMove);
 canvas.addEventListener("pointerup", handlePointerUp);
 canvas.addEventListener("pointercancel", finishInteraction);
 canvas.addEventListener("mousedown", handleMouseDown);
+canvas.addEventListener("dblclick", handleCanvasDoubleClick);
 canvas.addEventListener("contextmenu", handleContextMenu);
 window.addEventListener("scroll", hideContextMenu, true);
 window.addEventListener("resize", hideContextMenu);
@@ -101,7 +104,7 @@ function createBlankLevel() {
     equipmentTables: [],
     operators: [],
     enemies: [],
-    objective: { type: "objective", x: 980, y: 620, radius: 16, secured: false, harmed: false, _editorId: nextId("obj") }
+    objective: defaultObjective()
   };
 }
 
@@ -115,24 +118,22 @@ function handlePointerDown(event) {
   const screen = screenPoint(event);
   const world = screenToWorld(screen);
   canvas.setPointerCapture(event.pointerId);
+  const hit = findAt(world);
 
   if (state.selectedResource === "hand") {
-    state.interaction = { type: "pan", pointerId: event.pointerId, lastScreen: screen };
+    if (hit) {
+      selectObject(hit);
+      state.interaction = createDragInteraction(event.pointerId, hit, world, screen);
+    } else {
+      state.interaction = { type: "pan", pointerId: event.pointerId, lastScreen: screen };
+    }
     updateCursor();
     return;
   }
 
-  const hit = findAt(world);
   if (hit) {
     selectObject(hit);
-    state.interaction = {
-      type: "drag",
-      pointerId: event.pointerId,
-      object: hit,
-      offset: { x: world.x - hit.x, y: world.y - hit.y },
-      startScreen: screen,
-      moved: false
-    };
+    state.interaction = createDragInteraction(event.pointerId, hit, world, screen);
     updateCursor();
     return;
   }
@@ -142,6 +143,26 @@ function handlePointerDown(event) {
 
 function handleMouseDown(event) {
   if (event.button === 2) openContextMenuAtEvent(event);
+}
+
+function handleCanvasDoubleClick(event) {
+  hideContextMenu();
+  const hit = findAt(screenToWorld(screenPoint(event)));
+  if (!hit) return;
+  event.preventDefault();
+  selectObject(hit);
+  setActiveResource("hand");
+}
+
+function createDragInteraction(pointerId, object, world, screen) {
+  return {
+    type: "drag",
+    pointerId,
+    object,
+    offset: { x: world.x - object.x, y: world.y - object.y },
+    startScreen: screen,
+    moved: false
+  };
 }
 
 function handlePointerMove(event) {
@@ -290,6 +311,12 @@ function updateCursor() {
   canvas.classList.toggle("is-dragging", Boolean(state.interaction && state.interaction.type === "drag"));
 }
 
+function setActiveResource(resource) {
+  state.selectedResource = resource || "wall";
+  document.querySelectorAll("[data-resource]").forEach((item) => item.classList.toggle("active", item.dataset.resource === state.selectedResource));
+  updateCursor();
+}
+
 function openSelectedFile() {
   const file = openLevelInput.files && openLevelInput.files[0];
   if (!file) return;
@@ -327,12 +354,51 @@ function loadLevel(raw) {
     objective: { ...(raw.objective || { x: 980, y: 620, radius: 16, secured: false, harmed: false }), type: "objective", _editorId: nextId("obj") }
   };
   state.level = level;
+  resetEditorView();
+  draw();
+}
+
+function resetEditorView() {
+  hideContextMenu();
+  closeDownloadDialog();
   state.selectedId = null;
+  state.interaction = null;
   state.camera.x = 0;
   state.camera.y = 0;
   state.camera.zoom = 1;
+  if (openLevelInput) openLevelInput.value = "";
   clampCamera();
   renderProperties(null);
+  updateCursor();
+}
+
+function closeCurrentFile() {
+  state.level = createBlankLevel();
+  setActiveResource("wall");
+  resetEditorView();
+  draw();
+}
+
+function clearMapObjects() {
+  hideContextMenu();
+  closeDownloadDialog();
+  state.level.floorZones = [];
+  state.level.rooms = [];
+  state.level.labels = [];
+  state.level.walls = [];
+  state.level.doors = [];
+  state.level.windows = [];
+  state.level.stairs = [];
+  state.level.items = [];
+  state.level.equipmentTables = [];
+  state.level.operators = [];
+  state.level.enemies = [];
+  state.level.objective = defaultObjective();
+  clampObject(state.level.objective);
+  state.selectedId = null;
+  state.interaction = null;
+  renderProperties(null);
+  updateCursor();
   draw();
 }
 
@@ -455,7 +521,8 @@ function addObject(object) {
 
 function removeObject(object) {
   if (object === state.level.objective || object.type === "objective") {
-    state.level.objective = { type: "objective", x: 980, y: 620, radius: 16, secured: false, harmed: false, _editorId: nextId("obj") };
+    state.level.objective = defaultObjective();
+    clampObject(state.level.objective);
     return true;
   }
   const collections = [
@@ -704,6 +771,9 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-document.querySelector("[data-resource='wall']").classList.add("active");
-updateCursor();
+function defaultObjective() {
+  return { type: "objective", x: 980, y: 620, radius: 16, secured: false, harmed: false, _editorId: nextId("obj") };
+}
+
+setActiveResource("wall");
 draw();

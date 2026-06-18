@@ -216,6 +216,7 @@
       if (weapon.attackType === "melee") {
         if (deps.pointDistance(shooter, target) > weapon.range + deps.scaledRadius(shooter) + deps.scaledRadius(target)) return;
         if (!deps.hasLineOfSight(shooter, target, getState().level)) return;
+        deps.audio.play("melee-hit");
         damageTarget(target, weapon.damage, shooter);
         deps.enemyBehavior.noticeShot(shooter, target);
         shooter.fireTimer = weapon.fireInterval;
@@ -254,6 +255,12 @@
             if (state.tutorial) {
               if (!state.tutorial.completedEnemies) state.tutorial.completedEnemies = new Set();
               state.tutorial.completedEnemies.add(enemy.id);
+              if (!state.tutorial.enemyNeutralizedCounts) state.tutorial.enemyNeutralizedCounts = {};
+              if (!state.tutorial.enemyNeutralizedModeCounts) state.tutorial.enemyNeutralizedModeCounts = {};
+              state.tutorial.enemyNeutralizedCounts[enemy.id] = (state.tutorial.enemyNeutralizedCounts[enemy.id] || 0) + 1;
+              const mode = state.shootingMode === "manual" ? "manual" : "automatic";
+              if (!state.tutorial.enemyNeutralizedModeCounts[mode]) state.tutorial.enemyNeutralizedModeCounts[mode] = {};
+              state.tutorial.enemyNeutralizedModeCounts[mode][enemy.id] = (state.tutorial.enemyNeutralizedModeCounts[mode][enemy.id] || 0) + 1;
             }
           }
           deps.enemyBehavior.noticeEnemyDown(enemy, source);
@@ -264,29 +271,42 @@
     // Applies damage to an operator and clears active behavior when downed.
     function damageOperator(op, amount) {
       const wasDown = op.down;
-      applyDamage(op, amount);
+      applyDamage(op, amount, { operatorFatalOnly: !wasDown });
       if (op.health <= 0) {
         op.health = 0;
         op.down = true;
         op.path = [];
         op.action = null;
         op.fireTimer = 0;
-        if (!wasDown) {
-          deps.audio.play("operator-down");
-        }
+      } else if (!wasDown && op.health <= 25 && !op.lowHealthWarned) {
+        op.lowHealthWarned = true;
+        deps.audio.play("low-health-warning");
       }
     }
 
     // Spends armor before allowing remaining damage to reduce health.
-    function applyDamage(unit, amount) {
+    function applyDamage(unit, amount, options = {}) {
       let remaining = amount;
+      let armorDamage = 0;
+      let healthDamage = 0;
+      const startingHealth = unit.health;
       if (unit.armor > 0) {
         const absorbed = Math.min(unit.armor, remaining);
         unit.armor -= absorbed;
         remaining -= absorbed;
+        armorDamage = absorbed;
       }
       if (remaining > 0) {
         unit.health -= remaining;
+        healthDamage = remaining;
+      }
+      if (armorDamage > 0) deps.audio.play("armor-hit");
+      if (healthDamage > 0) {
+        if (options.operatorFatalOnly && startingHealth > 0 && unit.health <= 0) {
+          deps.audio.play("operator-down");
+        } else {
+          deps.audio.play("body-hit");
+        }
       }
     }
 

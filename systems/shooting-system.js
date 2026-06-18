@@ -31,6 +31,8 @@
 
     // Updates reload timers and moves reserve ammo into the magazine.
     function updateReload(unit, dt) {
+      unit.emptyClickTimer = Math.max(0, (unit.emptyClickTimer || 0) - dt);
+      unit.noAmmoWarningTimer = Math.max(0, (unit.noAmmoWarningTimer || 0) - dt);
       if (!unit.ammo || !unit.ammo.reloading) return;
       unit.ammo.reloadTimer = Math.max(0, unit.ammo.reloadTimer - dt);
       if (unit.ammo.reloadTimer > 0) return;
@@ -44,6 +46,7 @@
       unit.ammo.magazine += loaded;
       unit.ammo.reserve -= loaded;
       unit.ammo.reloading = false;
+      if (loaded > 0) deps.audio.play("reload-complete");
     }
 
     // Starts a reload if spare ammunition exists.
@@ -53,7 +56,19 @@
       if (unit.ammo.magazine >= (weapon.magSize || 20)) return false;
       unit.ammo.reloading = true;
       unit.ammo.reloadTimer = weapon.reloadTime || 1.2;
+      deps.audio.play("reload");
       return true;
+    }
+
+    // Plays an empty-magazine click with a small per-unit cooldown.
+    function playEmptyClick(unit) {
+      if (!unit || (unit.emptyClickTimer || 0) > 0) return;
+      deps.audio.play("empty-magazine-click");
+      unit.emptyClickTimer = 0.32;
+      if (unit.ammo && unit.ammo.reserve <= 0 && (unit.noAmmoWarningTimer || 0) <= 0) {
+        deps.audio.play("no-ammo-warning");
+        unit.noAmmoWarningTimer = 1.5;
+      }
     }
 
     // Actively reloads a selected unit before the magazine is empty.
@@ -78,7 +93,7 @@
       if (weapon.attackType === "melee") return true;
       if (shooter.ammo.reloading) return false;
       if (shooter.ammo.magazine <= 0) {
-        beginReload(shooter, weapon);
+        if (!beginReload(shooter, weapon)) playEmptyClick(shooter);
         return false;
       }
       shooter.ammo.magazine -= 1;
@@ -112,6 +127,7 @@
       if (weapon.attackType === "melee") {
         const target = firstMeleeEnemy(op, weapon);
         if (!target) return false;
+        deps.audio.play("melee-hit");
         deps.actions.damageEnemy(target, weapon.damage, op);
         if (state.tutorial) state.tutorial.manualShotFired = true;
         deps.enemyBehavior.noticeShot(op, target);

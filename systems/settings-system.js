@@ -5,6 +5,9 @@
   function create(deps) {
     const runtime = deps.runtime;
     const elements = deps.elements;
+    const DEV_CODE = "Let me in";
+    const SETTINGS_TABS = new Set(["keys", "general", "sound", "dev"]);
+    const DEV_SETTINGS_TABS = new Set(["mission", "operator", "enemy"]);
 
     // Opens settings, pauses execution, and remembers whether to resume.
     function openSettings() {
@@ -13,8 +16,12 @@
       if (runtime.state) runtime.state.running = false;
       deps.keysDown.clear();
       runtime.settingsOpen = true;
+      if (elements.devSettingsOverlay) elements.devSettingsOverlay.classList.remove("dev-standalone");
       elements.settingsOverlay.classList.remove("hidden");
-      setActiveTab(runtime.activeSettingsTab || "keys");
+      if (!runtime.devSettingsUnlocked && elements.devModeCodeInput) elements.devModeCodeInput.value = "";
+      if (!runtime.devSettingsUnlocked && elements.devModeMessage) elements.devModeMessage.textContent = "";
+      setActiveTab(SETTINGS_TABS.has(runtime.activeSettingsTab) ? runtime.activeSettingsTab : "keys");
+      if (runtime.devSettingsUnlocked) showDevSettingsVisual();
       deps.renderEnemyLoadouts();
       deps.updateHud();
     }
@@ -25,9 +32,24 @@
       cancelPendingSettingChange();
       runtime.settingsOpen = false;
       elements.settingsOverlay.classList.add("hidden");
+      hideDevSettingsVisual();
+      elements.settingsOverlay.classList.remove("dev-settings-open");
       if (runtime.state && !runtime.state.gameOver && runtime.settingsResumeRunning) {
         runtime.state.running = true;
       }
+      runtime.settingsResumeRunning = false;
+      deps.updateHud();
+    }
+
+    // Closes both Settings pages when leaving the workflow for the menu.
+    function closeAllSettingsToMenu() {
+      cancelPendingSettingChange();
+      closeDevSettings({ keepSettingsOpen: true });
+      if (runtime.settingsOpen) {
+        runtime.settingsOpen = false;
+        if (elements.settingsOverlay) elements.settingsOverlay.classList.add("hidden");
+      }
+      if (elements.settingsOverlay) elements.settingsOverlay.classList.remove("dev-settings-open");
       runtime.settingsResumeRunning = false;
       deps.updateHud();
     }
@@ -43,7 +65,7 @@
 
     // Reports whether any modal overlay should freeze gameplay updates.
     function gameplayPausedByOverlay() {
-      return runtime.settingsOpen || runtime.digitalLockOpen || runtime.inventoryOpen || runtime.equipmentTableOpen || runtime.laptopOpen || runtime.pauseOpen || runtime.settingChangeOpen;
+      return runtime.settingsOpen || runtime.devSettingsOpen || runtime.digitalLockOpen || runtime.inventoryOpen || runtime.equipmentTableOpen || runtime.laptopOpen || runtime.pauseOpen || runtime.settingChangeOpen;
     }
 
     // Overrides the stored resume state for setup changes.
@@ -58,13 +80,76 @@
 
     // Shows one settings section and hides the other tab panels.
     function setActiveTab(tabId) {
-      runtime.activeSettingsTab = tabId || "keys";
+      runtime.activeSettingsTab = SETTINGS_TABS.has(tabId) ? tabId : "keys";
       for (const tab of elements.settingsTabs || []) {
         tab.classList.toggle("active", tab.dataset.settingsTab === runtime.activeSettingsTab);
       }
       for (const panel of elements.settingsPanels || []) {
         panel.classList.toggle("hidden", panel.dataset.settingsPanel !== runtime.activeSettingsTab);
       }
+    }
+
+    // Shows one Dev Setting section and hides the other advanced panels.
+    function setActiveDevTab(tabId) {
+      runtime.activeDevSettingsTab = DEV_SETTINGS_TABS.has(tabId) ? tabId : "mission";
+      for (const tab of elements.devSettingsTabs || []) {
+        tab.classList.toggle("active", tab.dataset.devSettingsTab === runtime.activeDevSettingsTab);
+      }
+      for (const panel of elements.devSettingsPanels || []) {
+        panel.classList.toggle("hidden", panel.dataset.devSettingsPanel !== runtime.activeDevSettingsTab);
+      }
+    }
+
+    // Checks the Dev Mode phrase and opens the independent Dev Setting page.
+    function confirmDevMode() {
+      const value = elements.devModeCodeInput ? elements.devModeCodeInput.value : "";
+      if (value !== DEV_CODE) {
+        if (elements.devModeMessage) elements.devModeMessage.textContent = "Wrong code.";
+        return false;
+      }
+      if (document.body.classList.contains("start-menu-active") || document.documentElement.classList.contains("start-menu-active")) {
+        if (elements.devModeMessage) elements.devModeMessage.textContent = "Dev Setting is unavailable in Start menu.";
+        return false;
+      }
+      openDevSettings();
+      return true;
+    }
+
+    // Opens the separate Dev Setting page beside the normal Settings page.
+    function openDevSettings() {
+      if (!runtime.settingsOpen) openSettings();
+      runtime.devSettingsUnlocked = true;
+      setActiveDevTab("mission");
+      if (elements.devModeMessage) elements.devModeMessage.textContent = "Dev Setting opened.";
+      showDevSettingsVisual();
+      deps.renderEnemyLoadouts();
+      deps.updateHud();
+    }
+
+    // Shows Dev Setting visually without changing its unlock state.
+    function showDevSettingsVisual() {
+      runtime.devSettingsOpen = true;
+      if (elements.devSettingsOverlay) elements.devSettingsOverlay.classList.remove("hidden");
+      if (elements.devSettingsOverlay) elements.devSettingsOverlay.classList.remove("dev-standalone");
+      if (elements.settingsOverlay && runtime.settingsOpen) elements.settingsOverlay.classList.add("dev-settings-open");
+    }
+
+    // Hides Dev Setting visually while preserving its unlock state.
+    function hideDevSettingsVisual() {
+      runtime.devSettingsOpen = false;
+      if (elements.devSettingsOverlay) elements.devSettingsOverlay.classList.add("hidden");
+      if (elements.devSettingsOverlay) elements.devSettingsOverlay.classList.remove("dev-standalone");
+    }
+
+    // Closes and locks Dev Setting.
+    function closeDevSettings(options = {}) {
+      runtime.devSettingsUnlocked = false;
+      runtime.activeDevSettingsTab = "mission";
+      hideDevSettingsVisual();
+      if (elements.settingsOverlay) elements.settingsOverlay.classList.remove("dev-settings-open");
+      if (elements.devModeCodeInput) elements.devModeCodeInput.value = "";
+      if (elements.devModeMessage) elements.devModeMessage.textContent = "";
+      if (!options.keepSettingsOpen) deps.updateHud();
     }
 
     // Applies a setup change immediately or asks for restart confirmation after units move.
@@ -202,10 +287,15 @@
     return {
       openSettings,
       closeSettings,
+      closeAllSettingsToMenu,
       toggleSettings,
       gameplayPausedByOverlay,
       setResumeRunning,
       setActiveTab,
+      setActiveDevTab,
+      confirmDevMode,
+      openDevSettings,
+      closeDevSettings,
       resetDefaults,
       requestSettingChange,
       confirmPendingSettingChange,

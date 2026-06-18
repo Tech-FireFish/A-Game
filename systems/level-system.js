@@ -220,7 +220,7 @@
       if (elements.exitTutorialButton) elements.exitTutorialButton.classList.add("hidden");
       if (runtime.activeMode !== "tutorial" && elements.tutorialCard) elements.tutorialCard.classList.add("hidden");
       elements.levelTitle.textContent = runtime.currentLevel.title || runtime.currentLevelMeta.title;
-      if (deps.saveResumePoint) deps.saveResumePoint(runtime.currentLevelMeta, runtime.activeMode);
+      if (deps.saveResumePoint && runtime.activeMode !== "preview") deps.saveResumePoint(runtime.currentLevelMeta, runtime.activeMode);
       deps.updateHud();
     }
 
@@ -309,11 +309,31 @@
       }
     }
 
-    // Advances to the next configured level, wrapping after the final level.
+    // Starts a playable level from an in-memory JSON object, used by editor preview.
+    async function loadLevelObject(levelObject, meta = {}) {
+      const title = meta.title || levelObject.title || "Editor Preview";
+      runtime.currentLevelMeta = {
+        id: meta.id || levelObject.id || "editor-preview",
+        title: `${title} (Preview)`,
+        file: ""
+      };
+      runtime.activeMode = meta.mode || "preview";
+      elements.levelSelect.value = "";
+      if (elements.tutorialSelect) elements.tutorialSelect.value = "";
+      if (elements.tempLevelSelect) elements.tempLevelSelect.value = "";
+      runtime.currentLevel = clonePlain(levelObject);
+      runtime.currentLevel.id = runtime.currentLevel.id || runtime.currentLevelMeta.id;
+      runtime.currentLevel.title = runtime.currentLevelMeta.title;
+      restart();
+    }
+
+    // Advances to the next configured story level without wrapping after the final level.
     function loadNextLevel() {
-      if (!runtime.currentLevelMeta) return;
-      const nextIndex = (currentLevelIndex() + 1) % deps.levelOptions.length;
+      if (!runtime.currentLevelMeta) return false;
+      const nextIndex = currentLevelIndex() + 1;
+      if (nextIndex >= deps.levelOptions.length) return false;
       loadLevel(deps.levelOptions[nextIndex].id);
+      return true;
     }
 
     // Advances to the next tutorial, returning to the first story level when none exist.
@@ -342,6 +362,7 @@
       currentTutorialIndex,
       populateLevelSelect,
       loadLevel,
+      loadLevelObject,
       loadNextLevel,
       loadNextTutorial,
       loadFirstLevel

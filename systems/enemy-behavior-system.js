@@ -55,7 +55,13 @@
 
     // Applies a status and stores search information when a target point exists.
     function setStatus(enemy, status, target) {
+      const previousStatus = enemy.status;
       enemy.status = status;
+      if (status === alertStatus && previousStatus !== alertStatus) {
+        deps.audio.play("enemy-alert");
+      } else if (status === suspiciousStatus && previousStatus !== suspiciousStatus) {
+        deps.audio.play("enemy-suspicious");
+      }
       if (status === alertStatus || status === suspiciousStatus) {
         const point = target ? { x: target.x, y: target.y } : enemy.lastKnownOperator;
         enemy.lastKnownOperator = point ? { ...point } : null;

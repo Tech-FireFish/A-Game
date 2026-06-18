@@ -43,7 +43,7 @@
           return true;
         }
         door.state = "closed";
-        deps.audio.play("door-open");
+        deps.audio.play("door-close");
         state.message = `${op.id} closed ${door.id}`;
         deps.updateHud();
         return true;
@@ -69,6 +69,7 @@
       const state = deps.getState();
       if (win.state === "closed") {
         win.state = "open";
+        deps.audio.play("window-open");
         if (state.tutorial) state.tutorial.windowOpened = true;
         state.message = `${op.id} opened ${win.id}`;
         deps.updateHud();
@@ -92,7 +93,11 @@
       }
       op.movedBefore = true;
       win.vaulted = true;
-      if (damaged) deps.actions.damageOperator(op, win.damage || 8);
+      deps.audio.play("window-vault");
+      if (damaged) {
+        deps.audio.play("glass-step-damage");
+        deps.actions.damageOperator(op, win.damage || 8);
+      }
     }
 
     // Moves an operator to the paired stair target.
@@ -106,6 +111,7 @@
       op.path = [];
       op.movedBefore = true;
       stair.used = true;
+      deps.audio.play("stairs-use");
       state.message = `${op.id} moved to ${op.zone || "stairs"}`;
       deps.updateHud();
       return true;

@@ -89,7 +89,7 @@ h2 {
 
 .board-wrap {
   position: relative;
-  overflow: auto;
+  overflow: hidden;
 }
 
 canvas {

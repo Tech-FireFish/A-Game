@@ -227,6 +227,7 @@
       if (!target || typeof target.closest !== "function") return;
       const button = target.closest("button");
       if (!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;
+      if (button.closest("#digitalLockKeypad")) return;
       deps.audio.unlock();
       deps.audio.play("button-guidance");
     }
@@ -291,6 +292,8 @@
           deps.level.loadNextTutorial();
         } else if (runtime.activeMode === "temp") {
           deps.level.loadFirstLevel();
+        } else if (deps.advanceToNextStoryOrEnd) {
+          deps.advanceToNextStoryOrEnd();
         } else {
           deps.level.loadNextLevel();
         }
@@ -327,6 +330,15 @@
           if (elements.startInfoPanel) elements.startInfoPanel.classList.remove("hidden");
         });
       }
+      if (elements.startCreditsButton) {
+        elements.startCreditsButton.addEventListener("click", () => {
+          if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
+          if (elements.onboardingQuestion) elements.onboardingQuestion.classList.add("hidden");
+          if (elements.storeMenuOverlay) elements.storeMenuOverlay.classList.add("hidden");
+          if (elements.startInfoPanel) elements.startInfoPanel.classList.add("hidden");
+          if (deps.openCreditsPage) deps.openCreditsPage({ skipIntro: true });
+        });
+      }
       if (elements.closeStartInfoButton) {
         elements.closeStartInfoButton.addEventListener("click", () => elements.startInfoPanel.classList.add("hidden"));
       }
@@ -348,11 +360,16 @@
       if (elements.storeExitButton) {
         elements.storeExitButton.addEventListener("click", () => {
           if (deps.closeStoreConfirmation) deps.closeStoreConfirmation({ clearSelection: true });
+          if (deps.clearStoreMissionReturn) deps.clearStoreMissionReturn();
           if (deps.menu.closeStore) deps.menu.closeStore();
         });
       }
       if (elements.storePlayButton) {
-        elements.storePlayButton.addEventListener("click", () => {
+        elements.storePlayButton.addEventListener("click", async () => {
+          if (deps.handleStorePlayButton) {
+            await deps.handleStorePlayButton();
+            return;
+          }
           if (deps.menu.openOnboarding) deps.menu.openOnboarding({ returnToStore: true });
           else if (elements.onboardingQuestion) elements.onboardingQuestion.classList.remove("hidden");
         });
@@ -419,7 +436,18 @@
       if (elements.expandGameButton) elements.expandGameButton.addEventListener("click", () => deps.menu.toggleExpanded());
       if (elements.expandedPauseButton) elements.expandedPauseButton.addEventListener("click", deps.menu.togglePause);
       if (elements.exitToMenuButton) elements.exitToMenuButton.addEventListener("click", deps.menu.showStart);
-      if (elements.backToStoreButton) elements.backToStoreButton.addEventListener("click", deps.menu.showStore);
+      if (elements.backToStoreButton) {
+        elements.backToStoreButton.addEventListener("click", () => {
+          if (deps.goToStoreFromMissionResult) deps.goToStoreFromMissionResult();
+          else deps.menu.showStore();
+        });
+      }
+      if (elements.endReturnMenuButton) {
+        elements.endReturnMenuButton.addEventListener("click", () => {
+          if (deps.returnToStartFromEnd) deps.returnToStartFromEnd();
+          else deps.menu.showStart();
+        });
+      }
       if (elements.resultLevelSelect) {
         elements.resultLevelSelect.addEventListener("change", () => loadWithTutorialWarning(elements.resultLevelSelect.value));
       }
@@ -473,12 +501,31 @@
       }
       */
       elements.closeSettingsButton.addEventListener("click", deps.settings.closeSettings);
+      if (elements.closeDevSettingsButton) {
+        elements.closeDevSettingsButton.addEventListener("click", () => deps.settings.closeDevSettings());
+      }
       if (elements.resetSettingsButton) {
         elements.resetSettingsButton.addEventListener("click", deps.settings.resetDefaults);
       }
+      if (elements.confirmDevModeButton) {
+        elements.confirmDevModeButton.addEventListener("click", deps.settings.confirmDevMode);
+      }
+      if (elements.devModeCodeInput) {
+        elements.devModeCodeInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          deps.settings.confirmDevMode();
+        });
+      }
       if (elements.settingsExitToMenuButton) {
         elements.settingsExitToMenuButton.addEventListener("click", () => {
-          deps.settings.closeSettings();
+          deps.settings.closeAllSettingsToMenu();
+          deps.menu.showStart();
+        });
+      }
+      if (elements.devSettingsExitToMenuButton) {
+        elements.devSettingsExitToMenuButton.addEventListener("click", () => {
+          deps.settings.closeAllSettingsToMenu();
           deps.menu.showStart();
         });
       }
@@ -512,6 +559,9 @@
       for (const tab of elements.settingsTabs || []) {
         tab.addEventListener("click", () => deps.settings.setActiveTab(tab.dataset.settingsTab));
       }
+      for (const tab of elements.devSettingsTabs || []) {
+        tab.addEventListener("click", () => deps.settings.setActiveDevTab(tab.dataset.devSettingsTab));
+      }
       elements.debugButton.addEventListener("click", () => {
         const state = runtime.state;
         if (!state) return;
@@ -543,6 +593,7 @@
           const value = Number(elements.hintOpacityRange.value) || 0.42;
           deps.settings.requestSettingChange(() => {
             runtime.hintOpacity = value;
+            if (deps.syncSettingsRangeMarkers) deps.syncSettingsRangeMarkers();
           });
         };
         elements.hintOpacityRange.addEventListener("input", applyHintOpacity);
@@ -555,6 +606,7 @@
           deps.settings.requestSettingChange(() => {
             runtime.viewValue = value;
             if (deps.camera && deps.camera.setViewValue) deps.camera.setViewValue(runtime.viewValue);
+            if (deps.syncSettingsRangeMarkers) deps.syncSettingsRangeMarkers();
           });
         };
         elements.viewRange.addEventListener("input", applyView);
@@ -567,6 +619,7 @@
           deps.settings.requestSettingChange(() => {
             runtime.backgroundMusicVolume = value;
             if (deps.setBackgroundMusicVolume) deps.setBackgroundMusicVolume(value);
+            if (deps.syncSettingsRangeMarkers) deps.syncSettingsRangeMarkers();
           });
         };
         elements.backgroundMusicRange.addEventListener("input", applyBackgroundMusic);

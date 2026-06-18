@@ -16,6 +16,7 @@
       runtime.laptopOpen = true;
       elements.laptopTitle.textContent = laptop.name || laptop.id || "Camera Access";
       elements.laptopOverlay.classList.remove("hidden");
+      if (deps.audio) deps.audio.play("laptop-open");
       render();
       deps.updateHud();
     }
@@ -38,6 +39,7 @@
       if (!state) return;
       state.cameraHack.started = true;
       state.message = "Camera labels online";
+      if (deps.audio) deps.audio.play("hack-start");
       render();
       deps.updateHud();
     }
@@ -51,6 +53,7 @@
       } else {
         state.cameraHack.revealedCameras.add(cameraId);
       }
+      if (deps.audio) deps.audio.play("camera-select");
       render();
       deps.updateHud();
     }
