@@ -44,6 +44,43 @@
       updateCalmEnemy(enemy, dt);
     }
 
+    // Reads the enemy's configured behavior personality.
+    function personalityOf(enemy) {
+      const value = enemy && enemy.personality;
+      return value === "aggressive" || value === "loyal" || value === "violent" ? value : "calm";
+    }
+
+    // Returns lightweight personality modifiers for current AI decisions.
+    function personalityProfile(enemy) {
+      const personality = personalityOf(enemy);
+      if (personality === "aggressive") {
+        return { searchSpeed: 1.1, pathSearch: true, alertTimer: 6.2, suspicionTimer: 7.2, retreat: false, reactToDown: true };
+      }
+      if (personality === "loyal") {
+        return { searchSpeed: 0.82, pathSearch: false, alertTimer: 5.2, suspicionTimer: 6.4, retreat: false, reactToDown: true };
+      }
+      if (personality === "violent") {
+        return { searchSpeed: 1.2, pathSearch: true, alertTimer: 5.8, suspicionTimer: 6.2, retreat: false, reactToDown: false };
+      }
+      return { searchSpeed: 0.7, pathSearch: false, alertTimer: 4.5, suspicionTimer: 5.5, retreat: true, reactToDown: true };
+    }
+
+    // Calm enemies can break off when the defense is mostly defeated.
+    function shouldRetreat(enemy) {
+      const profile = personalityProfile(enemy);
+      if (!profile.retreat || !deps.enemyTeamPressure) return false;
+      const pressure = deps.enemyTeamPressure(enemy);
+      return Boolean(pressure && pressure.mostDown);
+    }
+
+    // Sends an enemy back to its defensive origin.
+    function startReturn(enemy) {
+      enemy.status = returnStatus;
+      enemy.lastKnownOperator = null;
+      enemy.searchTarget = null;
+      enemy.returnTarget = enemy.spawn ? { x: enemy.spawn.x, y: enemy.spawn.y } : (enemy.watch ? { ...enemy.watch } : null);
+    }
+
     // Finds the first living operator visible to an enemy with the current weapon.
     function findVisibleOperator(enemy, weapon) {
       const state = deps.getState();
@@ -63,23 +100,31 @@
         deps.audio.play("enemy-suspicious");
       }
       if (status === alertStatus || status === suspiciousStatus) {
+        const profile = personalityProfile(enemy);
         const point = target ? { x: target.x, y: target.y } : enemy.lastKnownOperator;
         enemy.lastKnownOperator = point ? { ...point } : null;
         enemy.searchTarget = point ? { ...point } : enemy.searchTarget;
-        enemy.suspicionTimer = status === alertStatus ? 4.5 : Math.max(enemy.suspicionTimer || 0, 5.5);
+        enemy.suspicionTimer = status === alertStatus
+          ? profile.alertTimer
+          : Math.max(enemy.suspicionTimer || 0, profile.suspicionTimer);
       }
     }
 
     // Moves or aims a suspicious enemy toward its last known contact point.
     function updateSuspiciousEnemy(enemy, dt) {
+      if (shouldRetreat(enemy)) {
+        startReturn(enemy);
+        return;
+      }
+      const profile = personalityProfile(enemy);
       enemy.suspicionTimer = Math.max(0, (enemy.suspicionTimer || 0) - dt);
       const target = enemy.searchTarget || enemy.lastKnownOperator;
       if (target) {
         enemy.angle = deps.angleTo(enemy, target);
-        if (deps.enemyTraceMode && deps.enemyTraceMode() === "chase") {
-          moveEnemyByPath(enemy, target, dt);
+        if (profile.pathSearch || deps.enemyTraceMode && deps.enemyTraceMode() === "chase") {
+          moveEnemyByPath(enemy, target, dt, profile.searchSpeed);
         } else {
-          moveEnemyToward(enemy, target, dt, 0.72);
+          moveEnemyToward(enemy, target, dt, profile.searchSpeed);
         }
         if (deps.pointDistance(enemy, target) < 18) {
           enemy.searchTarget = null;
@@ -88,10 +133,14 @@
         enemy.angle = deps.angleTo(enemy, enemy.watch);
       }
       if (enemy.suspicionTimer <= 0) {
-        enemy.status = deps.enemyTraceMode && deps.enemyTraceMode() === "chase" ? returnStatus : calmStatus;
-        enemy.lastKnownOperator = null;
-        enemy.searchTarget = null;
-        enemy.returnTarget = enemy.spawn ? { x: enemy.spawn.x, y: enemy.spawn.y } : (enemy.watch ? { ...enemy.watch } : null);
+        if (profile.pathSearch || deps.enemyTraceMode && deps.enemyTraceMode() === "chase") {
+          startReturn(enemy);
+        } else {
+          enemy.status = calmStatus;
+          enemy.lastKnownOperator = null;
+          enemy.searchTarget = null;
+          enemy.returnTarget = null;
+        }
       }
     }
 
@@ -114,6 +163,11 @@
 
     // Keeps calm enemies watching assigned points or following their patrol.
     function updateCalmEnemy(enemy, dt) {
+      if (shouldRetreat(enemy)) {
+        startReturn(enemy);
+        updateReturningEnemy(enemy, dt);
+        return;
+      }
       enemy.status = calmStatus;
       if (enemy.watch) {
         enemy.angle = deps.angleTo(enemy, enemy.watch);
@@ -152,7 +206,7 @@
     }
 
     // Moves an enemy by a coarse path when chase mode is enabled.
-    function moveEnemyByPath(enemy, target, dt) {
+    function moveEnemyByPath(enemy, target, dt, speedMultiplier = 0.95) {
       const state = deps.getState();
       enemy.pathTimer = Math.max(0, (enemy.pathTimer || 0) - dt);
       if (!enemy.chasePath || enemy.pathTimer <= 0 || deps.pointDistance(enemy.chaseGoal || enemy, target) > 36) {
@@ -164,7 +218,7 @@
       if (deps.pointDistance(enemy, nextPoint) < 12) {
         enemy.chasePath.shift();
       }
-      moveEnemyToward(enemy, enemy.chasePath[0] || target, dt, 0.95);
+      moveEnemyToward(enemy, enemy.chasePath[0] || target, dt, speedMultiplier);
     }
 
     // Finds a simple grid path across the current map.
@@ -212,7 +266,8 @@
     function noticeDoor(door, op) {
       const point = op || deps.rectCenter(door);
       notifyNearby(point, 320, (enemy, distance) => {
-        if (distance < 180 && deps.hasLineOfSight(enemy, point, deps.getState().level)) {
+        const personality = personalityOf(enemy);
+        if ((personality === "aggressive" || personality === "violent") || distance < 180 && deps.hasLineOfSight(enemy, point, deps.getState().level)) {
           setStatus(enemy, alertStatus, point);
         } else {
           setStatus(enemy, suspiciousStatus, point);
@@ -224,7 +279,8 @@
     function noticeShot(shooter, target) {
       const point = shooter || target;
       notifyNearby(point, 420, (enemy, distance) => {
-        if (distance < 220 && deps.hasLineOfSight(enemy, point, deps.getState().level)) {
+        const personality = personalityOf(enemy);
+        if ((personality === "aggressive" || personality === "violent") || distance < 220 && deps.hasLineOfSight(enemy, point, deps.getState().level)) {
           setStatus(enemy, alertStatus, point);
         } else {
           setStatus(enemy, suspiciousStatus, point);
@@ -244,7 +300,9 @@
       const point = enemy || source;
       notifyNearby(point, 360, (other) => {
         if (other.id === enemy.id) return;
-        setStatus(other, suspiciousStatus, source || point);
+        const profile = personalityProfile(other);
+        if (!profile.reactToDown) return;
+        setStatus(other, personalityOf(other) === "aggressive" ? alertStatus : suspiciousStatus, source || point);
       });
     }
 

@@ -1663,7 +1663,8 @@ body.pixel-style-geometry .weapon-image-frame::after {
   padding-top: 9px;
 }
 
-.enemy-loadout-row {
+.enemy-loadout-row,
+.enemy-personality-row {
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
@@ -1673,6 +1674,26 @@ body.pixel-style-geometry .weapon-image-frame::after {
   padding: 8px 10px;
   background: none /* PNG disabled: url("docs/images/user-interface/pixel-art-loadout-setting-row-001.png") */ center / 100% 100% no-repeat;
   image-rendering: pixelated;
+}
+
+.enemy-personality-row {
+  grid-template-columns: 96px minmax(160px, 0.7fr) minmax(0, 1.3fr);
+}
+
+.enemy-personality-list {
+  display: grid;
+  gap: 8px;
+}
+
+.enemy-type-copy,
+.enemy-personality-hint {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.enemy-personality-hint {
+  display: block;
 }
 
 .icon-select-row {
@@ -3916,7 +3937,8 @@ body.game-expanded.expanded-paused .right-panel {
   }
 
   body.pixel-style-geometry .keybinding-row,
-  body.pixel-style-geometry .enemy-loadout-row {
+  body.pixel-style-geometry .enemy-loadout-row,
+  body.pixel-style-geometry .enemy-personality-row {
     min-height: 48px;
     border-radius: 4px;
     padding: 7px 9px;
@@ -3933,6 +3955,10 @@ body.game-expanded.expanded-paused .right-panel {
 
   body.pixel-style-geometry .enemy-loadout-row {
     grid-template-columns: 54px minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  body.pixel-style-geometry .enemy-personality-row {
+    grid-template-columns: 88px minmax(150px, 0.72fr) minmax(0, 1.28fr);
   }
 
   body.pixel-style-geometry .icon-select-row {
@@ -5861,6 +5887,7 @@ body.pixel-style-geometry:not(.start-menu-active) .inventory-grid div,
 body.pixel-style-geometry:not(.start-menu-active) .mission-report div,
 body.pixel-style-geometry:not(.start-menu-active) .keybinding-row,
 body.pixel-style-geometry:not(.start-menu-active) .enemy-loadout-row,
+body.pixel-style-geometry:not(.start-menu-active) .enemy-personality-row,
 body.pixel-style-geometry:not(.start-menu-active) .operator-card,
 body.pixel-style-geometry:not(.start-menu-active) .inventory-item-detail,
 body.pixel-style-geometry:not(.start-menu-active) .equipment-table-options section,
@@ -6009,6 +6036,7 @@ body.pixel-style-geometry .settings-actions button,
 body.pixel-style-geometry .settings-footer-actions button,
 body.pixel-style-geometry .keybinding-row,
 body.pixel-style-geometry .enemy-loadout-row,
+body.pixel-style-geometry .enemy-personality-row,
 body.pixel-style-geometry .operator-card,
 body.pixel-style-geometry .inventory-item-detail,
 body.pixel-style-geometry .equipment-table-options section,

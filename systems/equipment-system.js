@@ -12,9 +12,17 @@
     const operatorBackpackLoadouts = deps.operatorBackpackLoadouts;
     const enemyLoadouts = deps.enemyLoadouts;
     const enemyArmorLoadouts = deps.enemyArmorLoadouts;
+    const enemyPersonalityLoadouts = deps.enemyPersonalityLoadouts;
     const elements = deps.elements;
     let lastHealthBoardHtml = "";
     let lastEnemyLoadoutHtml = "";
+    let lastEnemyPersonalityHtml = "";
+    const enemyPersonalities = {
+      aggressive: "Acts on the desire to damage operators.",
+      calm: "Defends logically, holds position, and may retreat when the defense collapses.",
+      loyal: "Commits to winning the defense and will not retreat when teammates fall.",
+      violent: "Attacks with little concern for the health of teammates or itself."
+    };
     /*
     const equipmentImages = {
       "no-weapon": "pixel-art-no-weapon-001.png",
@@ -66,6 +74,11 @@
       return backpacks.has(id) ? id : "no-backpack";
     }
 
+    // Normalizes enemy personality values to the defensive default.
+    function validEnemyPersonality(id) {
+      return Object.prototype.hasOwnProperty.call(enemyPersonalities, id) ? id : "calm";
+    }
+
     // Gets the saved enemy weapon choices for the active level.
     function currentLevelWeaponLoadouts() {
       const levelId = runtime.currentLevelMeta ? runtime.currentLevelMeta.id : "default";
@@ -78,6 +91,13 @@
       const levelId = runtime.currentLevelMeta ? runtime.currentLevelMeta.id : "default";
       if (!enemyArmorLoadouts[levelId]) enemyArmorLoadouts[levelId] = {};
       return enemyArmorLoadouts[levelId];
+    }
+
+    // Gets the saved enemy personality choices for the active level.
+    function currentLevelPersonalityLoadouts() {
+      const levelId = runtime.currentLevelMeta ? runtime.currentLevelMeta.id : "default";
+      if (!enemyPersonalityLoadouts[levelId]) enemyPersonalityLoadouts[levelId] = {};
+      return enemyPersonalityLoadouts[levelId];
     }
 
     // Produces weapon selector options for loadout controls.
@@ -107,6 +127,14 @@
         if (!backpack) return "";
         const selected = backpack.id === selectedId ? " selected" : "";
         return `<option value="${backpack.id}"${selected}>${backpack.name}</option>`;
+      }).join("");
+    }
+
+    // Produces enemy personality selector options with hover descriptions.
+    function enemyPersonalityOptionsHtml(selectedId) {
+      return Object.entries(enemyPersonalities).map(([id, description]) => {
+        const selected = id === selectedId ? " selected" : "";
+        return `<option value="${id}" title="${escapeAttr(description)}"${selected}>${id.toUpperCase()}</option>`;
       }).join("");
     }
 
@@ -248,6 +276,44 @@
       }
     }
 
+    // Renders per-enemy personality controls in the Dev Setting page.
+    function renderEnemyPersonalities() {
+      const state = runtime.state;
+      if (!elements.enemyPersonalityList) return;
+      if (!state) {
+        const emptyHtml = "<p class=\"empty-note\">No enemies in this level.</p>";
+        if (lastEnemyPersonalityHtml !== emptyHtml) {
+          elements.enemyPersonalityList.innerHTML = emptyHtml;
+          lastEnemyPersonalityHtml = emptyHtml;
+        }
+        return;
+      }
+
+      const savedPersonalities = currentLevelPersonalityLoadouts();
+      const html = state.level.enemies.map((enemy) => {
+        const enemyLabel = enemy.name || enemy.id || "Enemy";
+        const selectedPersonality = validEnemyPersonality(savedPersonalities[enemy.id] || enemy.personality || "calm");
+        const description = enemyPersonalities[selectedPersonality];
+        return `
+          <div class="enemy-personality-row">
+            <strong>${escapeText(enemyLabel)}</strong>
+            <label class="plain-select-row enemy-personality-picker" title="${escapeAttr(description)}">
+              <select data-enemy-personality-id="${escapeAttr(enemy.id)}" aria-label="${escapeAttr(enemyLabel)} enemy type" title="${escapeAttr(description)}">
+                ${enemyPersonalityOptionsHtml(selectedPersonality)}
+              </select>
+            </label>
+            <span class="enemy-personality-hint" title="${escapeAttr(description)}">${escapeText(description)}</span>
+          </div>
+        `;
+      }).join("");
+
+      const output = html || "<p class=\"empty-note\">No enemies in this level.</p>";
+      if (output !== lastEnemyPersonalityHtml) {
+        elements.enemyPersonalityList.innerHTML = output;
+        lastEnemyPersonalityHtml = output;
+      }
+    }
+
     // Applies an enemy weapon choice and resets its firing timers.
     function applyEnemyWeapon(enemyId, weaponId) {
       const selectedWeaponId = validWeaponId(weaponId);
@@ -278,6 +344,24 @@
       enemy.armor = armor.armor;
       enemy.speed = (enemy.baseSpeed || 34) * armor.speedMultiplier;
       state.message = `${enemy.id} equipped ${armor.name}`;
+      deps.updateHud();
+    }
+
+    // Applies an enemy personality immediately and stores it for this level.
+    function applyEnemyPersonality(enemyId, personalityId) {
+      const selectedPersonality = validEnemyPersonality(personalityId);
+      currentLevelPersonalityLoadouts()[enemyId] = selectedPersonality;
+      const state = runtime.state;
+      if (!state) return;
+      const enemy = state.level.enemies.find((item) => item.id === enemyId);
+      if (!enemy) return;
+      enemy.personality = selectedPersonality;
+      if (selectedPersonality === "calm" && enemy.status === "suspicious") {
+        enemy.suspicionTimer = Math.min(enemy.suspicionTimer || 0, 4.5);
+      }
+      state.message = `${enemy.id} type set to ${selectedPersonality.toUpperCase()}`;
+      lastEnemyPersonalityHtml = "";
+      renderEnemyPersonalities();
       deps.updateHud();
     }
 
@@ -526,8 +610,10 @@
       validArmorId,
       backpackById,
       validBackpackId,
+      validEnemyPersonality,
       currentLevelWeaponLoadouts,
       currentLevelArmorLoadouts,
+      currentLevelPersonalityLoadouts,
       equipmentImagePath,
       equipmentIconHtml,
       weaponOptionsHtml,
@@ -536,8 +622,10 @@
       loadEquipment,
       populateEquipmentSelects,
       renderEnemyLoadouts,
+      renderEnemyPersonalities,
       applyEnemyWeapon,
       applyEnemyArmor,
+      applyEnemyPersonality,
       applyOperatorWeapon,
       applyOperatorArmor,
       applyOperatorBackpack,
@@ -609,6 +697,14 @@
     return String(value || "")
       .replace(/&/g, "&amp;")
       .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Escapes text for safe HTML content.
+  function escapeText(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
   }

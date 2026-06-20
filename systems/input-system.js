@@ -675,6 +675,15 @@
           deps.settings.requestSettingChange(() => deps.equipment.applyEnemyArmor(id, value));
         }
       });
+      if (elements.enemyPersonalityList) {
+        elements.enemyPersonalityList.addEventListener("change", (event) => {
+          const personalitySelectEl = event.target.closest("[data-enemy-personality-id]");
+          if (!personalitySelectEl) return;
+          const id = personalitySelectEl.dataset.enemyPersonalityId;
+          const value = personalitySelectEl.value;
+          deps.settings.requestSettingChange(() => deps.equipment.applyEnemyPersonality(id, value));
+        });
+      }
       elements.unlockDigitalDoorButton.addEventListener("click", deps.digitalLock.submitDigitalLock);
       elements.cancelDigitalLockButton.addEventListener("click", () => deps.digitalLock.closeDigitalLock());
       elements.digitalLockOverlay.addEventListener("click", (event) => {

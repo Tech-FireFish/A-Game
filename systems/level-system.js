@@ -36,6 +36,7 @@
       const maxOperators = Math.max(1, Math.min(runtime.activeOperatorCount, level.operators.length));
       const levelWeaponLoadouts = deps.equipment.currentLevelWeaponLoadouts();
       const levelArmorLoadouts = deps.equipment.currentLevelArmorLoadouts();
+      const levelPersonalityLoadouts = deps.equipment.currentLevelPersonalityLoadouts ? deps.equipment.currentLevelPersonalityLoadouts() : {};
       return {
         id: level.id,
         title: level.title,
@@ -117,6 +118,9 @@
             baseSpeed,
             speed: baseSpeed * armor.speedMultiplier,
             weaponId,
+            personality: deps.equipment.validEnemyPersonality
+              ? deps.equipment.validEnemyPersonality((useSavedLoadout && levelPersonalityLoadouts[enemy.id]) || enemy.personality || "calm")
+              : ((useSavedLoadout && levelPersonalityLoadouts[enemy.id]) || enemy.personality || "calm"),
             spawn: { x: enemy.x, y: enemy.y, angle: enemy.angle || 0 },
             fireTimer: 0,
             sightRange: enemy.sightRange || Math.max(190, deps.equipment.weaponById(weaponId).range),

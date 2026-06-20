@@ -105,6 +105,7 @@ const elements = {
   // pngRenderingCheckbox: document.getElementById("pngRenderingCheckbox"),
   keyBindingList: document.getElementById("keyBindingList"),
   enemyLoadoutList: document.getElementById("enemyLoadoutList"),
+  enemyPersonalityList: document.getElementById("enemyPersonalityList"),
   digitalLockOverlay: document.getElementById("digitalLockOverlay"),
   digitalLockTitle: document.getElementById("digitalLockTitle"),
   digitalLockDisplay: document.getElementById("digitalLockDisplay"),
@@ -387,6 +388,7 @@ const operatorArmorLoadouts = {};
 const operatorBackpackLoadouts = {};
 const enemyLoadouts = {};
 const enemyArmorLoadouts = {};
+const enemyPersonalityLoadouts = {};
 
 let audio;
 let keybindings;
@@ -443,6 +445,24 @@ function cycleOperator() {
 // Checks whether any manual movement key is currently held.
 function hasManualInput() {
   return [...MANUAL_ACTIONS].some((action) => keysDown.has(action));
+}
+
+// Reports enemy-team pressure for personality decisions.
+function enemyTeamPressure(enemy) {
+  const state = runtime.state;
+  if (!state || !state.level || !Array.isArray(state.level.enemies)) {
+    return { total: 0, down: 0, mostDown: false };
+  }
+  const team = state.level.enemies.filter((item) => item && item.id !== (enemy && enemy.id));
+  const total = state.level.enemies.length;
+  const down = state.level.enemies.filter((item) => item && item.down).length;
+  const livingTeammates = team.filter((item) => !item.down).length;
+  return {
+    total,
+    down,
+    livingTeammates,
+    mostDown: total > 1 && down >= Math.ceil(total * 0.6)
+  };
 }
 
 // Toggles between planning and execute mode when gameplay is not blocked.
@@ -1431,6 +1451,7 @@ function initializeSystems() {
     operatorBackpackLoadouts,
     enemyLoadouts,
     enemyArmorLoadouts,
+    enemyPersonalityLoadouts,
     elements,
     weaponOptions: WEAPON_OPTIONS,
     armorOptions: ARMOR_OPTIONS,
@@ -1494,9 +1515,11 @@ function initializeSystems() {
     operatorBackpackLoadouts,
     enemyLoadouts,
     enemyArmorLoadouts,
+    enemyPersonalityLoadouts,
     camera,
     setBackgroundMusicVolume,
     renderEnemyLoadouts: () => equipment.renderEnemyLoadouts(),
+    renderEnemyPersonalities: () => equipment.renderEnemyPersonalities(),
     updateHud
   });
 
@@ -1541,6 +1564,9 @@ function initializeSystems() {
     operatorLoadouts,
     operatorArmorLoadouts,
     operatorBackpackLoadouts,
+    enemyPersonalityLoadouts,
+    enemyLoadouts,
+    enemyArmorLoadouts,
     storeLoadoutDefaults,
     progression,
     keysDown,
@@ -1576,6 +1602,7 @@ function initializeSystems() {
     rectCenter: geometry.rectCenter,
     clamp: geometry.clamp,
     enemyTraceMode: () => runtime.enemyTraceMode,
+    enemyTeamPressure: (enemy) => enemyTeamPressure(enemy),
     audio
   });
 

@@ -7,7 +7,7 @@
     const elements = deps.elements;
     const DEV_CODE = "Let me in";
     const SETTINGS_TABS = new Set(["keys", "general", "sound", "dev"]);
-    const DEV_SETTINGS_TABS = new Set(["mission", "operator", "enemy"]);
+    const DEV_SETTINGS_TABS = new Set(["mission", "operator", "enemy", "enemyTypes"]);
 
     // Opens settings, pauses execution, and remembers whether to resume.
     function openSettings() {
@@ -23,6 +23,7 @@
       setActiveTab(SETTINGS_TABS.has(runtime.activeSettingsTab) ? runtime.activeSettingsTab : "keys");
       if (runtime.devSettingsUnlocked) showDevSettingsVisual();
       deps.renderEnemyLoadouts();
+      if (deps.renderEnemyPersonalities) deps.renderEnemyPersonalities();
       deps.updateHud();
     }
 
@@ -123,6 +124,7 @@
       if (elements.devModeMessage) elements.devModeMessage.textContent = "Dev Setting opened.";
       showDevSettingsVisual();
       deps.renderEnemyLoadouts();
+      if (deps.renderEnemyPersonalities) deps.renderEnemyPersonalities();
       deps.updateHud();
     }
 
@@ -200,6 +202,7 @@
       hideSettingChangeOverlay();
       restoreSetupControls();
       if (deps.renderEnemyLoadouts) deps.renderEnemyLoadouts();
+      if (deps.renderEnemyPersonalities) deps.renderEnemyPersonalities();
       deps.updateHud();
     }
 
@@ -261,6 +264,7 @@
       clearMap(deps.operatorBackpackLoadouts);
       clearMap(deps.enemyLoadouts);
       clearMap(deps.enemyArmorLoadouts);
+      clearMap(deps.enemyPersonalityLoadouts);
       if (elements.operatorCountSelect) elements.operatorCountSelect.value = "2";
       if (elements.difficultySelect) elements.difficultySelect.value = "normal";
       if (elements.shootingModeSelect) elements.shootingModeSelect.value = "automatic";
@@ -275,6 +279,7 @@
       if (deps.camera && deps.camera.setViewValue) deps.camera.setViewValue(50);
       if (runtime.activeMode !== "tutorial" && deps.level && deps.level.restart) deps.level.restart();
       deps.renderEnemyLoadouts();
+      if (deps.renderEnemyPersonalities) deps.renderEnemyPersonalities();
       deps.updateHud();
     }
 
