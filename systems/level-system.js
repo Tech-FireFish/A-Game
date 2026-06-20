@@ -270,6 +270,7 @@
       if (runtime.activeMode !== "tutorial" && elements.tutorialCard) elements.tutorialCard.classList.add("hidden");
       elements.levelTitle.textContent = runtime.currentLevel.title || runtime.currentLevelMeta.title;
       if (deps.saveResumePoint && runtime.activeMode !== "preview") deps.saveResumePoint(runtime.currentLevelMeta, runtime.activeMode);
+      if (deps.showMissionBriefing) deps.showMissionBriefing();
       deps.updateHud();
     }
 
@@ -347,6 +348,7 @@
       } catch (error) {
         runtime.currentLevel = null;
         runtime.state = null;
+        if (deps.hideMissionBriefing) deps.hideMissionBriefing();
         elements.levelTitle.textContent = "Level Load Failed";
         elements.bannerTitle.textContent = "Level Load Failed";
         elements.bannerText.textContent = error.message;

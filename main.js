@@ -56,6 +56,16 @@ const elements = {
   runButton: document.getElementById("runButton"),
   restartButton: document.getElementById("restartButton"),
   debugButton: document.getElementById("debugButton"),
+  missionBriefingOverlay: document.getElementById("missionBriefingOverlay"),
+  missionBriefingCard: document.getElementById("missionBriefingCard"),
+  missionBriefingFinishButton: document.getElementById("missionBriefingFinishButton"),
+  missionBriefingTitle: document.getElementById("missionBriefingTitle"),
+  briefingLevelLabel: document.getElementById("briefingLevelLabel"),
+  briefingModeLabel: document.getElementById("briefingModeLabel"),
+  briefingObjectiveLabel: document.getElementById("briefingObjectiveLabel"),
+  briefingOperatorLabel: document.getElementById("briefingOperatorLabel"),
+  briefingShootingLabel: document.getElementById("briefingShootingLabel"),
+  briefingZoneLabel: document.getElementById("briefingZoneLabel"),
   settingsButton: document.getElementById("settingsButton"),
   weaponSelect: document.getElementById("weaponSelect"),
   armorSelect: document.getElementById("armorSelect"),
@@ -90,6 +100,7 @@ const elements = {
   difficultySelect: document.getElementById("difficultySelect"),
   shootingModeSelect: document.getElementById("shootingModeSelect"),
   enemyTraceSelect: document.getElementById("enemyTraceSelect"),
+  debugOverlayCheckbox: document.getElementById("debugOverlayCheckbox"),
   hintOpacityRange: document.getElementById("hintOpacityRange"),
   hintOpacityValue: document.getElementById("hintOpacityValue"),
   hintOpacityBubble: document.getElementById("hintOpacityBubble"),
@@ -344,6 +355,8 @@ const runtime = {
   activeDigitalDoorId: null,
   enemyTraceMode: "current",
   pauseOpen: false,
+  missionBriefingOpen: false,
+  missionBriefingTransition: false,
   pauseResumeRunning: false,
   expandedGame: false,
   expandedPaused: false,
@@ -469,15 +482,78 @@ function enemyTeamPressure(enemy) {
   };
 }
 
-// Toggles between planning and execute mode when gameplay is not blocked.
+// Execute toggle disabled; missions now start through the briefing Finish button.
 function toggleRun() {
   const state = runtime.state;
   if (!state) return;
+  /*
+  Previous run/pause toggle disabled:
   if (state.gameOver) return;
   if (settings.gameplayPausedByOverlay()) return;
   state.running = !state.running;
   state.message = state.running ? "Execute" : "Planning";
+  */
+  state.running = false;
+  state.message = "Use the mission briefing Finish button to begin.";
   updateHud();
+}
+
+// Writes the current mission status into the centered paper briefing.
+function renderMissionBriefing() {
+  const state = runtime.state;
+  if (!state) return;
+  const selected = selectedOperator();
+  const activeEnemies = state.level.enemies.filter((enemy) => !enemy.down).length;
+  const objectiveText = state.level.objective.secured
+    ? "Secured"
+    : (state.level.objective.harmed ? "Compromised" : `${activeEnemies} hostiles`);
+  setText(elements.missionBriefingTitle, runtime.currentLevelMeta ? runtime.currentLevelMeta.title : state.level.title);
+  setText(elements.briefingLevelLabel, state.level.title || (runtime.currentLevelMeta && runtime.currentLevelMeta.title) || "Mission");
+  setText(elements.briefingModeLabel, "Mission Briefing");
+  setText(elements.briefingObjectiveLabel, objectiveText);
+  setText(elements.briefingOperatorLabel, selected ? selected.id : "None");
+  setText(elements.briefingShootingLabel, titleCase(state.shootingMode || "automatic"));
+  setText(elements.briefingZoneLabel, selected ? (selected.zone || selected.floor || "Map") : "Map");
+}
+
+// Shows the pre-mission paper briefing and blocks gameplay until Finish.
+function showMissionBriefing() {
+  const state = runtime.state;
+  if (!state || !elements.missionBriefingOverlay) return;
+  runtime.missionBriefingOpen = true;
+  runtime.missionBriefingTransition = false;
+  state.running = false;
+  state.message = "Review mission status, then press Finish.";
+  keysDown.clear();
+  elements.missionBriefingOverlay.classList.remove("hidden", "mission-briefing-fading");
+  renderMissionBriefing();
+  updateHud();
+}
+
+// Hides the pre-mission briefing without starting gameplay.
+function hideMissionBriefing() {
+  runtime.missionBriefingOpen = false;
+  runtime.missionBriefingTransition = false;
+  if (elements.missionBriefingOverlay) {
+    elements.missionBriefingOverlay.classList.add("hidden");
+    elements.missionBriefingOverlay.classList.remove("mission-briefing-fading");
+  }
+}
+
+// Starts gameplay from the paper briefing after a short fade.
+function finishMissionBriefing() {
+  const state = runtime.state;
+  if (!state || state.gameOver || !runtime.missionBriefingOpen) return;
+  if (runtime.missionBriefingTransition) return;
+  runtime.missionBriefingTransition = true;
+  if (elements.missionBriefingOverlay) elements.missionBriefingOverlay.classList.add("mission-briefing-fading");
+  window.setTimeout(() => {
+    if (!runtime.state || runtime.state !== state || state.gameOver) return;
+    hideMissionBriefing();
+    state.running = true;
+    state.message = "Mission started";
+    updateHud({ force: true });
+  }, 420);
 }
 
 // Applies the selected difficulty and updates the player-facing status.
@@ -1287,7 +1363,8 @@ function updateHud(options = {}) {
     setText(elements.selectedStatusLabel, "None");
     setText(elements.shootingStatusLabel, "Automatic");
     setText(elements.selectedZoneLabel, "Loading");
-    setText(elements.runButton, "Execute");
+    // Execute button disabled; mission starts from briefing Finish.
+    // setText(elements.runButton, "Execute");
     if (equipment && refreshHeavy) {
       equipment.renderLoadoutPanel();
       equipment.renderHealthBoard();
@@ -1301,6 +1378,10 @@ function updateHud(options = {}) {
     if (elements.backgroundMusicValue) setText(elements.backgroundMusicValue, runtime.backgroundMusicVolume);
     if (elements.storeScoreInput && document.activeElement !== elements.storeScoreInput) {
       setValue(elements.storeScoreInput, storeProfile().score);
+    }
+    if (elements.debugOverlayCheckbox) {
+      elements.debugOverlayCheckbox.checked = false;
+      elements.debugOverlayCheckbox.disabled = true;
     }
     syncSettingsRangeMarkers();
     if (refreshHeavy) clearHudDirtyFlags(now);
@@ -1316,10 +1397,15 @@ function updateHud(options = {}) {
     const activeEnemies = state.level.enemies.filter((enemy) => !enemy.down).length;
     setText(elements.objectiveLabel, `${activeEnemies} hostiles`);
   }
-  setText(elements.runButton, state.running ? "Pause" : "Execute");
+  // Execute button disabled; mission starts from briefing Finish.
+  // setText(elements.runButton, state.running ? "Pause" : "Execute");
   setValue(elements.difficultySelect, runtime.currentDifficulty);
   setValue(elements.shootingModeSelect, state.shootingMode);
   setValue(elements.enemyTraceSelect, runtime.enemyTraceMode);
+  if (elements.debugOverlayCheckbox) {
+    elements.debugOverlayCheckbox.checked = Boolean(state.debug);
+    elements.debugOverlayCheckbox.disabled = false;
+  }
   const selected = selectedOperator();
   setText(elements.selectedStatusLabel, selected ? selected.id : "None");
   setText(elements.shootingStatusLabel, titleCase(state.shootingMode || "automatic"));
@@ -1374,6 +1460,7 @@ function updateHud(options = {}) {
     if (tutorial) tutorial.update();
     clearHudDirtyFlags(now);
   }
+  if (runtime.missionBriefingOpen) renderMissionBriefing();
   recordPerformanceMetric("hudMs", performance.now() - hudStart);
 }
 
@@ -1609,6 +1696,8 @@ function initializeSystems() {
     progression,
     keysDown,
     saveResumePoint,
+    showMissionBriefing,
+    hideMissionBriefing,
     updateHud
   });
 
@@ -1659,6 +1748,7 @@ function initializeSystems() {
     progression,
     addStoreScore,
     clearResumePoint,
+    hideMissionBriefing,
     refreshStartMenu,
     menu: {
       showMain: () => menu && menu.showMain()
@@ -1728,7 +1818,8 @@ function initializeSystems() {
     selectedOperator,
     selectOperator,
     cycleOperator,
-    toggleRun,
+    // Legacy Execute toggle disabled; missions start from briefing Finish.
+    // toggleRun,
     setDifficulty,
     hasResumePoint,
     refreshStartMenu,
@@ -1740,6 +1831,7 @@ function initializeSystems() {
     advanceToNextStoryOrEnd,
     openCreditsPage,
     returnToStartFromEnd,
+    finishMissionBriefing,
     selectStoreItem,
     closeStoreConfirmation,
     confirmStorePurchase,
@@ -1794,6 +1886,7 @@ function initializeSystems() {
     refreshStartMenu,
     renderStorePage,
     setDifficulty,
+    hideMissionBriefing,
     updateHud
   });
 
@@ -1862,8 +1955,9 @@ window.__breachline = {
     await preloadGameData();
     return menu.showMain();
   },
-  cycleOperator,
-  toggleRun
+  cycleOperator
+  // Legacy Execute toggle disabled.
+  // toggleRun
 };
 
 /*

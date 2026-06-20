@@ -8,6 +8,7 @@
 
     // Shows the start screen at boot.
     function showStart() {
+      if (deps.hideMissionBriefing) deps.hideMissionBriefing();
       document.documentElement.classList.add("start-menu-active");
       document.body.classList.add("start-menu-active");
       if (elements.startMenuOverlay) elements.startMenuOverlay.classList.remove("hidden");
@@ -23,6 +24,7 @@
 
     // Shows the display-only Store page between Start and onboarding.
     function showStore() {
+      if (deps.hideMissionBriefing) deps.hideMissionBriefing();
       document.documentElement.classList.add("start-menu-active");
       document.body.classList.add("start-menu-active");
       if (deps.renderStorePage) deps.renderStorePage();
@@ -69,6 +71,7 @@
 
     // Shows the main navigation page.
     function showMain(options = {}) {
+      if (deps.hideMissionBriefing) deps.hideMissionBriefing();
       const returnToPause = Boolean(options.returnToPause);
       const returnResumeRunning = Boolean(options.resumeRunning);
       document.documentElement.classList.remove("start-menu-active");

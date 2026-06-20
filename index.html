@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-    <link rel="stylesheet" href="styles.css?v=46">
+    <link rel="stylesheet" href="styles.css?v=51">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -170,6 +170,7 @@
           <p class="eyebrow">Breachline 2D</p>
           <h1 id="levelTitle">Ridge House Entry</h1>
         </div>
+        <!-- Mission status card moved to centered pre-mission briefing overlay.
         <section class="control-card mission-status-card brandbar-status" aria-label="Mission status">
           <p class="panel-label">Mission Status</p>
           <div class="mission-status-grid">
@@ -195,6 +196,7 @@
             </div>
           </div>
         </section>
+        -->
       </header>
 
       <section class="play-layout">
@@ -246,6 +248,20 @@
           <canvas id="game" width="960" height="640" aria-label="Breachline 2D tactical map"></canvas>
           <button id="expandGameButton" class="expand-game-button" type="button">Expand</button>
           <button id="expandedPauseButton" class="expanded-pause-button" type="button">Press Esc to pause</button>
+          <div id="expandedGameplayOverlay" class="expanded-gameplay-overlay" aria-label="Expanded gameplay status cards">
+            <section class="control-card operator-health-card">
+              <div class="panel-heading-row">
+                <p class="panel-label">Operator Health</p>
+                <button id="showAllHealthButton" type="button">Show All</button>
+              </div>
+              <div id="operatorHealthBoard" class="health-board" aria-live="polite"></div>
+            </section>
+
+            <section id="hintCard" class="control-card hint-card">
+              <p class="panel-label">Hint</p>
+              <div id="hintText" class="hint-text">Move near doors, windows, stairs, papers, laptops, or tables.</div>
+            </section>
+          </div>
           <!--
           <div id="expandedNav" class="expanded-nav hidden" aria-label="Expanded gameplay navigation">
             <button type="button" data-expanded-action="inventory">Inventory</button>
@@ -281,29 +297,37 @@
             <div id="tutorialProgress" class="tutorial-progress">Step 1 / 8</div>
           </section>
 
-          <section id="hintCard" class="control-card hint-card">
-            <p class="panel-label">Hint</p>
-            <div id="hintText" class="hint-text">Move near doors, windows, stairs, papers, laptops, or tables.</div>
-          </section>
-
           <section class="control-card actions-card">
             <p class="panel-label">Actions</p>
             <div class="actions" aria-label="Game actions">
+              <!-- Execute button disabled; missions now start from the paper briefing Finish button.
               <button id="runButton" type="button" title="Toggle pause and execute">Execute</button>
+              -->
               <button id="restartButton" type="button" title="Restart level">Restart</button>
+              <!-- Debug button moved to Dev Setting > Mission Setup.
               <button id="debugButton" type="button" title="Toggle tactical debug overlay">Debug</button>
+              -->
               <button id="settingsButton" type="button" title="Open settings">Settings</button>
             </div>
           </section>
 
-          <section class="control-card operator-health-card">
-            <div class="panel-heading-row">
-              <p class="panel-label">Operator Health</p>
-              <button id="showAllHealthButton" type="button">Show All</button>
-            </div>
-            <div id="operatorHealthBoard" class="health-board" aria-live="polite"></div>
-          </section>
         </aside>
+      </section>
+
+      <section id="missionBriefingOverlay" class="mission-briefing-overlay hidden" aria-label="Mission status briefing" aria-modal="true" role="dialog">
+        <div id="missionBriefingCard" class="mission-briefing-card" aria-live="polite">
+          <p class="panel-label">Mission Status</p>
+          <h2 id="missionBriefingTitle">Mission Briefing</h2>
+          <div class="mission-briefing-list">
+            <div><span>Level</span><strong id="briefingLevelLabel">Ridge House Entry</strong></div>
+            <div><span>Mode</span><strong id="briefingModeLabel">Planning</strong></div>
+            <div><span>Objective</span><strong id="briefingObjectiveLabel">Secure</strong></div>
+            <div><span>Operator</span><strong id="briefingOperatorLabel">ALPHA</strong></div>
+            <div><span>Shooting</span><strong id="briefingShootingLabel">Automatic</strong></div>
+            <div><span>Zone</span><strong id="briefingZoneLabel">Entry</strong></div>
+          </div>
+        </div>
+        <button id="missionBriefingFinishButton" class="mission-briefing-finish" type="button">Finish</button>
       </section>
 
       <section id="pauseOverlay" class="settings-overlay pause-overlay hidden" aria-label="Pause menu" aria-modal="true" role="dialog">
@@ -444,6 +468,10 @@
                   <option value="current">Current</option>
                   <option value="chase">Chase Last Known</option>
                 </select>
+              </label>
+              <label class="level-picker checkbox-row" for="debugOverlayCheckbox">
+                <span>Debug Overlay</span>
+                <input id="debugOverlayCheckbox" type="checkbox">
               </label>
               <label class="level-picker" for="hintOpacityRange">
                 <span>Hint Transparency <strong id="hintOpacityValue" class="range-value">42%</strong></span>
@@ -668,20 +696,20 @@
     <script src="systems/camera-hack-system.js?v=1"></script>
     <script src="systems/tutorial-system.js?v=1"></script>
     <script src="systems/progression-system.js?v=1"></script>
-    <script src="systems/menu-system.js?v=3"></script>
+    <script src="systems/menu-system.js?v=4"></script>
     <script src="mobile/object-scale-system.js?v=1"></script>
     <script src="mobile/mobile-control-system.js?v=1"></script>
     <script src="systems/equipment-system.js?v=2"></script>
-    <script src="systems/level-system.js?v=7"></script>
+    <script src="systems/level-system.js?v=8"></script>
     <script src="systems/visibility-system.js?v=2"></script>
-    <script src="systems/settings-system.js?v=9"></script>
+    <script src="systems/settings-system.js?v=10"></script>
     <script src="systems/digital-lock-system.js?v=1"></script>
     <script src="systems/enemy-behavior-system.js?v=3"></script>
-    <script src="systems/mission-system.js?v=4"></script>
+    <script src="systems/mission-system.js?v=5"></script>
     <script src="systems/render-system.js?v=3"></script>
-    <script src="systems/input-system.js?v=12"></script>
+    <script src="systems/input-system.js?v=13"></script>
     <script src="systems/action-system.js?v=4"></script>
     <script src="css-pixel-art/store-pixel-art.js?v=2"></script>
-    <script src="main.js?v=40"></script>
+    <script src="main.js?v=42"></script>
   </body>
 </html>

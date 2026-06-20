@@ -66,7 +66,7 @@
 
     // Reports whether any modal overlay should freeze gameplay updates.
     function gameplayPausedByOverlay() {
-      return runtime.settingsOpen || runtime.devSettingsOpen || runtime.digitalLockOpen || runtime.inventoryOpen || runtime.equipmentTableOpen || runtime.laptopOpen || runtime.pauseOpen || runtime.settingChangeOpen;
+      return runtime.settingsOpen || runtime.devSettingsOpen || runtime.missionBriefingOpen || runtime.digitalLockOpen || runtime.inventoryOpen || runtime.equipmentTableOpen || runtime.laptopOpen || runtime.pauseOpen || runtime.settingChangeOpen;
     }
 
     // Overrides the stored resume state for setup changes.
@@ -234,6 +234,10 @@
       if (elements.difficultySelect) elements.difficultySelect.value = runtime.currentDifficulty || "normal";
       if (elements.shootingModeSelect && runtime.state) elements.shootingModeSelect.value = runtime.state.shootingMode || "automatic";
       if (elements.enemyTraceSelect) elements.enemyTraceSelect.value = runtime.enemyTraceMode || "current";
+      if (elements.debugOverlayCheckbox) {
+        elements.debugOverlayCheckbox.checked = Boolean(runtime.state && runtime.state.debug);
+        elements.debugOverlayCheckbox.disabled = !runtime.state;
+      }
       if (elements.hintOpacityRange) elements.hintOpacityRange.value = String(runtime.hintOpacity || 0.42);
       if (elements.viewRange) elements.viewRange.value = String(runtime.viewValue || 50);
       if (elements.backgroundMusicRange) elements.backgroundMusicRange.value = String(runtime.backgroundMusicVolume ?? 50);
@@ -256,6 +260,7 @@
       runtime.pixelArtStyle = "geometry";
       if (runtime.state) {
         runtime.state.shootingMode = "automatic";
+        runtime.state.debug = false;
         runtime.state.message = "Settings reset to defaults";
       }
       if (deps.keybindings && deps.keybindings.reset) deps.keybindings.reset();
@@ -269,6 +274,7 @@
       if (elements.difficultySelect) elements.difficultySelect.value = "normal";
       if (elements.shootingModeSelect) elements.shootingModeSelect.value = "automatic";
       if (elements.enemyTraceSelect) elements.enemyTraceSelect.value = "current";
+      if (elements.debugOverlayCheckbox) elements.debugOverlayCheckbox.checked = false;
       if (elements.hintOpacityRange) elements.hintOpacityRange.value = "0.42";
       if (elements.viewRange) elements.viewRange.value = "50";
       if (elements.backgroundMusicRange) elements.backgroundMusicRange.value = "50";

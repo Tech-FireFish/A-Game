@@ -12,6 +12,7 @@
       const state = runtime.state;
       if (!state) return;
       if (state.gameOver) return;
+      if (deps.settings.gameplayPausedByOverlay()) return;
       const pos = deps.geometry.getMouseWorld(event);
       if (state.shootingMode === "manual") {
         const clickedOp = state.level.operators.find((op) => !op.down && deps.geometry.pointDistance(op, pos) <= deps.geometry.scaledRadius(op) + 8);
@@ -45,6 +46,7 @@
       deps.audio.unlock();
       const state = runtime.state;
       if (!state || state.gameOver || state.shootingMode !== "manual" || event.button !== 0) return;
+      if (deps.settings.gameplayPausedByOverlay()) return;
       const pos = deps.geometry.getMouseWorld(event);
       const clickedOp = state.level.operators.find((op) => !op.down && deps.geometry.pointDistance(op, pos) <= deps.geometry.scaledRadius(op) + 8);
       if (clickedOp) {
@@ -64,6 +66,7 @@
     function onCanvasMove(event) {
       const state = runtime.state;
       if (!state || state.shootingMode !== "manual") return;
+      if (deps.settings.gameplayPausedByOverlay()) return;
       const op = deps.selectedOperator();
       if (!op || op.down) return;
       const pos = deps.geometry.getMouseWorld(event);
@@ -83,6 +86,7 @@
       const state = runtime.state;
       if (!state) return;
       if (state.gameOver) return;
+      if (deps.settings.gameplayPausedByOverlay()) return;
       const op = deps.selectedOperator();
       if (!op) return;
       op.path = [];
@@ -129,6 +133,7 @@
           deps.menu.closeStore();
         }
         else if (deps.menu.isMainOpen && deps.menu.isMainOpen()) deps.menu.closeMainOverlay();
+        else if (runtime.missionBriefingOpen) return;
         else deps.menu.togglePause();
         return;
       }
@@ -147,8 +152,8 @@
         deps.keysDown.add(holdAction);
         deps.updateHud();
       } else if (deps.keybindings.matches(event, "pause")) {
+        // Execute/pause keyboard toggle disabled; missions start from the briefing Finish button.
         event.preventDefault();
-        deps.toggleRun();
       } else if (deps.keybindings.matches(event, "restart")) {
         event.preventDefault();
         deps.level.restart();
@@ -162,9 +167,8 @@
         event.preventDefault();
         deps.interaction.interactNearest();
       } else if (deps.keybindings.matches(event, "debug")) {
+        // Debug shortcut disabled; use Dev Setting > Mission Setup > Debug Overlay.
         event.preventDefault();
-        state.debug = !state.debug;
-        elements.debugButton.classList.toggle("active", state.debug);
       }
     }
 
@@ -284,7 +288,13 @@
         stopManualFire();
         deps.updateHud();
       });
-      elements.runButton.addEventListener("click", deps.toggleRun);
+      // Execute button disabled; missions start from the briefing Finish button.
+      // if (elements.runButton) elements.runButton.addEventListener("click", deps.toggleRun);
+      if (elements.missionBriefingFinishButton) {
+        elements.missionBriefingFinishButton.addEventListener("click", () => {
+          if (deps.finishMissionBriefing) deps.finishMissionBriefing();
+        });
+      }
       elements.restartButton.addEventListener("click", deps.level.restart);
       elements.bannerRestartButton.addEventListener("click", deps.level.restart);
       elements.nextLevelButton.addEventListener("click", () => {
@@ -562,13 +572,30 @@
       for (const tab of elements.devSettingsTabs || []) {
         tab.addEventListener("click", () => deps.settings.setActiveDevTab(tab.dataset.devSettingsTab));
       }
-      elements.debugButton.addEventListener("click", () => {
-        const state = runtime.state;
-        if (!state) return;
-        if (deps.settings.gameplayPausedByOverlay()) return;
-        state.debug = !state.debug;
-        elements.debugButton.classList.toggle("active", state.debug);
-      });
+      /*
+      Debug button disabled; use Dev Setting > Mission Setup > Debug Overlay.
+      if (elements.debugButton) {
+        elements.debugButton.addEventListener("click", () => {
+          const state = runtime.state;
+          if (!state) return;
+          if (deps.settings.gameplayPausedByOverlay()) return;
+          state.debug = !state.debug;
+          elements.debugButton.classList.toggle("active", state.debug);
+        });
+      }
+      */
+      if (elements.debugOverlayCheckbox) {
+        elements.debugOverlayCheckbox.addEventListener("change", () => {
+          const state = runtime.state;
+          if (!state) {
+            elements.debugOverlayCheckbox.checked = false;
+            return;
+          }
+          state.debug = Boolean(elements.debugOverlayCheckbox.checked);
+          state.message = state.debug ? "Debug overlay enabled" : "Debug overlay disabled";
+          deps.updateHud();
+        });
+      }
       elements.difficultySelect.addEventListener("change", () => {
         const value = elements.difficultySelect.value;
         deps.settings.requestSettingChange(() => deps.setDifficulty(value));

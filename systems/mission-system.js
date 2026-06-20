@@ -51,6 +51,7 @@
     // Freezes gameplay and displays the post-mission result overlay.
     function finishMission(result, title, text) {
       const state = runtime.state;
+      if (deps.hideMissionBriefing) deps.hideMissionBriefing();
       state.gameOver = true;
       state.running = false;
       state.result = result;

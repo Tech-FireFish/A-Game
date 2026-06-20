@@ -1233,6 +1233,111 @@ body.pixel-style-geometry .weapon-image-frame::after {
   background-image: none /* PNG disabled: url("docs/images/user-interface/pixel-art-action-icon-settings-001.png") */;
 }
 
+.mission-briefing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 64;
+  display: grid;
+  place-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.52);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  opacity: 1;
+  transition: opacity 420ms ease;
+}
+
+.mission-briefing-overlay.hidden {
+  display: none !important;
+}
+
+.mission-briefing-overlay.mission-briefing-fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mission-briefing-card {
+  width: min(520px, calc(100vw - 48px));
+  padding: 28px 24px;
+  clip-path: polygon(0 10px, 10px 10px, 10px 0, calc(100% - 14px) 0, calc(100% - 14px) 8px, 100% 8px, 100% calc(100% - 12px), calc(100% - 8px) calc(100% - 12px), calc(100% - 8px) 100%, 12px 100%, 12px calc(100% - 8px), 0 calc(100% - 8px));
+  background:
+    repeating-linear-gradient(0deg, rgba(70, 56, 32, 0.1) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, rgba(70, 56, 32, 0.055) 0 1px, transparent 1px 13px),
+    linear-gradient(135deg, rgba(255, 241, 176, 0.28), rgba(177, 135, 54, 0.16)),
+    #ead58c;
+  color: #151711;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.56);
+  text-align: left;
+}
+
+.mission-briefing-card .panel-label,
+.mission-briefing-card h2 {
+  color: #151711;
+  text-shadow: none;
+}
+
+.mission-briefing-card h2 {
+  margin: 8px 0 20px;
+  font-size: clamp(16px, 2vw, 24px);
+  line-height: 1.45;
+}
+
+.mission-briefing-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mission-briefing-list div {
+  display: grid;
+  grid-template-columns: minmax(108px, 0.42fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(21, 23, 17, 0.2);
+}
+
+.mission-briefing-list span {
+  color: rgba(21, 23, 17, 0.66);
+  font-size: 10px;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.mission-briefing-list strong {
+  min-width: 0;
+  color: #151711;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.mission-briefing-finish {
+  min-height: 48px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--cyan);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.mission-briefing-finish:hover,
+.mission-briefing-finish:focus-visible {
+  color: var(--green);
+  transform: translateX(4px);
+}
+
+.mission-briefing-finish:active {
+  transform: translate(4px, 1px);
+}
+
+#hintCard,
+.operator-health-card {
+  display: none;
+}
+
 .hint-text {
   min-height: 42px;
   padding: 9px;
@@ -3278,10 +3383,14 @@ body.game-expanded .brandbar {
 
 body.game-expanded .right-panel {
   display: block;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
 }
 
-body.game-expanded .right-panel > :not(#hintCard):not(#tutorialCard) {
-  display: none;
+body.game-expanded .right-panel > :not(#tutorialCard) {
+  display: none !important;
 }
 
 body.game-expanded .play-layout {
@@ -3306,15 +3415,34 @@ body.game-expanded .expanded-pause-button {
   display: block;
 }
 
-body.game-expanded #hintCard {
-  position: fixed;
+.expanded-gameplay-overlay {
+  display: none;
+}
+
+body.game-expanded .expanded-gameplay-overlay {
+  position: absolute;
   left: 16px;
   top: 70px;
-  z-index: 7;
-  display: block;
+  z-index: 9;
+  display: grid;
+  gap: 12px;
   width: min(320px, calc(50vw - 28px));
-  max-height: calc(100vh - 96px);
-  overflow: hidden;
+  max-height: calc(100vh - 88px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+body.game-expanded .expanded-gameplay-overlay .operator-health-card,
+body.game-expanded .expanded-gameplay-overlay #hintCard {
+  position: static;
+  display: block !important;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+body.game-expanded .expanded-gameplay-overlay #hintCard {
   background: rgba(23, 27, 30, var(--hint-card-alpha, 0.42));
   pointer-events: none;
 }
@@ -3388,11 +3516,8 @@ body.game-expanded.expanded-paused .right-panel > :not(.hidden) {
   display: block;
 }
 
-body.game-expanded.expanded-paused #hintCard {
-  position: static;
-  width: auto;
-  background: rgba(23, 27, 30, 0.92);
-  pointer-events: auto;
+body.game-expanded.expanded-paused .right-panel > :not(#tutorialCard) {
+  display: none !important;
 }
 
 body.game-expanded.expanded-paused #tutorialCard:not(.hidden) {
@@ -3666,7 +3791,7 @@ body.game-expanded.expanded-paused .right-panel {
     flex-direction: column;
   }
 
-  body.game-expanded #hintCard,
+  body.game-expanded .expanded-gameplay-overlay,
   body.game-expanded #tutorialCard:not(.hidden) {
     left: 12px;
     right: 12px;
@@ -3674,7 +3799,7 @@ body.game-expanded.expanded-paused .right-panel {
     max-height: 38vh;
   }
 
-  body.game-expanded #hintCard {
+  body.game-expanded .expanded-gameplay-overlay {
     top: 66px;
   }
 
@@ -5876,6 +6001,12 @@ body.pixel-style-geometry:not(.start-menu-active)::after {
   pointer-events: none;
 }
 
+/*
+Expanded health card is now positioned inside .expanded-gameplay-overlay.
+Previous fixed positioning disabled:
+body.game-expanded .operator-health-card { ... }
+*/
+
 body.pixel-style-geometry:not(.start-menu-active) .shell,
 body.pixel-style-geometry:not(.start-menu-active) .shell button,
 body.pixel-style-geometry:not(.start-menu-active) .shell input,
@@ -6139,6 +6270,21 @@ body.pixel-style-geometry .dev-settings-tabs button {
 body.pixel-style-geometry .settings-tabs button.active,
 body.pixel-style-geometry .dev-settings-tabs button.active {
   background: rgba(36, 48, 52, 0.62) !important;
+}
+
+body.pixel-style-geometry:not(.game-expanded) .expanded-gameplay-overlay,
+body.pixel-style-geometry:not(.game-expanded) #hintCard,
+body.pixel-style-geometry:not(.game-expanded) .operator-health-card {
+  display: none !important;
+}
+
+body.pixel-style-geometry.game-expanded .expanded-gameplay-overlay {
+  display: grid !important;
+}
+
+body.pixel-style-geometry.game-expanded .expanded-gameplay-overlay #hintCard,
+body.pixel-style-geometry.game-expanded .expanded-gameplay-overlay .operator-health-card {
+  display: block !important;
 }
 
 body.pixel-style-geometry .game-panel,
