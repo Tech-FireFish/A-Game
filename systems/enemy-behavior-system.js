@@ -84,7 +84,7 @@
     // Finds the first living operator visible to an enemy with the current weapon.
     function findVisibleOperator(enemy, weapon) {
       const state = deps.getState();
-      const liveOps = state.level.operators.filter((op) => !op.down);
+      const liveOps = state.level.operators.filter((op) => !op.down && !op.disguised);
       return liveOps
         .filter((op) => deps.pointDistance(enemy, op) <= weapon.range)
         .find((op) => deps.inFieldOfView(enemy, op) && deps.hasLineOfSight(enemy, op, state.level));
@@ -264,6 +264,7 @@
 
     // Alerts enemies near a newly opened or locked door interaction.
     function noticeDoor(door, op) {
+      if (op && op.disguised) return;
       const point = op || deps.rectCenter(door);
       notifyNearby(point, 320, (enemy, distance) => {
         const personality = personalityOf(enemy);
@@ -277,6 +278,7 @@
 
     // Alerts enemies that can hear or see a recent gunshot.
     function noticeShot(shooter, target) {
+      if (shooter && shooter.disguised) return;
       const point = shooter || target;
       notifyNearby(point, 420, (enemy, distance) => {
         const personality = personalityOf(enemy);

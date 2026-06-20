@@ -217,8 +217,9 @@
         if (deps.pointDistance(shooter, target) > weapon.range + deps.scaledRadius(shooter) + deps.scaledRadius(target)) return;
         if (!deps.hasLineOfSight(shooter, target, getState().level)) return;
         deps.audio.play("melee-hit");
-        damageTarget(target, weapon.damage, shooter);
-        deps.enemyBehavior.noticeShot(shooter, target);
+        const stealthMelee = shooter.kind === "operator";
+        damageTarget(target, weapon.damage, shooter, { stealthMelee });
+        if (!stealthMelee) deps.enemyBehavior.noticeShot(shooter, target);
         shooter.fireTimer = weapon.fireInterval;
         return;
       }
@@ -237,10 +238,16 @@
     }
 
     // Applies damage to an enemy and marks it down at zero health.
-    function damageEnemy(enemy, amount, source) {
+    function damageEnemy(enemy, amount, source, options = {}) {
       const wasDown = enemy.down;
+      if (source && source.kind === "operator" && source.disguised) {
+        source.disguised = false;
+        source.disguiseSourceEnemyId = "";
+        const state = getState();
+        if (state) state.message = `${source.id} disguise blown`;
+      }
       applyDamage(enemy, amount);
-      deps.enemyBehavior.noticeDamage(enemy, source);
+      if (!options.stealthMelee) deps.enemyBehavior.noticeDamage(enemy, source);
       if (enemy.health <= 0) {
         enemy.health = 0;
         enemy.down = true;
@@ -263,9 +270,37 @@
               state.tutorial.enemyNeutralizedModeCounts[mode][enemy.id] = (state.tutorial.enemyNeutralizedModeCounts[mode][enemy.id] || 0) + 1;
             }
           }
-          deps.enemyBehavior.noticeEnemyDown(enemy, source);
+          if (options.stealthMelee && source && source.kind === "operator") {
+            createEnemyClothes(enemy);
+          } else {
+            deps.enemyBehavior.noticeEnemyDown(enemy, source);
+          }
         }
       }
+    }
+
+    // Drops a disguise item from an enemy neutralized silently by melee.
+    function createEnemyClothes(enemy) {
+      const state = getState();
+      if (!state || !enemy) return;
+      const itemId = `enemy-clothes-${enemy.id}`;
+      if ((state.level.items || []).some((item) => item.id === itemId && !item.picked)) return;
+      state.level.items.push({
+        id: itemId,
+        type: "disguise",
+        name: "Enemy Clothes",
+        x: enemy.x - 10,
+        y: enemy.y - 9,
+        w: 20,
+        h: 18,
+        picked: false,
+        effect: "disguise",
+        consumable: true,
+        quantity: 1,
+        maxStack: 1,
+        sourceEnemyId: enemy.id,
+        text: "Use to disguise this operator until they damage an enemy."
+      });
     }
 
     // Applies damage to an operator and clears active behavior when downed.

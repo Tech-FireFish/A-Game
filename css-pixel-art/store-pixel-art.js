@@ -117,6 +117,22 @@
       b("amber", 2, 6, 2, 8), b("amber", 16, 6, 2, 8),
       b("dark", 5, 5, 10, 3), b("dark", 5, 12, 10, 3),
       b("shadow", 4, 17, 12, 2)
+    ]),
+    "heal-10": icon("Field Patch 10 Percent Store Icon", "item", [
+      b("white", 5, 4, 10, 12), b("green", 8, 6, 4, 8), b("green", 6, 8, 8, 4),
+      b("dark", 5, 16, 10, 2), b("shadow", 4, 5, 2, 10), b("shadow", 14, 5, 2, 10)
+    ]),
+    "heal-50": icon("Med Kit 50 Percent Store Icon", "item", [
+      b("cyan", 4, 5, 12, 10), b("white", 8, 3, 4, 3), b("white", 7, 8, 6, 4),
+      b("white", 9, 6, 2, 8), b("dark", 5, 15, 10, 2), b("shadow", 4, 7, 12, 2)
+    ]),
+    "heal-100": icon("Trauma Kit 100 Percent Store Icon", "item", [
+      b("amber", 3, 5, 14, 10), b("white", 7, 2, 6, 3), b("red", 8, 7, 4, 7),
+      b("red", 6, 9, 8, 3), b("dark", 4, 15, 12, 2), b("shadow", 3, 6, 14, 2)
+    ]),
+    lighter: icon("Signal Lighter Store Icon", "item", [
+      b("steel", 7, 6, 6, 10), b("dark", 8, 4, 4, 3), b("amber", 9, 1, 2, 3),
+      b("gold", 8, 2, 4, 3), b("cyan", 13, 6, 2, 6), b("shadow", 6, 16, 8, 2)
     ])
   };
 

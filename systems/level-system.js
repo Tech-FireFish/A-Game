@@ -10,7 +10,7 @@
     // Creates a fresh playable runtime state for a level definition.
     function createGameState(level) {
       const firstOperator = level.operators[0];
-      return {
+      const state = {
         running: false,
         gameOver: false,
         result: null,
@@ -29,6 +29,9 @@
         },
         level: cloneLevel(level)
       };
+      injectMissionHealItem(state.level);
+      grantStoreMissionItems(state.level);
+      return state;
     }
 
     // Deep-enough clones level data and applies current operator/enemy loadouts.
@@ -191,6 +194,48 @@
           stateLevel.items.push(paper);
         }
         paper.text = `${door.id} code: ${door.password}`;
+      }
+    }
+
+    // Adds one random medical pickup to each mission instance.
+    function injectMissionHealItem(stateLevel) {
+      if (!stateLevel || (stateLevel.items || []).some((item) => item.generatedHeal)) return;
+      const rate = [10, 50, 100][Math.floor(Math.random() * 3)];
+      const anchor = (stateLevel.items || []).find((item) => !item.picked)
+        || (stateLevel.equipmentTables || [])[0]
+        || (stateLevel.operators || [])[0]
+        || { x: 80, y: 80 };
+      stateLevel.items.push({
+        id: `generated-heal-${rate}`,
+        type: "healing",
+        name: rate === 10 ? "Field Patch 10%" : (rate === 50 ? "Med Kit 50%" : "Trauma Kit 100%"),
+        x: Math.max(24, Math.min((stateLevel.width || deps.defaultWorld.w) - 24, (anchor.x || 80) + 34)),
+        y: Math.max(24, Math.min((stateLevel.height || deps.defaultWorld.h) - 24, (anchor.y || 80) + 22)),
+        w: 20,
+        h: 18,
+        picked: false,
+        generatedHeal: true,
+        effect: "heal",
+        healPercent: rate,
+        consumable: true,
+        quantity: 1,
+        maxStack: 1,
+        text: `Restores ${rate}% operator health.`
+      });
+    }
+
+    // Adds owned Store utility items to operator backpacks when slots are free.
+    function grantStoreMissionItems(stateLevel) {
+      if (!deps.storeMissionItems) return;
+      const items = deps.storeMissionItems();
+      if (!items.length) return;
+      for (const op of stateLevel.operators || []) {
+        if (!op.inventory || !Array.isArray(op.inventory.items)) continue;
+        for (const item of items) {
+          const slotIndex = op.inventory.items.findIndex((slot) => !slot);
+          if (slotIndex < 0) break;
+          op.inventory.items[slotIndex] = { ...item };
+        }
       }
     }
 

@@ -262,7 +262,11 @@ const STORE_CATALOG = [
   { id: "no-backpack", type: "backpack", name: "No Backpack", icon: "no-backpack", stats: { slots: 1, speedMultiplier: 1, ammoMultiplier: 1 } },
   { id: "small-backpack", type: "backpack", name: "Small Backpack", icon: "small-backpack", stats: { slots: 2, speedMultiplier: 1.02 } },
   { id: "medium-backpack", type: "backpack", name: "Medium Backpack", icon: "medium-backpack", stats: { slots: 4, speedMultiplier: 1 } },
-  { id: "large-backpack", type: "backpack", name: "Large Backpack", icon: "large-backpack", stats: { slots: 6, speedMultiplier: 0.96 } }
+  { id: "large-backpack", type: "backpack", name: "Large Backpack", icon: "large-backpack", stats: { slots: 6, speedMultiplier: 0.96 } },
+  { id: "heal-10", type: "item", name: "Field Patch 10%", icon: "heal-10", stats: { healPercent: 10, consumable: true } },
+  { id: "heal-50", type: "item", name: "Med Kit 50%", icon: "heal-50", stats: { healPercent: 50, consumable: true } },
+  { id: "heal-100", type: "item", name: "Trauma Kit 100%", icon: "heal-100", stats: { healPercent: 100, consumable: true } },
+  { id: "lighter", type: "item", name: "Signal Lighter", icon: "lighter", stats: { sightBoost: 1.35, passive: true } }
 ];
 
 const SOUND_OPTIONS = [
@@ -614,6 +618,8 @@ function storePrice(item) {
     value = (stats.armor || 0) * 14 + Math.max(0, 1 - (stats.speedMultiplier || 1)) * 600;
   } else if (item.type === "backpack") {
     value = (stats.slots || 0) * 140 + Math.max(0, 1 - (stats.speedMultiplier || 1)) * 350;
+  } else if (item.type === "item") {
+    value = (stats.healPercent || 0) * 18 + (stats.sightBoost ? 850 : 0);
   }
   if (stats.reward) value *= 1.25;
   return Math.max(0, Math.round(value / 25) * 25);
@@ -634,7 +640,11 @@ function storeItemSummary(item) {
   if (item.type === "backpack") {
     return `Inventory slots ${stats.slots}. Ammo carry ${Math.round((stats.ammoMultiplier || 1) * 100)}%. Mobility ${Math.round((stats.speedMultiplier || 1) * 100)}%.`;
   }
-  return "Equipment item.";
+  if (item.type === "item") {
+    if (stats.healPercent) return `Consumable medical item. Restores ${stats.healPercent}% operator health from inventory.`;
+    if (stats.sightBoost) return `Passive utility item. Widens operator sight in Difficult mode while carried.`;
+  }
+  return "Store item.";
 }
 
 // Applies Store defaults to saved operator loadout maps for future level clones.
@@ -651,6 +661,31 @@ function syncStoreDefaultsToLoadouts() {
 // Returns the Store-owned defaults for systems that clone operators dynamically.
 function storeLoadoutDefaults() {
   return storeProfile().equippedDefaults || { weaponId: "rifle", armorId: "light-armor", backpackId: "no-backpack" };
+}
+
+// Builds one starting inventory stack for each owned Store utility item.
+function storeMissionItems() {
+  const owned = new Set(storeProfile().ownedItemIds || []);
+  return STORE_CATALOG
+    .filter((item) => item.type === "item" && owned.has(item.id))
+    .map((item) => storeItemStack(item));
+}
+
+// Converts Store item metadata into the in-mission stack shape.
+function storeItemStack(item) {
+  const stats = item.stats || {};
+  return {
+    id: item.id,
+    type: item.id === "lighter" ? "utility" : "healing",
+    name: item.name,
+    text: storeItemSummary(item),
+    quantity: 1,
+    maxStack: 1,
+    effect: stats.healPercent ? "heal" : (stats.sightBoost ? "sight" : "item"),
+    healPercent: stats.healPercent || 0,
+    sightBoost: stats.sightBoost || 0,
+    consumable: Boolean(stats.consumable)
+  };
 }
 
 // Equips an owned Store item as the default for all future operators.
@@ -748,7 +783,9 @@ function confirmStorePurchase() {
   runtime.storeSelectedItemId = null;
   runtime.storeConfirmItemId = null;
   if (audio) audio.play("store-purchase");
-  setStoreMessage(owned ? `${item.name} equipped` : `${item.name} owned`);
+  setStoreMessage(item.type === "item"
+    ? (owned ? `${item.name} already owned` : `${item.name} owned`)
+    : (owned ? `${item.name} equipped` : `${item.name} owned`));
   renderStorePage();
 }
 
@@ -1568,6 +1605,7 @@ function initializeSystems() {
     enemyLoadouts,
     enemyArmorLoadouts,
     storeLoadoutDefaults,
+    storeMissionItems,
     progression,
     keysDown,
     saveResumePoint,

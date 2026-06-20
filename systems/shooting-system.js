@@ -128,9 +128,8 @@
         const target = firstMeleeEnemy(op, weapon);
         if (!target) return false;
         deps.audio.play("melee-hit");
-        deps.actions.damageEnemy(target, weapon.damage, op);
+        deps.actions.damageEnemy(target, weapon.damage, op, { stealthMelee: true });
         if (state.tutorial) state.tutorial.manualShotFired = true;
-        deps.enemyBehavior.noticeShot(op, target);
         op.fireTimer = weapon.fireInterval;
         deps.updateHud();
         return true;

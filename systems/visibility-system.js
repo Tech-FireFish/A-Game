@@ -7,8 +7,16 @@
 
     // Returns weapon range normally or the short difficult-mode sight range.
     function operatorSightRange(op) {
-      if (runtime.currentDifficulty === "difficult") return deps.difficultOperatorSight;
+      if (runtime.currentDifficulty === "difficult") return deps.difficultOperatorSight * carriedSightBoost(op);
       return Math.max(230, deps.equipment.weaponById(op.weaponId).range);
+    }
+
+    // Applies passive utility sight bonuses while carried.
+    function carriedSightBoost(op) {
+      const items = op && op.inventory && Array.isArray(op.inventory.items) ? op.inventory.items : [];
+      return items.some((item) => item && item.effect === "sight" && item.sightBoost)
+        ? Math.max(...items.filter((item) => item && item.effect === "sight").map((item) => item.sightBoost || 1), 1)
+        : 1;
     }
 
     // Checks whether the selected living operator can currently see a target.

@@ -1412,7 +1412,10 @@ body.pixel-style-geometry .weapon-image-frame::after {
 
 .inventory-details {
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
+  overflow-x: hidden;
   padding-right: 4px;
 }
 
@@ -1756,11 +1759,17 @@ body.pixel-style-geometry .weapon-image-frame::after {
 }
 
 .inventory-slot-grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(var(--inventory-cols, 4), 38px);
   gap: 6px;
   align-items: start;
   margin-top: 14px;
+  overflow: visible;
+}
+
+.inventory-slot-grid.action-menu-open {
+  padding-bottom: 62px;
 }
 
 .inventory-slot {
@@ -1811,7 +1820,9 @@ body.pixel-style-geometry .weapon-image-frame::after {
   left: 50%;
   bottom: calc(100% + 8px);
   z-index: 8;
-  width: min(260px, 70vw);
+  box-sizing: border-box;
+  width: min(220px, calc(100vw - 64px));
+  max-width: min(220px, calc(100vw - 64px));
   border: 16px solid transparent;
   border-image: var(--ui-paper-clue-tooltip) 28 fill / 16px / 0 stretch;
   border-radius: 0;
@@ -1822,6 +1833,9 @@ body.pixel-style-geometry .weapon-image-frame::after {
   font-weight: 700;
   line-height: 1.3;
   text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -1865,6 +1879,10 @@ body.pixel-style-geometry .weapon-image-frame::after {
 }
 
 .inventory-item-detail {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 12px 0 0;
   border: 18px solid transparent;
   border-image: var(--ui-item-detail-frame) 64 fill / 18px / 0 stretch;
@@ -1877,15 +1895,31 @@ body.pixel-style-geometry .weapon-image-frame::after {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
+  white-space: normal;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   image-rendering: pixelated;
 }
 
 .inventory-item-detail strong {
   display: block;
   position: relative;
+  max-width: 100%;
   margin-bottom: 8px;
   padding-bottom: 8px;
   color: var(--text);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.inventory-item-detail span {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .inventory-item-detail strong::after {
@@ -2710,6 +2744,53 @@ canvas {
   grid-area: icon;
   justify-self: center;
   align-self: center;
+}
+
+.inventory-use-selector {
+  position: absolute;
+  left: var(--menu-x, 0);
+  top: var(--menu-y, 0);
+  z-index: 18;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: var(--menu-width, 96px);
+  gap: 2px;
+  padding: 5px;
+  background: rgba(8, 12, 13, 0.96);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.34);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.inventory-use-selector button {
+  min-height: 22px;
+  justify-content: start;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 7px;
+  line-height: 1;
+  text-align: left;
+}
+
+.inventory-use-selector button:hover,
+.inventory-use-selector button:focus-visible {
+  background: rgba(114, 183, 206, 0.12);
+  color: var(--accent-2);
+}
+
+.inventory-slot.selected-action {
+  box-shadow: 0 0 0 2px rgba(114, 183, 206, 0.78);
+}
+
+.inventory-slot.selected-action::after {
+  display: none;
+}
+
+.inventory-slot.selected-action[data-slot-tip]:not([data-slot-tip=""]):hover::after,
+.inventory-slot.selected-action[data-slot-tip]:not([data-slot-tip=""]):focus::after {
+  display: none;
 }
 
 .store-item-copy,

@@ -367,16 +367,26 @@
         const box = deps.geometry.scaledRect({ ...item, w: item.w || 20, h: item.h || 16 });
         const source = item.type === "paper" ? sprites.paper : sprites.genericPickup;
         if (drawImageInRect(source, box.x, box.y, box.w, box.h)) continue;
-        ctx.fillStyle = item.type === "paper" ? "#f5e6a6" : "#d9d9d9";
-        ctx.strokeStyle = "#6c6132";
+        const itemStyle = itemPickupStyle(item);
+        ctx.fillStyle = itemStyle.fill;
+        ctx.strokeStyle = itemStyle.stroke;
         ctx.lineWidth = 1.5;
         ctx.fillRect(box.x, box.y, box.w, box.h);
         ctx.strokeRect(box.x, box.y, box.w, box.h);
-        ctx.fillStyle = "#27240e";
+        ctx.fillStyle = itemStyle.text;
         ctx.font = "900 9px system-ui";
         ctx.textAlign = "center";
-        ctx.fillText("P", box.x + box.w / 2, box.y + box.h / 2 + 3);
+        ctx.fillText(itemStyle.label, box.x + box.w / 2, box.y + box.h / 2 + 3);
       }
+    }
+
+    // Chooses a compact geometry cue for non-PNG pickups.
+    function itemPickupStyle(item) {
+      if (item.type === "paper") return { fill: "#f5e6a6", stroke: "#6c6132", text: "#27240e", label: "P" };
+      if (item.effect === "heal") return { fill: "#d7f2df", stroke: "#4a9d63", text: "#13331d", label: "+" };
+      if (item.effect === "disguise") return { fill: "#9a8f73", stroke: "#3f3828", text: "#1d1910", label: "D" };
+      if (item.effect === "sight") return { fill: "#f3c66d", stroke: "#7c5d21", text: "#2a1f08", label: "L" };
+      return { fill: "#d9d9d9", stroke: "#6c6132", text: "#27240e", label: "I" };
     }
 
     // Draws interactable equipment tables.
@@ -610,6 +620,14 @@
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, twoPi);
       ctx.fill();
+      if (isOperator && unit.disguised) {
+        ctx.fillStyle = "rgba(196, 70, 66, 0.92)";
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
       ctx.stroke();
       ctx.fillStyle = isOperator ? colors.opDark : "#421d1d";
       ctx.beginPath();
