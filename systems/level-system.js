@@ -16,7 +16,7 @@
         result: null,
         debug: false,
         selectedId: firstOperator ? firstOperator.id : null,
-        message: "Draw routes, then execute",
+        message: "Review mission status, then press Finish.",
         shootingMode: runtime.state ? runtime.state.shootingMode || "automatic" : "automatic",
         shots: [],
         enemyDownCount: 0,

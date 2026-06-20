@@ -67,6 +67,8 @@
         return;
       }
 
+      /*
+      Plan/execute waypoint movement disabled:
       const target = op.path[0];
       if (!target) return;
 
@@ -91,6 +93,7 @@
         op.movedBefore = true;
         deps.audio.noteLoopActivity("operator-walk");
       }
+      */
     }
 
     // Applies WASD movement to the selected operator.

@@ -513,8 +513,10 @@
       return Math.max(door.w, door.h);
     }
 
-    // Draws operator waypoint routes and waypoint dots.
+    // Plan/execute route rendering disabled.
     function drawPaths() {
+      /*
+      Previous waypoint route rendering disabled with click-to-waypoint planning:
       const state = runtime.state;
       for (const op of state.level.operators) {
         if (!op.path.length) continue;
@@ -535,6 +537,7 @@
           }
         }
       }
+      */
     }
 
     // Draws enemy and operator vision cones with difficulty visibility rules.
@@ -919,8 +922,10 @@
       return true;
     }
 
-    // Draws planned routes with pixel-art dashes and waypoint markers.
+    // Plan/execute route sprite rendering disabled.
     function drawSpritePath(op) {
+      /*
+      Previous sprite waypoint rendering disabled with click-to-waypoint planning:
       const image = loadImage(sprites.routeDash);
       if (!image || !image.complete || !image.naturalWidth) return false;
       const points = [{ x: op.x, y: op.y }, ...op.path];
@@ -942,6 +947,8 @@
       drawImageCentered(sprites.waypointActive, points[0], 22, 22, 0);
       for (const point of op.path) drawImageCentered(sprites.waypoint, point, 18, 18, 0);
       return true;
+      */
+      return false;
     }
 
     // Draws a bullet sprite along a shot vector.
@@ -1118,11 +1125,11 @@
       ctx.fillStyle = colors.text;
       ctx.font = "800 18px system-ui";
       ctx.textAlign = "left";
-      ctx.fillText(deps.hasManualInput() ? "Manual Control" : (state.running ? "Executing Plan" : "Planning Hold"), 38, 50);
+      ctx.fillText(deps.hasManualInput() ? "Manual Control" : (state.running ? "Mission Active" : "Mission Briefing"), 38, 50);
       ctx.fillStyle = colors.muted;
       ctx.font = "600 13px system-ui";
       const pathCount = selected ? selected.path.length : 0;
-      ctx.fillText(`Selected ${state.selectedId} | Waypoints ${pathCount}`, 38, 76);
+      ctx.fillText(`Selected ${state.selectedId} | Routes disabled (${pathCount})`, 38, 76);
       if (hint) {
         ctx.fillStyle = colors.doorClosed;
         ctx.font = "800 12px system-ui";

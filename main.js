@@ -1388,7 +1388,7 @@ function updateHud(options = {}) {
     recordPerformanceMetric("hudMs", performance.now() - hudStart);
     return;
   }
-  setText(elements.modeLabel, runtime.digitalLockOpen ? "Digital Lock" : (runtime.settingsOpen ? "Settings" : (state.gameOver ? titleCase(state.result) : (hasManualInput() ? "Manual" : (state.running ? "Execute" : "Planning")))));
+  setText(elements.modeLabel, runtime.digitalLockOpen ? "Digital Lock" : (runtime.settingsOpen ? "Settings" : (state.gameOver ? titleCase(state.result) : (hasManualInput() ? "Manual" : (state.running ? "Mission Active" : "Mission Briefing")))));
   if (state.level.objective.secured) {
     setText(elements.objectiveLabel, "Secured");
   } else if (state.level.objective.harmed) {

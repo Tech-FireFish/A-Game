@@ -6,7 +6,7 @@
     const runtime = deps.runtime;
     const elements = deps.elements;
 
-    // Handles selecting operators, clicking doors, and adding waypoints.
+    // Handles selecting operators and clicking doors.
     function onCanvasClick(event) {
       deps.audio.unlock();
       const state = runtime.state;
@@ -32,12 +32,15 @@
         return;
       }
 
+      /*
+      Plan/execute waypoint creation disabled:
       const op = deps.selectedOperator();
       if (!op || op.down) return;
       op.path.push({ x: pos.x, y: pos.y });
       if (op.path.length === 1) {
         op.aim = deps.geometry.angleTo(op, op.path[0]);
       }
+      */
       deps.updateHud();
     }
 
@@ -80,8 +83,10 @@
       runtime.manualFirePoint = null;
     }
 
-    // Clears the selected operator route on right-click.
+    // Plan/execute route clearing disabled.
     function onCanvasContext(event) {
+      /*
+      Previous route clearing behavior disabled with click-to-waypoint planning:
       event.preventDefault();
       const state = runtime.state;
       if (!state) return;
@@ -93,6 +98,7 @@
       op.action = null;
       state.message = `${op.id} route cleared`;
       deps.updateHud();
+      */
     }
 
     // Handles keyboard controls for overlays, movement, run state, doors, and debug.
