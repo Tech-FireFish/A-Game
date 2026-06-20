@@ -231,7 +231,7 @@
       if (elements.tutorialSelect) elements.tutorialSelect.value = runtime.activeMode === "tutorial" && meta ? meta.id : "";
       if (elements.tempLevelSelect) elements.tempLevelSelect.value = runtime.activeMode === "temp" && meta ? meta.id : "";
       if (elements.operatorCountSelect) elements.operatorCountSelect.value = String(runtime.activeOperatorCount || 2);
-      if (elements.difficultySelect) elements.difficultySelect.value = runtime.currentDifficulty || "normal";
+      if (elements.difficultySelect) elements.difficultySelect.value = runtime.currentDifficulty || "easy";
       if (elements.shootingModeSelect && runtime.state) elements.shootingModeSelect.value = runtime.state.shootingMode || "automatic";
       if (elements.enemyTraceSelect) elements.enemyTraceSelect.value = runtime.enemyTraceMode || "current";
       if (elements.debugOverlayCheckbox) {
@@ -250,7 +250,7 @@
     function resetDefaults() {
       deps.keysDown.clear();
       runtime.capturingKeyAction = null;
-      runtime.currentDifficulty = "normal";
+      runtime.currentDifficulty = "easy";
       runtime.enemyTraceMode = "current";
       runtime.activeOperatorCount = 2;
       runtime.showAllHealth = false;
@@ -271,7 +271,7 @@
       clearMap(deps.enemyArmorLoadouts);
       clearMap(deps.enemyPersonalityLoadouts);
       if (elements.operatorCountSelect) elements.operatorCountSelect.value = "2";
-      if (elements.difficultySelect) elements.difficultySelect.value = "normal";
+      if (elements.difficultySelect) elements.difficultySelect.value = "easy";
       if (elements.shootingModeSelect) elements.shootingModeSelect.value = "automatic";
       if (elements.enemyTraceSelect) elements.enemyTraceSelect.value = "current";
       if (elements.debugOverlayCheckbox) elements.debugOverlayCheckbox.checked = false;

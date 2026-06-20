@@ -145,12 +145,13 @@
       let shotEnd = blocker ? blocker.point : end;
       if (hit && (!blocker || hit.t < blocker.t)) {
         shotEnd = hit.enemy;
-        deps.actions.damageEnemy(hit.enemy, weapon.damage, op);
+        deps.actions.damageEnemy(hit.enemy, weapon.damage, op, { silentWeapon: Boolean(weapon.silent) });
       }
       addShot(op, shotEnd, op.color, weapon.tracerTtl);
       if (state.tutorial) state.tutorial.manualShotFired = true;
-      deps.audio.playWeapon(weapon.id);
-      deps.enemyBehavior.noticeShot(op, hit ? hit.enemy : shotEnd);
+      deps.audio.playWeapon(weapon.id, weapon);
+      if (!weapon.silent) deps.enemyBehavior.noticeShot(op, hit ? hit.enemy : shotEnd);
+      if (deps.camera && deps.camera.triggerShake) deps.camera.triggerShake(weapon.cameraShake || (weapon.silent ? 0.8 : 1.8));
       op.fireTimer = weapon.fireInterval;
       deps.updateHud();
       return true;

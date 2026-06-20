@@ -9,7 +9,10 @@
       zoom: 1.38,
       targetZoom: 1.38,
       defaultZoom: 1.38,
-      viewValue: 50
+      viewValue: 50,
+      shakeTime: 0,
+      shakeDuration: 0,
+      shakeIntensity: 0
     };
     const viewport = {
       w: deps.defaultWorld.w,
@@ -46,6 +49,8 @@
       camera.x += (op.x - camera.x) * follow;
       camera.y += (op.y - camera.y) * follow;
       camera.zoom += (camera.targetZoom - camera.zoom) * follow;
+      camera.shakeTime = Math.max(0, camera.shakeTime - dt);
+      if (camera.shakeTime <= 0) camera.shakeIntensity = 0;
       clampToWorld();
     }
 
@@ -90,7 +95,8 @@
     // Applies the world transform before map rendering.
     function apply(ctx) {
       const scale = camera.zoom * viewport.pixelRatio;
-      ctx.setTransform(scale, 0, 0, scale, (-camera.x * camera.zoom + viewport.w / 2) * viewport.pixelRatio, (-camera.y * camera.zoom + viewport.h / 2) * viewport.pixelRatio);
+      const shake = shakeOffset();
+      ctx.setTransform(scale, 0, 0, scale, ((-camera.x + shake.x) * camera.zoom + viewport.w / 2) * viewport.pixelRatio, ((-camera.y + shake.y) * camera.zoom + viewport.h / 2) * viewport.pixelRatio);
     }
 
     // Restores identity transform for screen-space clearing or overlays.
@@ -121,6 +127,25 @@
       return padding;
     }
 
+    // Starts a short camera shake for weapon feedback.
+    function triggerShake(intensity = 1.5, duration = 0.12) {
+      camera.shakeIntensity = Math.max(camera.shakeIntensity, Math.max(0, intensity));
+      camera.shakeDuration = Math.max(camera.shakeDuration, Math.max(0.01, duration));
+      camera.shakeTime = Math.max(camera.shakeTime, Math.max(0.01, duration));
+    }
+
+    // Computes a deterministic shake offset for the current frame.
+    function shakeOffset() {
+      if (camera.shakeTime <= 0 || camera.shakeIntensity <= 0) return { x: 0, y: 0 };
+      const progress = camera.shakeDuration > 0 ? camera.shakeTime / camera.shakeDuration : 0;
+      const amount = camera.shakeIntensity * progress;
+      const phase = camera.shakeTime * 72;
+      return {
+        x: Math.sin(phase) * amount,
+        y: Math.cos(phase * 1.37) * amount * 0.68
+      };
+    }
+
     return {
       resizeCanvas,
       update,
@@ -130,7 +155,8 @@
       screenToWorld,
       getCamera,
       getViewport,
-      getPadding
+      getPadding,
+      triggerShake
     };
   }
 

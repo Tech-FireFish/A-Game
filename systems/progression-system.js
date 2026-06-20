@@ -14,11 +14,12 @@
         const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
         return {
           completedLevels: Array.isArray(saved.completedLevels) ? saved.completedLevels : [],
+          completedTutorials: Array.isArray(saved.completedTutorials) ? saved.completedTutorials : [],
           privilege: Math.max(1, Number(saved.privilege) || 1),
           unlockedEquipment: Array.isArray(saved.unlockedEquipment) ? saved.unlockedEquipment : []
         };
       } catch (error) {
-        return { completedLevels: [], privilege: 1, unlockedEquipment: [] };
+        return { completedLevels: [], completedTutorials: [], privilege: 1, unlockedEquipment: [] };
       }
     }
 
@@ -35,6 +36,7 @@
     function snapshot() {
       return {
         completedLevels: [...state.completedLevels],
+        completedTutorials: [...state.completedTutorials],
         privilege: state.privilege,
         unlockedEquipment: [...state.unlockedEquipment]
       };
@@ -66,11 +68,31 @@
       Privilege/access progression disabled: story completions no longer increase
       privilege or unlock rewards. Store ownership remains separate.
       */
+      if (levelMeta && levelMeta.id && !state.completedLevels.includes(levelMeta.id)) {
+        state.completedLevels.push(levelMeta.id);
+        save();
+      }
       return {
         privilegeEarned: 0,
         rewardsUnlocked: [],
         complexity: complexity(level)
       };
+    }
+
+    // Records successful tutorial completion without restoring access gates.
+    function recordTutorial(tutorialMeta) {
+      if (!tutorialMeta || !tutorialMeta.id) return snapshot();
+      if (!state.completedTutorials.includes(tutorialMeta.id)) {
+        state.completedTutorials.push(tutorialMeta.id);
+        save();
+      }
+      return snapshot();
+    }
+
+    // Reports whether every configured tutorial has been completed.
+    function allTutorialsComplete(tutorialOptions = []) {
+      if (!tutorialOptions.length) return false;
+      return tutorialOptions.every((tutorial) => state.completedTutorials.includes(tutorial.id));
     }
 
     // Reports whether a piece of equipment can be selected by operators.
@@ -113,6 +135,8 @@
       snapshot,
       complexity,
       recordMission,
+      recordTutorial,
+      allTutorialsComplete,
       isEquipmentUnlocked,
       isLevelUnlocked,
       renderPrivilegeBoard,

@@ -2,12 +2,13 @@
 
 (function () {
   const LOOP_SOUND_IDS = new Set(["operator-walk", "enemy-walk"]);
-  const WEAPON_SOUND_IDS = new Set(["rifle-shot", "smg-shot", "pistol-shot"]);
+  const WEAPON_SOUND_IDS = new Set(["rifle-shot", "smg-shot", "pistol-shot", "silenced-shot"]);
   const HIGH_FREQUENCY_SOUND_IDS = new Set([
     "button-guidance",
     "rifle-shot",
     "smg-shot",
     "pistol-shot",
+    "silenced-shot",
     "empty-magazine-click",
     "armor-hit",
     "body-hit",
@@ -186,10 +187,14 @@
     }
 
     // Maps weapon IDs to their matching weapon-fire sound.
-    function playWeapon(weaponId) {
+    function playWeapon(weaponId, weapon = null) {
       if (weaponId === "no-weapon") return;
-      if (weaponId === "smg") {
+      if (weapon && weapon.shotSound) {
+        play(weapon.shotSound);
+      } else if (weaponId === "smg") {
         play("smg-shot");
+      } else if (weaponId === "silenced-pistol") {
+        play("silenced-shot");
       } else if (weaponId === "pistol") {
         play("pistol-shot");
       } else {

@@ -229,14 +229,17 @@
 
       if (!deps.shooting.consumeRound(shooter, weapon)) return;
       deps.shooting.breakWindowsOnSegment(shooter, target);
-      damageTarget(target, weapon.damage, shooter);
+      damageTarget(target, weapon.damage, shooter, { silentWeapon: shooter.kind === "operator" && weapon.silent });
       deps.shooting.addShot(shooter, target, color, weapon.tracerTtl);
       const state = getState();
       if (state && state.tutorial && shooter.kind === "operator" && state.shootingMode === "automatic") {
         state.tutorial.automaticShotFired = true;
       }
-      deps.audio.playWeapon(weapon.id || shooter.weaponId);
-      deps.enemyBehavior.noticeShot(shooter, target);
+      deps.audio.playWeapon(weapon.id || shooter.weaponId, weapon);
+      if (deps.camera && deps.camera.triggerShake && shooter.kind === "operator") {
+        deps.camera.triggerShake(weapon.cameraShake || (weapon.silent ? 0.8 : 1.8));
+      }
+      if (!weapon.silent) deps.enemyBehavior.noticeShot(shooter, target);
       shooter.fireTimer = weapon.fireInterval;
     }
 
@@ -251,6 +254,9 @@
       }
       applyDamage(enemy, amount);
       if (!options.stealthMelee) deps.enemyBehavior.noticeDamage(enemy, source);
+      if (source && source.kind === "operator" && source.health > 0 && source.health <= 25 && deps.triggerOperatorCounterEffect) {
+        deps.triggerOperatorCounterEffect(source);
+      }
       if (enemy.health <= 0) {
         enemy.health = 0;
         enemy.down = true;
@@ -275,7 +281,7 @@
           }
           if (options.stealthMelee && source && source.kind === "operator") {
             createEnemyClothes(enemy);
-          } else {
+          } else if (!options.silentWeapon) {
             deps.enemyBehavior.noticeEnemyDown(enemy, source);
           }
         }

@@ -64,6 +64,9 @@
       const progress = storySuccess && deps.progression
         ? deps.progression.recordMission(runtime.currentLevelMeta, state.level)
         : { privilegeEarned: 0, rewardsUnlocked: [], complexity: deps.progression ? deps.progression.complexity(state.level) : 0 };
+      if (tutorialSuccess && deps.progression && deps.progression.recordTutorial) {
+        deps.progression.recordTutorial(runtime.currentLevelMeta);
+      }
       const score = previewMode ? { neutralized: runtime.state.enemyDownCount || 0, complexity: progress.complexity || 0, enemyScore: 0, complexityScore: 0, baseScore: 0, total: 0 } : missionScore(result, progress);
       state.missionScore = score;
       if (!previewMode && deps.addStoreScore) deps.addStoreScore(score.total);
@@ -73,8 +76,11 @@
       if (tutorialSuccess) {
         const nextIndex = (deps.currentTutorialIndex() + 1) % deps.tutorialOptions.length;
         const nextTutorial = deps.tutorialOptions[nextIndex];
-        elements.bannerText.textContent = `${text} Continue to ${nextTutorial.title}, exit to the main page, or restart this tutorial.`;
-        elements.nextLevelButton.textContent = nextIndex === 0 ? "First Tutorial" : "Next Tutorial";
+        const tutorialsComplete = deps.progression && deps.progression.allTutorialsComplete && deps.progression.allTutorialsComplete(deps.tutorialOptions);
+        elements.bannerText.textContent = tutorialsComplete
+          ? `${text} All tutorials complete. Continue to the first story level, exit to the main page, or restart this tutorial.`
+          : `${text} Continue to ${nextTutorial.title}, exit to the main page, or restart this tutorial.`;
+        elements.nextLevelButton.textContent = tutorialsComplete ? "First Level" : "Next Tutorial";
       } else if (previewMode) {
         elements.bannerText.textContent = `${text} Preview complete. Restart this preview, choose a configured level, or return to the menu.`;
         elements.nextLevelButton.textContent = "First Level";

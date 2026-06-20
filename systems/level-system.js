@@ -101,7 +101,8 @@
         }),
         enemies: level.enemies.map((enemy) => {
           const useSavedLoadout = !level.forceLoadouts;
-          const difficultRandom = runtime.currentDifficulty === "difficult" && useSavedLoadout;
+          const difficultRandom = runtime.currentDifficulty !== "easy" && useSavedLoadout;
+          const difficultPersonalityRandom = runtime.currentDifficulty === "difficult" && useSavedLoadout;
           const weaponId = deps.equipment.validWeaponId(difficultRandom
             ? randomEnemyWeaponId()
             : ((useSavedLoadout && levelWeaponLoadouts[enemy.id]) || enemy.weaponId || "rifle"));
@@ -122,8 +123,12 @@
             speed: baseSpeed * armor.speedMultiplier,
             weaponId,
             personality: deps.equipment.validEnemyPersonality
-              ? deps.equipment.validEnemyPersonality((useSavedLoadout && levelPersonalityLoadouts[enemy.id]) || enemy.personality || "calm")
-              : ((useSavedLoadout && levelPersonalityLoadouts[enemy.id]) || enemy.personality || "calm"),
+              ? deps.equipment.validEnemyPersonality(difficultPersonalityRandom
+                ? randomEnemyPersonality()
+                : ((useSavedLoadout && levelPersonalityLoadouts[enemy.id]) || enemy.personality || "calm"))
+              : (difficultPersonalityRandom
+                ? randomEnemyPersonality()
+                : ((useSavedLoadout && levelPersonalityLoadouts[enemy.id]) || enemy.personality || "calm")),
             spawn: { x: enemy.x, y: enemy.y, angle: enemy.angle || 0 },
             fireTimer: 0,
             sightRange: enemy.sightRange || Math.max(190, deps.equipment.weaponById(weaponId).range),
@@ -246,7 +251,7 @@
 
     // Picks a difficult-mode enemy weapon excluding no-weapon.
     function randomEnemyWeaponId() {
-      const ids = ["rifle", "smg", "pistol", "advanced-carbine", "compact-pdw", "marksman-pistol", "melee"]
+      const ids = ["rifle", "smg", "pistol", "silenced-pistol", "advanced-carbine", "compact-pdw", "marksman-pistol", "melee"]
         .filter((id) => deps.equipment.weaponById(id));
       return ids[Math.floor(Math.random() * ids.length)] || "rifle";
     }
@@ -255,6 +260,12 @@
     function randomEnemyArmorId() {
       const ids = ["light-armor", "medium-armor", "heavy-armor"];
       return ids[Math.floor(Math.random() * ids.length)] || "light-armor";
+    }
+
+    // Picks a difficult-mode enemy personality.
+    function randomEnemyPersonality() {
+      const ids = ["aggressive", "calm", "loyal", "violent"];
+      return ids[Math.floor(Math.random() * ids.length)] || "calm";
     }
 
     // Rebuilds the active level state and resets transient gameplay state.
@@ -391,6 +402,10 @@
     function loadNextTutorial() {
       const options = deps.tutorialOptions || [];
       if (!options.length) {
+        loadFirstLevel();
+        return;
+      }
+      if (deps.progression && deps.progression.allTutorialsComplete && deps.progression.allTutorialsComplete(options)) {
         loadFirstLevel();
         return;
       }

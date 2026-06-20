@@ -546,7 +546,7 @@
       for (const enemy of state.level.enemies) {
         if (enemy.down) continue;
         if (!shouldDrawObject(enemy)) continue;
-        if (runtime.currentDifficulty === "difficult" && !deps.visibility.visibleToOperators(enemy)) continue;
+        if (runtime.currentDifficulty !== "easy" && !deps.visibility.visibleToOperators(enemy)) continue;
         drawCone(enemy, enemy.angle, enemy.sightRange, enemy.fov, colors.sight);
       }
 
@@ -592,7 +592,7 @@
       const state = runtime.state;
       for (const enemy of state.level.enemies) {
         if (!shouldDrawObject(enemy)) continue;
-        if (runtime.currentDifficulty === "difficult" && !deps.visibility.visibleToOperators(enemy)) continue;
+        if (runtime.currentDifficulty !== "easy" && !deps.visibility.visibleToOperators(enemy)) continue;
         drawUnit(enemy, enemy.down ? "#573030" : colors.enemy, enemy.id, false);
       }
       for (const op of state.level.operators) drawUnit(op, op.down ? "#2d4035" : op.color, op.id, true);

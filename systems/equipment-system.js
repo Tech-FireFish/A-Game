@@ -655,6 +655,7 @@
       if (!id || id === "no-weapon" || weapon?.canFire === false && weapon?.attackType !== "melee") return "none";
       if (weapon?.attackType === "melee" || id === "melee") return "melee";
       if (id.includes("smg") || id.includes("pdw")) return "smg";
+      if (id === "silenced-pistol") return "silenced-pistol";
       if (id.includes("pistol")) return "pistol";
       return "rifle";
     }

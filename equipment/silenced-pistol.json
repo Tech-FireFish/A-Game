@@ -1,0 +1,16 @@
+{
+  "id": "silenced-pistol",
+  "name": "Silenced Pistol",
+  "role": "Quiet close-range sidearm",
+  "range": 155,
+  "damage": 20,
+  "magSize": 10,
+  "reserveBullets": 50,
+  "reloadTime": 1.05,
+  "fireInterval": 0.42,
+  "reactionDelay": 0.24,
+  "tracerTtl": 0.055,
+  "silent": true,
+  "shotSound": "silenced-shot",
+  "cameraShake": 0.8
+}

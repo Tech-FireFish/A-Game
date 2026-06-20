@@ -142,6 +142,11 @@ const elements = {
   tutorialTitle: document.getElementById("tutorialTitle"),
   tutorialText: document.getElementById("tutorialText"),
   tutorialProgress: document.getElementById("tutorialProgress"),
+  tutorialDialogueBar: document.getElementById("tutorialDialogueBar"),
+  tutorialDialogueTitle: document.getElementById("tutorialDialogueTitle"),
+  tutorialDialogueText: document.getElementById("tutorialDialogueText"),
+  tutorialDialogueProgress: document.getElementById("tutorialDialogueProgress"),
+  tutorialDialogueNextButton: document.getElementById("tutorialDialogueNextButton"),
   pauseOverlay: document.getElementById("pauseOverlay"),
   pauseResumeButton: document.getElementById("pauseResumeButton"),
   pauseRestartButton: document.getElementById("pauseRestartButton"),
@@ -237,6 +242,7 @@ const WEAPON_OPTIONS = [
   { id: "rifle", file: "equipment/rifle.json" },
   { id: "smg", file: "equipment/smg.json" },
   { id: "pistol", file: "equipment/pistol.json" },
+  { id: "silenced-pistol", file: "equipment/silenced-pistol.json" },
   { id: "melee", file: "equipment/melee.json" },
   { id: "advanced-carbine", file: "equipment/advanced-carbine.json" },
   { id: "compact-pdw", file: "equipment/compact-pdw.json" },
@@ -262,6 +268,7 @@ const STORE_CATALOG = [
   { id: "rifle", type: "weapon", name: "Rifle", icon: "rifle", stats: { range: 245, damage: 18, magSize: 30, reserve: 120, fireInterval: 0.16 } },
   { id: "smg", type: "weapon", name: "SMG", icon: "smg", stats: { range: 190, damage: 12, magSize: 32, reserve: 160, fireInterval: 0.09 } },
   { id: "pistol", type: "weapon", name: "Pistol", icon: "pistol", stats: { range: 150, damage: 22, magSize: 12, reserve: 60, fireInterval: 0.36 } },
+  { id: "silenced-pistol", type: "weapon", name: "Silenced Pistol", icon: "silenced-pistol", stats: { range: 155, damage: 20, magSize: 10, reserve: 50, fireInterval: 0.42, silent: true } },
   { id: "melee", type: "weapon", name: "Melee", icon: "melee", stats: { range: 26, damage: 200, melee: true } },
   { id: "advanced-carbine", type: "weapon", name: "Advanced Carbine", icon: "advanced-carbine", stats: { range: 285, damage: 22, magSize: 34, reserve: 150, fireInterval: 0.13, reward: true } },
   { id: "compact-pdw", type: "weapon", name: "Compact PDW", icon: "compact-pdw", stats: { range: 215, damage: 15, magSize: 40, reserve: 200, fireInterval: 0.075, reward: true } },
@@ -286,6 +293,7 @@ const SOUND_OPTIONS = [
   { id: "rifle-shot", file: "sounds/rifle-shot.mp3" },
   { id: "smg-shot", file: "sounds/smg-shot.mp3" },
   { id: "pistol-shot", file: "sounds/pistol-shot.mp3" },
+  { id: "silenced-shot", file: "sounds/silenced-shot.wav" },
   { id: "operator-down", file: "sounds/operator-down.wav" },
   { id: "mission-success", file: "sounds/mission-success.mp3" },
   { id: "mission-failed", file: "sounds/mission-failed.mp3" },
@@ -336,7 +344,7 @@ const runtime = {
   currentLevel: null,
   currentLevelMeta: null,
   activeOperatorCount: 2,
-  currentDifficulty: "normal",
+  currentDifficulty: "easy",
   settingsOpen: false,
   devSettingsOpen: false,
   devSettingsUnlocked: false,
@@ -380,6 +388,7 @@ const runtime = {
   capturingKeyAction: null,
   manualFireHeld: false,
   manualFirePoint: null,
+  operatorCounterEffectUntil: 0,
   activeMode: "level",
   hudDirty: true,
   loadoutDirty: true,
@@ -558,12 +567,24 @@ function finishMissionBriefing() {
 
 // Applies the selected difficulty and updates the player-facing status.
 function setDifficulty(value) {
-  runtime.currentDifficulty = value === "difficult" ? "difficult" : "normal";
-  if (runtime.currentDifficulty === "difficult") runtime.enemyTraceMode = "chase";
+  runtime.currentDifficulty = normalizeDifficulty(value);
+  if (runtime.currentDifficulty !== "easy") runtime.enemyTraceMode = "chase";
   if (runtime.state) {
-    runtime.state.message = runtime.currentDifficulty === "difficult" ? "Difficult mode: short sight, chase/search enemies, random enemy gear" : "Normal visibility enabled";
+    runtime.state.message = runtime.currentDifficulty === "easy"
+      ? "Easy visibility enabled"
+      : (runtime.currentDifficulty === "medium"
+        ? "Medium mode: short sight, chase/search enemies, random enemy gear"
+        : "Difficult mode: medium pressure plus random enemy personalities");
   }
   updateHud();
+}
+
+// Normalizes legacy difficulty values into the current three-tier scale.
+function normalizeDifficulty(value) {
+  if (value === "difficult") return "difficult";
+  if (value === "medium") return "medium";
+  if (value === "normal") return "easy";
+  return "easy";
 }
 
 // Keeps the background music setting within the Settings slider range.
@@ -708,6 +729,7 @@ function storeItemSummary(item) {
   if (item.type === "weapon") {
     if (stats.disabled) return "Training-safe empty weapon slot. Operators will not fire until another weapon is equipped.";
     if (stats.melee) return `Close-contact weapon. Damage ${stats.damage}, range ${stats.range}. No magazine or reserve ammo required.`;
+    if (stats.silent) return `Suppressed sidearm. Range ${stats.range}. Damage ${stats.damage}. Neutralizing enemies quietly avoids disturbing nearby enemies.`;
     return `Range ${stats.range}. Damage ${stats.damage}. Magazine ${stats.magSize}. Reserve ${stats.reserve}. Fire interval ${stats.fireInterval}s.`;
   }
   if (item.type === "armor") {
@@ -1357,6 +1379,10 @@ function updateHud(options = {}) {
     setClass(document.body, "pixel-style-v2", style === "v2");
     runtime.lastPixelArtStyle = style;
   }
+  const selectedForEffects = state ? selectedOperator() : null;
+  const lowHealthExpanded = Boolean(runtime.expandedGame && selectedForEffects && !selectedForEffects.down && selectedForEffects.health <= 25);
+  setClass(document.body, "expanded-low-health", lowHealthExpanded);
+  setClass(document.body, "expanded-counter-glow", Boolean(runtime.expandedGame && performance.now() < (runtime.operatorCounterEffectUntil || 0)));
   if (!state) {
     setText(elements.modeLabel, "Loading");
     setText(elements.objectiveLabel, "Loading");
@@ -1462,6 +1488,13 @@ function updateHud(options = {}) {
   }
   if (runtime.missionBriefingOpen) renderMissionBriefing();
   recordPerformanceMetric("hudMs", performance.now() - hudStart);
+}
+
+// Highlights expanded gameplay briefly after a low-health operator counterattacks.
+function triggerOperatorCounterEffect(op) {
+  if (!op || op.down || op.health > 25) return;
+  runtime.operatorCounterEffectUntil = performance.now() + 2500;
+  updateHud();
 }
 
 // Converts result labels into display-friendly title case.
@@ -1593,6 +1626,7 @@ function initializeSystems() {
     geometry,
     equipment,
     audio,
+    camera,
     enemyBehavior: {
       noticeShot: (...args) => enemyBehavior && enemyBehavior.noticeShot(...args)
     },
@@ -1776,6 +1810,8 @@ function initializeSystems() {
     interaction,
     shooting,
     enemyBehavior,
+    camera,
+    triggerOperatorCounterEffect,
     audio,
     updateHud,
     colors

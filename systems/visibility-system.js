@@ -7,7 +7,7 @@
 
     // Returns weapon range normally or the short difficult-mode sight range.
     function operatorSightRange(op) {
-      if (runtime.currentDifficulty === "difficult") return deps.difficultOperatorSight * carriedSightBoost(op);
+      if (runtime.currentDifficulty !== "easy") return deps.difficultOperatorSight * carriedSightBoost(op);
       return Math.max(230, deps.equipment.weaponById(op.weaponId).range);
     }
 

@@ -9,7 +9,7 @@
     // Updates tutorial progress flags and renders the active step.
     function update() {
       const state = runtime.state;
-      if (runtime.activeMode !== "tutorial" || !state || !state.level.tutorialSteps || !state.level.tutorialSteps.length) {
+      if (runtime.activeMode !== "tutorial" || runtime.missionBriefingOpen || !state || !state.level.tutorialSteps || !state.level.tutorialSteps.length) {
         hide();
         return;
       }
@@ -32,7 +32,9 @@
         prematureObjectiveTouches: 0,
         objectiveTouchLatched: false,
         warningText: "",
-        attentionUntil: 0
+        attentionUntil: 0,
+        dialogueDismissedSteps: new Set(),
+        dialogueStepId: ""
       };
     }
 
@@ -217,17 +219,50 @@
       const complete = index === -1;
       const step = complete ? steps[steps.length - 1] : steps[index];
       const attention = performance.now() < (state.tutorial.attentionUntil || 0);
+      const dialogueOpen = !complete && shouldShowDialogue(state, step);
       document.body.classList.toggle("tutorial-overlay-follow", overlayOpen());
-      elements.tutorialCard.classList.remove("hidden");
+      elements.tutorialCard.classList.toggle("hidden", dialogueOpen);
       elements.tutorialCard.classList.toggle("attention", attention);
       if (elements.hintCard) elements.hintCard.classList.toggle("attention", attention);
-      elements.tutorialTitle.textContent = complete ? "Tutorial Complete" : step.title;
-      elements.tutorialText.textContent = state.tutorial.warningText && attention
+      const text = state.tutorial.warningText && attention
         ? state.tutorial.warningText
         : (complete ? "Lesson complete. Try another tutorial or return to the main levels." : stepText(state, step));
-      elements.tutorialProgress.textContent = complete
+      const progress = complete
         ? `${steps.length} / ${steps.length} Complete`
         : stepProgress(state, step, `Step ${index + 1} / ${steps.length}`);
+      elements.tutorialTitle.textContent = complete ? "Tutorial Complete" : step.title;
+      elements.tutorialText.textContent = text;
+      elements.tutorialProgress.textContent = progress;
+      renderDialogue(state, step, text, progress, dialogueOpen);
+    }
+
+    // Reports whether the current tutorial step still needs its dialogue introduction.
+    function shouldShowDialogue(state, step) {
+      if (!step || !elements.tutorialDialogueBar) return false;
+      if (!state.tutorial.dialogueDismissedSteps) state.tutorial.dialogueDismissedSteps = new Set();
+      return !state.tutorial.dialogueDismissedSteps.has(step.id);
+    }
+
+    // Renders or hides the bottom tutorial dialogue bar.
+    function renderDialogue(state, step, text, progress, open) {
+      if (!elements.tutorialDialogueBar) return;
+      elements.tutorialDialogueBar.classList.toggle("hidden", !open);
+      document.body.classList.toggle("tutorial-dialogue-open", open);
+      if (!open || !step) return;
+      state.tutorial.dialogueStepId = step.id;
+      if (elements.tutorialDialogueTitle) elements.tutorialDialogueTitle.textContent = step.title;
+      if (elements.tutorialDialogueText) elements.tutorialDialogueText.textContent = text;
+      if (elements.tutorialDialogueProgress) elements.tutorialDialogueProgress.textContent = progress;
+    }
+
+    // Dismisses the current tutorial dialogue so the normal tutorial card can show.
+    function dismissTutorialDialogue() {
+      const state = runtime.state;
+      const step = activeStep(state);
+      if (!state || !state.tutorial || !step) return;
+      if (!state.tutorial.dialogueDismissedSteps) state.tutorial.dialogueDismissedSteps = new Set();
+      state.tutorial.dialogueDismissedSteps.add(step.id);
+      render(state);
     }
 
     // Hides tutorial UI when the active level has no tutorial data.
@@ -236,6 +271,8 @@
       if (elements.tutorialCard) elements.tutorialCard.classList.add("hidden");
       if (elements.tutorialCard) elements.tutorialCard.classList.remove("attention");
       if (elements.hintCard) elements.hintCard.classList.remove("attention");
+      if (elements.tutorialDialogueBar) elements.tutorialDialogueBar.classList.add("hidden");
+      document.body.classList.remove("tutorial-dialogue-open");
     }
 
     // Reports whether tutorial text should float above another active overlay.
@@ -257,7 +294,8 @@
       allCheckpointsComplete,
       shouldGateObjective,
       recordPrematureObjectiveTouch,
-      warnExit
+      warnExit,
+      dismissTutorialDialogue
     };
   }
 

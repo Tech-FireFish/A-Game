@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-    <link rel="stylesheet" href="styles.css?v=51">
+    <link rel="stylesheet" href="styles.css?v=52">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -140,7 +140,8 @@
             <label class="level-picker" for="menuDifficultySelect">
               <span>Difficulty</span>
               <select id="menuDifficultySelect">
-                <option value="normal">Normal</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
                 <option value="difficult">Difficult</option>
               </select>
             </label>
@@ -314,6 +315,16 @@
         </aside>
       </section>
 
+      <section id="tutorialDialogueBar" class="tutorial-dialogue-bar hidden" aria-label="Tutorial dialogue" aria-live="polite">
+        <div class="tutorial-dialogue-copy">
+          <p class="panel-label">Tutorial Guide</p>
+          <strong id="tutorialDialogueTitle">Tutorial Step</strong>
+          <p id="tutorialDialogueText">Read the current instruction, then continue.</p>
+          <span id="tutorialDialogueProgress">Step 1 / 1</span>
+        </div>
+        <button id="tutorialDialogueNextButton" type="button">Next</button>
+      </section>
+
       <section id="missionBriefingOverlay" class="mission-briefing-overlay hidden" aria-label="Mission status briefing" aria-modal="true" role="dialog">
         <div id="missionBriefingCard" class="mission-briefing-card" aria-live="polite">
           <p class="panel-label">Mission Status</p>
@@ -458,7 +469,8 @@
               <label class="level-picker" for="difficultySelect">
                 <span>Difficulty</span>
                 <select id="difficultySelect">
-                  <option value="normal">Normal</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
                   <option value="difficult">Difficult</option>
                 </select>
               </label>
@@ -686,30 +698,30 @@
         <button id="endReturnMenuButton" type="button">Return to Menu</button>
       </div>
     </section>
-    <script src="systems/audio-system.js?v=3"></script>
+    <script src="systems/audio-system.js?v=4"></script>
     <script src="systems/keybinding-system.js?v=1"></script>
-    <script src="systems/camera-system.js?v=1"></script>
+    <script src="systems/camera-system.js?v=2"></script>
     <script src="systems/geometry-system.js?v=1"></script>
-    <script src="systems/shooting-system.js?v=1"></script>
+    <script src="systems/shooting-system.js?v=2"></script>
     <script src="systems/inventory-system.js?v=6"></script>
     <script src="systems/interaction-system.js?v=1"></script>
     <script src="systems/camera-hack-system.js?v=1"></script>
-    <script src="systems/tutorial-system.js?v=1"></script>
-    <script src="systems/progression-system.js?v=1"></script>
-    <script src="systems/menu-system.js?v=4"></script>
+    <script src="systems/tutorial-system.js?v=2"></script>
+    <script src="systems/progression-system.js?v=2"></script>
+    <script src="systems/menu-system.js?v=5"></script>
     <script src="mobile/object-scale-system.js?v=1"></script>
     <script src="mobile/mobile-control-system.js?v=1"></script>
-    <script src="systems/equipment-system.js?v=2"></script>
-    <script src="systems/level-system.js?v=9"></script>
-    <script src="systems/visibility-system.js?v=2"></script>
-    <script src="systems/settings-system.js?v=10"></script>
+    <script src="systems/equipment-system.js?v=3"></script>
+    <script src="systems/level-system.js?v=10"></script>
+    <script src="systems/visibility-system.js?v=3"></script>
+    <script src="systems/settings-system.js?v=11"></script>
     <script src="systems/digital-lock-system.js?v=1"></script>
     <script src="systems/enemy-behavior-system.js?v=3"></script>
     <script src="systems/mission-system.js?v=5"></script>
-    <script src="systems/render-system.js?v=4"></script>
-    <script src="systems/input-system.js?v=14"></script>
-    <script src="systems/action-system.js?v=5"></script>
-    <script src="css-pixel-art/store-pixel-art.js?v=2"></script>
-    <script src="main.js?v=43"></script>
+    <script src="systems/render-system.js?v=5"></script>
+    <script src="systems/input-system.js?v=15"></script>
+    <script src="systems/action-system.js?v=6"></script>
+    <script src="css-pixel-art/store-pixel-art.js?v=3"></script>
+    <script src="main.js?v=44"></script>
   </body>
 </html>

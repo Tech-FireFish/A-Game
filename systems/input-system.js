@@ -301,6 +301,11 @@
           if (deps.finishMissionBriefing) deps.finishMissionBriefing();
         });
       }
+      if (elements.tutorialDialogueNextButton) {
+        elements.tutorialDialogueNextButton.addEventListener("click", () => {
+          if (deps.tutorial && deps.tutorial.dismissTutorialDialogue) deps.tutorial.dismissTutorialDialogue();
+        });
+      }
       elements.restartButton.addEventListener("click", deps.level.restart);
       elements.bannerRestartButton.addEventListener("click", deps.level.restart);
       elements.nextLevelButton.addEventListener("click", () => {

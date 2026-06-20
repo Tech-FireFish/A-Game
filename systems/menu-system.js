@@ -229,8 +229,9 @@
     // Renders tutorial number blocks.
     function renderTutorialBlocks() {
       if (!elements.menuTutorialBlocks) return;
+      const progress = deps.progression.snapshot();
       elements.menuTutorialBlocks.innerHTML = deps.tutorialOptions.map((tutorial, index) => (
-        `<button type="button" data-menu-tutorial="${tutorial.id}" title="${tutorial.title}">${index + 1}</button>`
+        `<button type="button" data-menu-tutorial="${tutorial.id}" class="${progress.completedTutorials.includes(tutorial.id) ? "completed" : ""}" title="${tutorial.title}">${index + 1}</button>`
       )).join("");
     }
 

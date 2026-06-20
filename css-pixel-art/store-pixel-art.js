@@ -59,6 +59,12 @@
       b("cyan", 10, 11, 3, 5), b("black", 11, 10, 2, 1),
       b("shadow", 6, 16, 8, 2)
     ]),
+    "silenced-pistol": icon("Full Silenced Pistol Store Icon", "weapon", [
+      b("dark", 3, 6, 10, 3), b("dark", 13, 7, 5, 1), b("steel", 17, 6, 2, 3),
+      b("black", 4, 9, 5, 2), b("cyan", 9, 9, 4, 2),
+      b("cyan", 10, 11, 3, 5), b("steel", 13, 9, 2, 2),
+      b("shadow", 5, 16, 10, 2)
+    ]),
     "marksman-pistol": icon("Full Marksman Pistol Store Icon", "weapon", [
       b("gold", 4, 6, 11, 3), b("white", 7, 5, 4, 1), b("gold", 14, 6, 4, 1),
       b("dark", 4, 9, 4, 2), b("cyan", 8, 9, 5, 2),
