@@ -1,7 +1,0 @@
-{
-  "id": "medium-armor",
-  "name": "Medium Armor",
-  "role": "Balanced protection with a small mobility cost",
-  "armor": 50,
-  "speedMultiplier": 0.94
-}

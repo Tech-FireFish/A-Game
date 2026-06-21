@@ -1,7 +1,0 @@
-{
-  "id": "heavy-armor",
-  "name": "Heavy Armor",
-  "role": "High protection with slower movement",
-  "armor": 80,
-  "speedMultiplier": 0.88
-}
