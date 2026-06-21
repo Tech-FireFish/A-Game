@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-    <link rel="stylesheet" href="styles.css?v=52">
+    <link rel="stylesheet" href="styles.css?v=53">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -440,6 +440,7 @@
               <button type="button" data-dev-settings-tab="operator">Operator Loadout</button>
               <button type="button" data-dev-settings-tab="enemy">Enemy Loadout</button>
               <button type="button" data-dev-settings-tab="enemyTypes">ENEMY TYPES</button>
+              <button type="button" data-dev-settings-tab="enemyAlgorithm">ENEMY ALGORITHM</button>
             </nav>
 
             <section class="control-card dev-settings-section" data-dev-settings-panel="mission">
@@ -551,6 +552,19 @@
               <p class="panel-label">ENEMY TYPES</p>
               <div class="enemy-type-copy">Assign enemy personality. Hover a type for a short behavior note.</div>
               <div id="enemyPersonalityList" class="enemy-personality-list"></div>
+            </section>
+
+            <section class="control-card dev-settings-section hidden" data-dev-settings-panel="enemyAlgorithm">
+              <p class="panel-label">ENEMY ALGORITHM</p>
+              <div class="enemy-type-copy">Persistent enemy action learning. Successful damage raises future action weight.</div>
+              <label class="level-picker store-score-setting" for="enemyAlgorithmNonRepeatInput">
+                <span>Non-Repetition %</span>
+                <div class="inline-input-action">
+                  <input id="enemyAlgorithmNonRepeatInput" type="number" min="0" max="100" step="1" value="20">
+                  <button id="enemyAlgorithmResetButton" type="button">Reset Enemy Learning</button>
+                </div>
+              </label>
+              <div id="enemyAlgorithmReadout" class="enemy-algorithm-readout" aria-live="polite"></div>
             </section>
 
             <div class="settings-footer-actions">
@@ -712,16 +726,17 @@
     <script src="mobile/object-scale-system.js?v=1"></script>
     <script src="mobile/mobile-control-system.js?v=1"></script>
     <script src="systems/equipment-system.js?v=3"></script>
-    <script src="systems/level-system.js?v=11"></script>
+    <script src="systems/level-system.js?v=12"></script>
     <script src="systems/visibility-system.js?v=3"></script>
-    <script src="systems/settings-system.js?v=12"></script>
+    <script src="systems/settings-system.js?v=13"></script>
     <script src="systems/digital-lock-system.js?v=1"></script>
-    <script src="systems/enemy-behavior-system.js?v=4"></script>
-    <script src="systems/mission-system.js?v=6"></script>
+    <script src="systems/enemy-behavior-system.js?v=5"></script>
+    <script src="enemy-algorithm/enemy-algorithm-system.js?v=1"></script>
+    <script src="systems/mission-system.js?v=7"></script>
     <script src="systems/render-system.js?v=6"></script>
-    <script src="systems/input-system.js?v=16"></script>
-    <script src="systems/action-system.js?v=7"></script>
+    <script src="systems/input-system.js?v=18"></script>
+    <script src="systems/action-system.js?v=9"></script>
     <script src="css-pixel-art/store-pixel-art.js?v=3"></script>
-    <script src="main.js?v=45"></script>
+    <script src="main.js?v=47"></script>
   </body>
 </html>

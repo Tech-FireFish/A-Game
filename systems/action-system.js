@@ -166,6 +166,13 @@
       enemy.alertCooldown = 0;
       enemy.combatAlertActive = false;
       enemy.lastAlertTriggerAt = 0;
+      enemy.algorithmAction = "";
+      enemy.algorithmActionStartedAt = 0;
+      enemy.algorithmActionUntil = 0;
+      enemy.supportBoostUntil = 0;
+      enemy.supportSourceEnemyId = "";
+      enemy.retreatUntil = 0;
+      enemy.retreatTeamCreditUntil = 0;
       enemy.targetId = null;
       enemy.fireTimer = 0;
       enemy.reaction = 0;
@@ -220,7 +227,9 @@
       shooter.reaction += dt;
       deps.shooting.updateReload(shooter, dt);
       shooter.fireTimer = Math.max(0, shooter.fireTimer - dt);
-      if (shooter.reaction < weapon.reactionDelay || shooter.fireTimer > 0) {
+      const boosted = shooter.kind === "enemy" && shooter.supportBoostUntil && shooter.supportBoostUntil > Date.now();
+      const reactionDelay = boosted ? weapon.reactionDelay * 0.55 : weapon.reactionDelay;
+      if (shooter.reaction < reactionDelay || shooter.fireTimer > 0) {
         return;
       }
 
@@ -321,9 +330,10 @@
     }
 
     // Applies damage to an operator and clears active behavior when downed.
-    function damageOperator(op, amount) {
+    function damageOperator(op, amount, source = null) {
       const wasDown = op.down;
-      applyDamage(op, amount, { operatorFatalOnly: !wasDown });
+      const damageInfo = applyDamage(op, amount, { operatorFatalOnly: !wasDown });
+      creditEnemyAlgorithmDamage(source, damageInfo);
       if (op.health <= 0) {
         op.health = 0;
         op.down = true;
@@ -333,6 +343,29 @@
       } else if (!wasDown && op.health <= 25 && !op.lowHealthWarned) {
         op.lowHealthWarned = true;
         deps.audio.play("low-health-warning");
+      }
+      return damageInfo;
+    }
+
+    // Credits learned enemy actions only when actual armor or health damage lands.
+    function creditEnemyAlgorithmDamage(source, damageInfo) {
+      if (!deps.enemyAlgorithm || !source || source.kind !== "enemy") return;
+      const totalDamage = (damageInfo && damageInfo.totalDamage) || 0;
+      if (totalDamage <= 0) return;
+      const state = getState();
+      const now = Date.now();
+      if (source.algorithmAction === "shooting") {
+        deps.enemyAlgorithm.recordActionSuccess(source, "shooting", damageInfo);
+      }
+      if (source.supportSourceEnemyId && source.supportBoostUntil && source.supportBoostUntil > now && state) {
+        const supportEnemy = state.level.enemies.find((enemy) => enemy.id === source.supportSourceEnemyId);
+        deps.enemyAlgorithm.recordActionSuccess(supportEnemy || source, "calling-support", damageInfo);
+      }
+      if (!state) return;
+      for (const enemy of state.level.enemies) {
+        if (enemy.retreatTeamCreditUntil && enemy.retreatTeamCreditUntil > now) {
+          deps.enemyAlgorithm.recordActionSuccess(enemy, "retreating", damageInfo);
+        }
       }
     }
 
@@ -360,6 +393,11 @@
           deps.audio.play("body-hit");
         }
       }
+      return {
+        armorDamage,
+        healthDamage,
+        totalDamage: armorDamage + healthDamage
+      };
     }
 
     return {

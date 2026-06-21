@@ -673,6 +673,22 @@
           if (deps.setStoreScore) deps.setStoreScore(elements.storeScoreInput.value);
         });
       }
+      if (elements.enemyAlgorithmNonRepeatInput) {
+        const applyEnemyAlgorithmProbability = () => {
+          if (!deps.enemyAlgorithm || !deps.enemyAlgorithm.setConfiguredNonRepeatProbability) return;
+          deps.enemyAlgorithm.setConfiguredNonRepeatProbability(elements.enemyAlgorithmNonRepeatInput.value);
+          deps.updateHud();
+        };
+        elements.enemyAlgorithmNonRepeatInput.addEventListener("input", applyEnemyAlgorithmProbability);
+        elements.enemyAlgorithmNonRepeatInput.addEventListener("change", applyEnemyAlgorithmProbability);
+      }
+      if (elements.enemyAlgorithmResetButton) {
+        elements.enemyAlgorithmResetButton.addEventListener("click", () => {
+          if (!deps.enemyAlgorithm || !deps.enemyAlgorithm.resetLearningData) return;
+          deps.enemyAlgorithm.resetLearningData();
+          deps.updateHud();
+        });
+      }
       // if (elements.pixelArtStyleSelect) {
       //   elements.pixelArtStyleSelect.addEventListener("change", () => {
       //     const value = elements.pixelArtStyleSelect.value;

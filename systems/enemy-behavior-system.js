@@ -24,9 +24,7 @@
       const weapon = deps.weaponById(enemy.weaponId);
       const seen = findVisibleOperator(enemy, weapon);
       if (seen) {
-        triggerEnemyAlert(enemy, alertStatus, seen);
-        enemy.angle = deps.angleTo(enemy, seen);
-        combat.fireAtOperator(enemy, seen, weapon, dt);
+        updateAlgorithmContact(enemy, seen, weapon, dt, combat);
         return;
       }
 
@@ -45,6 +43,80 @@
         return;
       }
       updateCalmEnemy(enemy, dt);
+    }
+
+    // Chooses and runs one learned enemy action while an operator is in contact.
+    function updateAlgorithmContact(enemy, seen, weapon, dt, combat) {
+      const now = Date.now();
+      if (!enemy.algorithmAction || (enemy.algorithmActionUntil || 0) <= now) {
+        const action = deps.enemyAlgorithm && deps.enemyAlgorithm.chooseAction
+          ? deps.enemyAlgorithm.chooseAction(enemy, { target: seen, weapon })
+          : "shooting";
+        startAlgorithmAction(enemy, action, seen, now);
+      }
+      triggerEnemyAlert(enemy, alertStatus, seen);
+      if (enemy.algorithmAction === "retreating") {
+        updateRetreatingEnemy(enemy, seen, dt);
+        return;
+      }
+      if (enemy.algorithmAction === "calling-support") {
+        callSupport(enemy, seen, now);
+        enemy.angle = deps.angleTo(enemy, seen);
+        return;
+      }
+      enemy.algorithmAction = "shooting";
+      enemy.angle = deps.angleTo(enemy, seen);
+      combat.fireAtOperator(enemy, seen, weapon, dt);
+    }
+
+    // Starts a short action window so enemies do not re-roll every animation frame.
+    function startAlgorithmAction(enemy, action, target, now) {
+      enemy.algorithmAction = action;
+      enemy.algorithmActionStartedAt = now;
+      const duration = action === "retreating" ? 2200 : (action === "calling-support" ? 1300 : 1200);
+      enemy.algorithmActionUntil = now + duration;
+      if (action === "retreating") {
+        enemy.retreatUntil = now + duration;
+        enemy.retreatTeamCreditUntil = now + duration + 900;
+      }
+      if (target) {
+        enemy.lastKnownOperator = { x: target.x, y: target.y };
+        enemy.searchTarget = { x: target.x, y: target.y };
+      }
+    }
+
+    // Moves an enemy away from the current contact point.
+    function updateRetreatingEnemy(enemy, target, dt) {
+      const state = deps.getState();
+      const angle = deps.angleTo(target, enemy);
+      enemy.angle = deps.angleTo(enemy, target);
+      const next = {
+        x: enemy.x + Math.cos(angle) * enemy.speed * 1.05 * dt,
+        y: enemy.y + Math.sin(angle) * enemy.speed * 1.05 * dt,
+        radius: enemy.radius
+      };
+      if (!deps.collidesWithMap(state.level, next)) {
+        enemy.x = next.x;
+        enemy.y = next.y;
+        deps.audio.noteLoopActivity("enemy-walk");
+      } else if (enemy.spawn) {
+        moveEnemyByPath(enemy, enemy.spawn, dt, 0.85);
+      }
+    }
+
+    // Alerts and boosts nearby enemies once during the support action window.
+    function callSupport(enemy, target, now) {
+      if (enemy.supportCalledAt && enemy.supportCalledAt >= enemy.algorithmActionStartedAt) return;
+      enemy.supportCalledAt = now;
+      const state = deps.getState();
+      const point = target || enemy;
+      notifyNearby(enemy, 360, (other) => {
+        if (other.id === enemy.id) return;
+        other.supportBoostUntil = now + 3200;
+        other.supportSourceEnemyId = enemy.id;
+        triggerEnemyAlert(other, alertStatus, point, { combat: true });
+      });
+      if (state) state.combatAlertActive = true;
     }
 
     // Reads the enemy's configured behavior personality.

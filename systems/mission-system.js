@@ -68,6 +68,9 @@
         deps.progression.recordTutorial(runtime.currentLevelMeta);
         if (deps.menu && deps.menu.render) deps.menu.render();
       }
+      if (result !== "success" && deps.enemyAlgorithm && deps.enemyAlgorithm.recordPlayerFailure) {
+        deps.enemyAlgorithm.recordPlayerFailure();
+      }
       const score = previewMode ? { neutralized: runtime.state.enemyDownCount || 0, complexity: progress.complexity || 0, enemyScore: 0, complexityScore: 0, baseScore: 0, total: 0 } : missionScore(result, progress);
       state.missionScore = score;
       if (!previewMode && deps.addStoreScore) deps.addStoreScore(score.total);

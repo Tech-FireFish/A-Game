@@ -7,7 +7,7 @@
     const elements = deps.elements;
     const DEV_CODE = "Let me in";
     const SETTINGS_TABS = new Set(["keys", "general", "sound", "dev"]);
-    const DEV_SETTINGS_TABS = new Set(["mission", "operator", "enemy", "enemyTypes"]);
+    const DEV_SETTINGS_TABS = new Set(["mission", "operator", "enemy", "enemyTypes", "enemyAlgorithm"]);
 
     // Opens settings, pauses execution, and remembers whether to resume.
     function openSettings() {

@@ -117,6 +117,9 @@ const elements = {
   keyBindingList: document.getElementById("keyBindingList"),
   enemyLoadoutList: document.getElementById("enemyLoadoutList"),
   enemyPersonalityList: document.getElementById("enemyPersonalityList"),
+  enemyAlgorithmNonRepeatInput: document.getElementById("enemyAlgorithmNonRepeatInput"),
+  enemyAlgorithmResetButton: document.getElementById("enemyAlgorithmResetButton"),
+  enemyAlgorithmReadout: document.getElementById("enemyAlgorithmReadout"),
   digitalLockOverlay: document.getElementById("digitalLockOverlay"),
   digitalLockTitle: document.getElementById("digitalLockTitle"),
   digitalLockDisplay: document.getElementById("digitalLockDisplay"),
@@ -435,6 +438,7 @@ let visibility;
 let settings;
 let digitalLock;
 let enemyBehavior;
+let enemyAlgorithm;
 let mission;
 let renderer;
 let input;
@@ -1342,6 +1346,24 @@ function syncSettingsRangeMarkers() {
   );
 }
 
+// Renders the persistent enemy learning readout and keeps the probability input synced.
+function renderEnemyAlgorithmSettings() {
+  if (!enemyAlgorithm) return;
+  const snapshot = enemyAlgorithm.snapshot();
+  if (elements.enemyAlgorithmNonRepeatInput && document.activeElement !== elements.enemyAlgorithmNonRepeatInput) {
+    setValue(elements.enemyAlgorithmNonRepeatInput, snapshot.configuredNonRepeatProbability);
+  }
+  if (!elements.enemyAlgorithmReadout) return;
+  const successes = snapshot.successes || {};
+  const weights = snapshot.weights || {};
+  elements.enemyAlgorithmReadout.innerHTML = `
+    <div><span>Current Non-Repetition</span><strong>${snapshot.currentNonRepeatProbability}%</strong></div>
+    <div><span>Retreating</span><strong>Weight ${weights.retreating || 1} / Success ${successes.retreating || 0}</strong></div>
+    <div><span>Shooting</span><strong>Weight ${weights.shooting || 1} / Success ${successes.shooting || 0}</strong></div>
+    <div><span>Calling Support</span><strong>Weight ${weights["calling-support"] || 1} / Success ${successes["calling-support"] || 0}</strong></div>
+  `;
+}
+
 // Toggles a class only when the class state is different.
 function setClass(element, className, enabled) {
   if (!element) return;
@@ -1472,6 +1494,7 @@ function updateHud(options = {}) {
   if (elements.storeScoreInput && document.activeElement !== elements.storeScoreInput) {
     setValue(elements.storeScoreInput, storeProfile().score);
   }
+  renderEnemyAlgorithmSettings();
   // if (elements.pixelArtStyleSelect && elements.pixelArtStyleSelect.value !== style) {
   //   elements.pixelArtStyleSelect.value = style;
   // }
@@ -1549,6 +1572,7 @@ function initializeSystems() {
   assertSystem("Settings system", window.SettingsSystem);
   assertSystem("Digital lock system", window.DigitalLockSystem);
   assertSystem("Enemy behavior system", window.EnemyBehaviorSystem);
+  assertSystem("Enemy algorithm system", window.EnemyAlgorithmSystem);
   assertSystem("Mission system", window.MissionSystem);
   assertSystem("Render system", window.RenderSystem);
   assertSystem("Input system", window.InputSystem);
@@ -1698,6 +1722,13 @@ function initializeSystems() {
     updateHud
   });
 
+  enemyAlgorithm = window.EnemyAlgorithmSystem.create({
+    onChange: () => {
+      renderEnemyAlgorithmSettings();
+      updateHud();
+    }
+  });
+
   tutorial = window.TutorialSystem.create({
     runtime,
     elements,
@@ -1755,6 +1786,7 @@ function initializeSystems() {
 
   enemyBehavior = window.EnemyBehaviorSystem.create({
     getState: () => runtime.state,
+    enemyAlgorithm,
     weaponById: equipment.weaponById,
     pointDistance: geometry.pointDistance,
     angleTo: geometry.angleTo,
@@ -1781,6 +1813,7 @@ function initializeSystems() {
     currentTutorialIndex: () => level.currentTutorialIndex(),
     tutorial,
     progression,
+    enemyAlgorithm,
     addStoreScore,
     clearResumePoint,
     hideMissionBriefing,
@@ -1812,6 +1845,7 @@ function initializeSystems() {
     interaction,
     shooting,
     enemyBehavior,
+    enemyAlgorithm,
     camera,
     triggerOperatorCounterEffect,
     audio,
@@ -1852,6 +1886,7 @@ function initializeSystems() {
     digitalLock,
     cameraHack,
     tutorial,
+    enemyAlgorithm,
     audio,
     selectedOperator,
     selectOperator,

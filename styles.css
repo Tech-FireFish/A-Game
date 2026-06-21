@@ -1793,6 +1793,35 @@ body.pixel-style-geometry .weapon-image-frame::after {
   gap: 8px;
 }
 
+.enemy-algorithm-readout {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.enemy-algorithm-readout div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, auto);
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 7px 10px;
+  background: rgba(7, 12, 10, 0.42);
+}
+
+.enemy-algorithm-readout span {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.enemy-algorithm-readout strong {
+  color: var(--accent);
+  font-size: 9px;
+  line-height: 1.4;
+  text-align: right;
+}
+
 .enemy-type-copy,
 .enemy-personality-hint {
   color: var(--muted);

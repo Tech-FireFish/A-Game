@@ -148,6 +148,13 @@
             alertCooldown: 0,
             combatAlertActive: false,
             lastAlertTriggerAt: 0,
+            algorithmAction: "",
+            algorithmActionStartedAt: 0,
+            algorithmActionUntil: 0,
+            supportBoostUntil: 0,
+            supportSourceEnemyId: "",
+            retreatUntil: 0,
+            retreatTeamCreditUntil: 0,
             lastKnownOperator: null,
             suspicionTimer: 0,
             searchTarget: null
