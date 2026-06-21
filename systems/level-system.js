@@ -104,14 +104,23 @@
         }),
         enemies: level.enemies.map((enemy) => {
           const useSavedLoadout = !level.forceLoadouts;
-          const difficultRandom = runtime.currentDifficulty !== "easy" && useSavedLoadout;
+          const mediumRandom = runtime.currentDifficulty === "medium" && useSavedLoadout;
+          const difficultUpgrade = runtime.currentDifficulty === "difficult"
+            && useSavedLoadout
+            && deps.enemyAlgorithm
+            && deps.enemyAlgorithm.shouldUpgradeEnemyEquipment
+            && deps.enemyAlgorithm.shouldUpgradeEnemyEquipment();
           const difficultPersonalityRandom = runtime.currentDifficulty === "difficult" && useSavedLoadout;
-          const weaponId = deps.equipment.validWeaponId(difficultRandom
+          const weaponId = deps.equipment.validWeaponId(mediumRandom
             ? randomEnemyWeaponId()
-            : ((useSavedLoadout && levelWeaponLoadouts[enemy.id]) || enemy.weaponId || "rifle"));
-          const armorId = deps.equipment.validArmorId(difficultRandom
+            : (difficultUpgrade
+              ? randomUpgradedEnemyWeaponId()
+              : ((useSavedLoadout && levelWeaponLoadouts[enemy.id]) || enemy.weaponId || "rifle")));
+          const armorId = deps.equipment.validArmorId(mediumRandom
             ? randomEnemyArmorId()
-            : ((useSavedLoadout && levelArmorLoadouts[enemy.id]) || enemy.armorId || "light-armor"));
+            : (difficultUpgrade
+              ? randomStrongEnemyArmorId()
+              : ((useSavedLoadout && levelArmorLoadouts[enemy.id]) || enemy.armorId || "light-armor")));
           const armor = deps.equipment.armorById(armorId);
           const baseSpeed = enemy.speed || 34;
           return {
@@ -276,10 +285,23 @@
       return ids[Math.floor(Math.random() * ids.length)] || "rifle";
     }
 
+    // Picks an upgraded Difficult-mode enemy weapon from stronger ranged options.
+    function randomUpgradedEnemyWeaponId() {
+      const ids = ["advanced-carbine", "compact-pdw", "marksman-pistol", "rifle", "smg"]
+        .filter((id) => deps.equipment.weaponById(id));
+      return ids[Math.floor(Math.random() * ids.length)] || randomEnemyWeaponId();
+    }
+
     // Picks a difficult-mode enemy armor tier.
     function randomEnemyArmorId() {
       const ids = ["light-armor", "medium-armor", "heavy-armor"];
       return ids[Math.floor(Math.random() * ids.length)] || "light-armor";
+    }
+
+    // Picks a stronger armor tier for successful Difficult-mode upgrade rolls.
+    function randomStrongEnemyArmorId() {
+      const ids = ["medium-armor", "heavy-armor"].filter((id) => deps.equipment.armorById(id));
+      return ids[Math.floor(Math.random() * ids.length)] || "medium-armor";
     }
 
     // Picks a difficult-mode enemy personality.

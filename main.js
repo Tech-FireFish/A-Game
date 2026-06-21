@@ -572,6 +572,13 @@ function finishMissionBriefing() {
 // Applies the selected difficulty and updates the player-facing status.
 function setDifficulty(value) {
   runtime.currentDifficulty = normalizeDifficulty(value);
+  if (enemyAlgorithm) {
+    if (runtime.currentDifficulty === "difficult" && enemyAlgorithm.startDifficultSession) {
+      enemyAlgorithm.startDifficultSession();
+    } else if (enemyAlgorithm.resetDifficultSession) {
+      enemyAlgorithm.resetDifficultSession();
+    }
+  }
   if (runtime.currentDifficulty !== "easy") runtime.enemyTraceMode = "chase";
   if (runtime.state) {
     runtime.state.message = runtime.currentDifficulty === "easy"
@@ -1350,6 +1357,7 @@ function syncSettingsRangeMarkers() {
 function renderEnemyAlgorithmSettings() {
   if (!enemyAlgorithm) return;
   const snapshot = enemyAlgorithm.snapshot();
+  const difficult = snapshot.difficultSession || {};
   if (elements.enemyAlgorithmNonRepeatInput && document.activeElement !== elements.enemyAlgorithmNonRepeatInput) {
     setValue(elements.enemyAlgorithmNonRepeatInput, snapshot.configuredNonRepeatProbability);
   }
@@ -1361,6 +1369,9 @@ function renderEnemyAlgorithmSettings() {
     <div><span>Retreating</span><strong>Weight ${weights.retreating || 1} / Success ${successes.retreating || 0}</strong></div>
     <div><span>Shooting</span><strong>Weight ${weights.shooting || 1} / Success ${successes.shooting || 0}</strong></div>
     <div><span>Calling Support</span><strong>Weight ${weights["calling-support"] || 1} / Success ${successes["calling-support"] || 0}</strong></div>
+    <div><span>Difficult Active</span><strong>${difficult.active ? "Yes" : "No"}</strong></div>
+    <div><span>Difficult Upgrade</span><strong>${difficult.equipmentUpgradeChance ?? 50}%</strong></div>
+    <div><span>Difficult Results</span><strong>Player ${difficult.playerWins || 0} / Enemy ${difficult.enemyWins || 0}</strong></div>
   `;
 }
 
@@ -1700,6 +1711,7 @@ function initializeSystems() {
     enemyArmorLoadouts,
     enemyPersonalityLoadouts,
     camera,
+    enemyAlgorithm,
     setBackgroundMusicVolume,
     renderEnemyLoadouts: () => equipment.renderEnemyLoadouts(),
     renderEnemyPersonalities: () => equipment.renderEnemyPersonalities(),
@@ -1723,6 +1735,7 @@ function initializeSystems() {
   });
 
   enemyAlgorithm = window.EnemyAlgorithmSystem.create({
+    isDifficultMode: () => runtime.currentDifficulty === "difficult",
     onChange: () => {
       renderEnemyAlgorithmSettings();
       updateHud();
@@ -1760,6 +1773,7 @@ function initializeSystems() {
     storeLoadoutDefaults,
     storeMissionItems,
     progression,
+    enemyAlgorithm,
     keysDown,
     saveResumePoint,
     showMissionBriefing,
@@ -1795,6 +1809,10 @@ function initializeSystems() {
     collidesWithMap: geometry.collidesWithMap,
     rectCenter: geometry.rectCenter,
     clamp: geometry.clamp,
+    pointRectDistance: geometry.scaledPointRectDistance,
+    isLockedDigitalDoor: geometry.isLockedDigitalDoor,
+    beginDoorTransition: interaction.beginDoorTransition,
+    isDifficultMode: () => runtime.currentDifficulty === "difficult",
     enemyTraceMode: () => runtime.enemyTraceMode,
     enemyTeamPressure: (enemy) => enemyTeamPressure(enemy),
     audio

@@ -6,7 +6,9 @@
     const storageKey = "delta-geometry-enemy-algorithm-v1";
     const actions = ["retreating", "shooting", "calling-support"];
     const defaultProbability = 20;
+    const defaultDifficultUpgradeChance = 50;
     let state = loadState();
+    let difficultSession = defaultDifficultSession();
 
     function defaultState() {
       return {
@@ -19,6 +21,15 @@
           "calling-support": 0
         },
         lastActions: {}
+      };
+    }
+
+    function defaultDifficultSession() {
+      return {
+        active: false,
+        equipmentUpgradeChance: defaultDifficultUpgradeChance,
+        playerWins: 0,
+        enemyWins: 0
       };
     }
 
@@ -61,6 +72,10 @@
       return 1 + (state.successes[action] || 0);
     }
 
+    function isDifficultMode() {
+      return Boolean(deps.isDifficultMode && deps.isDifficultMode());
+    }
+
     function weightedChoice(candidates) {
       const total = candidates.reduce((sum, action) => sum + actionWeight(action), 0);
       let roll = Math.random() * total;
@@ -72,6 +87,7 @@
     }
 
     function chooseAction(enemy) {
+      if (!isDifficultMode()) return "shooting";
       const enemyKey = enemy && enemy.id ? enemy.id : "unknown";
       const previous = state.lastActions[enemyKey];
       let candidates = [...actions];
@@ -85,6 +101,7 @@
     }
 
     function recordActionSuccess(enemy, action, damageInfo = {}) {
+      if (!isDifficultMode()) return false;
       if (!actions.includes(action)) return false;
       const totalDamage = Number(damageInfo.totalDamage ?? damageInfo.damage ?? 0);
       if (!(totalDamage > 0)) return false;
@@ -96,6 +113,7 @@
     }
 
     function recordPlayerFailure() {
+      if (!isDifficultMode()) return state.currentNonRepeatProbability;
       state.currentNonRepeatProbability = Math.min(100, state.currentNonRepeatProbability + 10);
       saveState();
       if (deps.onChange) deps.onChange(snapshot());
@@ -121,6 +139,42 @@
       return snapshot();
     }
 
+    function startDifficultSession() {
+      if (!difficultSession.active) difficultSession = defaultDifficultSession();
+      difficultSession.active = true;
+      if (deps.onChange) deps.onChange(snapshot());
+      return getDifficultSessionSnapshot();
+    }
+
+    function resetDifficultSession() {
+      difficultSession = defaultDifficultSession();
+      if (deps.onChange) deps.onChange(snapshot());
+      return getDifficultSessionSnapshot();
+    }
+
+    function recordDifficultResult(result, mode) {
+      if (!isDifficultMode() || !difficultSession.active) return getDifficultSessionSnapshot();
+      if (mode === "tutorial" && result === "success") return getDifficultSessionSnapshot();
+      if (result === "success") {
+        difficultSession.playerWins += 1;
+        difficultSession.equipmentUpgradeChance = Math.min(100, difficultSession.equipmentUpgradeChance + 10);
+      } else {
+        difficultSession.enemyWins += 1;
+        difficultSession.equipmentUpgradeChance = Math.max(0, difficultSession.equipmentUpgradeChance - 10);
+      }
+      if (deps.onChange) deps.onChange(snapshot());
+      return getDifficultSessionSnapshot();
+    }
+
+    function getDifficultSessionSnapshot() {
+      return { ...difficultSession };
+    }
+
+    function shouldUpgradeEnemyEquipment() {
+      if (!isDifficultMode() || !difficultSession.active) return false;
+      return Math.random() * 100 < difficultSession.equipmentUpgradeChance;
+    }
+
     function snapshot() {
       return {
         configuredNonRepeatProbability: state.configuredNonRepeatProbability,
@@ -131,7 +185,8 @@
           shooting: actionWeight("shooting"),
           "calling-support": actionWeight("calling-support")
         },
-        lastActions: { ...state.lastActions }
+        lastActions: { ...state.lastActions },
+        difficultSession: getDifficultSessionSnapshot()
       };
     }
 
@@ -142,6 +197,11 @@
       recordPlayerFailure,
       setConfiguredNonRepeatProbability,
       resetLearningData,
+      startDifficultSession,
+      resetDifficultSession,
+      recordDifficultResult,
+      getDifficultSessionSnapshot,
+      shouldUpgradeEnemyEquipment,
       snapshot
     };
   }

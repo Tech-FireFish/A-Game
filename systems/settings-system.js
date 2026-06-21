@@ -251,6 +251,7 @@
       deps.keysDown.clear();
       runtime.capturingKeyAction = null;
       runtime.currentDifficulty = "easy";
+      if (deps.enemyAlgorithm && deps.enemyAlgorithm.resetDifficultSession) deps.enemyAlgorithm.resetDifficultSession();
       runtime.enemyTraceMode = "current";
       runtime.activeOperatorCount = 2;
       runtime.showAllHealth = false;

@@ -10,6 +10,7 @@
     const downStatus = "down";
     const alertCooldownThreshold = 1.25;
     const gunfireHearingRadius = 420;
+    const difficultTeamRadius = 280;
 
     // Updates one enemy through calm, suspicious, alert, or down behavior.
     function updateEnemy(enemy, dt, combat) {
@@ -49,7 +50,7 @@
     function updateAlgorithmContact(enemy, seen, weapon, dt, combat) {
       const now = Date.now();
       if (!enemy.algorithmAction || (enemy.algorithmActionUntil || 0) <= now) {
-        const action = deps.enemyAlgorithm && deps.enemyAlgorithm.chooseAction
+        const action = isDifficultMode() && deps.enemyAlgorithm && deps.enemyAlgorithm.chooseAction
           ? deps.enemyAlgorithm.chooseAction(enemy, { target: seen, weapon })
           : "shooting";
         startAlgorithmAction(enemy, action, seen, now);
@@ -64,9 +65,14 @@
         enemy.angle = deps.angleTo(enemy, seen);
         return;
       }
+      if (isDifficultMode()) coordinateNearbyEnemies(enemy, seen, now);
       enemy.algorithmAction = "shooting";
       enemy.angle = deps.angleTo(enemy, seen);
       combat.fireAtOperator(enemy, seen, weapon, dt);
+    }
+
+    function isDifficultMode() {
+      return Boolean(deps.isDifficultMode && deps.isDifficultMode());
     }
 
     // Starts a short action window so enemies do not re-roll every animation frame.
@@ -233,6 +239,10 @@
       const target = enemy.searchTarget || enemy.lastKnownOperator;
       if (target) {
         enemy.angle = deps.angleTo(enemy, target);
+        if (isDifficultMode()) {
+          openBlockingDoor(enemy, target);
+          coordinateNearbyEnemies(enemy, target, Date.now());
+        }
         if (profile.pathSearch || deps.enemyTraceMode && deps.enemyTraceMode() === "chase") {
           moveEnemyByPath(enemy, target, dt, profile.searchSpeed);
         } else {
@@ -321,6 +331,41 @@
         enemy.y = next.y;
         deps.audio.noteLoopActivity("enemy-walk");
       }
+    }
+
+    // Opens a nearby unlocked closed door if it blocks a Difficult-mode search route.
+    function openBlockingDoor(enemy, target) {
+      const state = deps.getState();
+      if (!state || !target || !deps.beginDoorTransition) return false;
+      for (const door of state.level.doors || []) {
+        if (door.state !== "closed" || deps.isLockedDigitalDoor && deps.isLockedDigitalDoor(door)) continue;
+        const distance = deps.pointRectDistance ? deps.pointRectDistance(enemy, door) : Infinity;
+        if (distance > 46) continue;
+        const center = deps.rectCenter(door);
+        const targetDistance = deps.pointDistance(enemy, target);
+        const doorDistance = deps.pointDistance(enemy, center);
+        if (doorDistance > targetDistance + 12) continue;
+        deps.beginDoorTransition(door, "open");
+        deps.audio.play("door-open");
+        return true;
+      }
+      return false;
+    }
+
+    // Shares a target point with nearby Difficult-mode allies so searches act like a team.
+    function coordinateNearbyEnemies(enemy, target, now) {
+      if (!isDifficultMode() || !target) return;
+      if (enemy.teamCoordinationUntil && enemy.teamCoordinationUntil > now) return;
+      enemy.teamCoordinationUntil = now + 1400;
+      notifyNearby(enemy, difficultTeamRadius, (other) => {
+        if (other.id === enemy.id || other.down) return;
+        other.searchTarget = { x: target.x, y: target.y };
+        other.lastKnownOperator = { x: target.x, y: target.y };
+        other.supportBoostUntil = Math.max(other.supportBoostUntil || 0, now + 1800);
+        if (other.status === calmStatus || other.status === returnStatus) {
+          triggerEnemyAlert(other, suspiciousStatus, target, { combat: true });
+        }
+      });
     }
 
     // Moves an enemy by a coarse path when chase mode is enabled.

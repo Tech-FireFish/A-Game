@@ -68,7 +68,11 @@
         deps.progression.recordTutorial(runtime.currentLevelMeta);
         if (deps.menu && deps.menu.render) deps.menu.render();
       }
-      if (result !== "success" && deps.enemyAlgorithm && deps.enemyAlgorithm.recordPlayerFailure) {
+      const difficultMode = runtime.currentDifficulty === "difficult";
+      if (difficultMode && !previewMode && deps.enemyAlgorithm && deps.enemyAlgorithm.recordDifficultResult) {
+        deps.enemyAlgorithm.recordDifficultResult(result, runtime.activeMode);
+      }
+      if (difficultMode && result !== "success" && deps.enemyAlgorithm && deps.enemyAlgorithm.recordPlayerFailure) {
         deps.enemyAlgorithm.recordPlayerFailure();
       }
       const score = previewMode ? { neutralized: runtime.state.enemyDownCount || 0, complexity: progress.complexity || 0, enemyScore: 0, complexityScore: 0, baseScore: 0, total: 0 } : missionScore(result, progress);
