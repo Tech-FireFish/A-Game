@@ -1380,7 +1380,7 @@ function renderEnemyAlgorithmSettings() {
   if (elements.enemyWeaponPossibilityReadout) {
     elements.enemyWeaponPossibilityReadout.innerHTML = `
       <div><span>Difficult Active</span><strong>${difficult.active ? "Yes" : "No"}</strong></div>
-      <div><span>Current Chance</span><strong>${difficult.equipmentUpgradeChance ?? 50}%</strong></div>
+      <div><span>Current Weapon Possibility</span><strong>${difficult.equipmentUpgradeChance ?? 50}%</strong></div>
       <div><span>Reset Target</span><strong>${difficult.configuredEquipmentUpgradeChance ?? 50}%</strong></div>
       <div><span>Difficult Results</span><strong>Player ${difficult.playerWins || 0} / Enemy ${difficult.enemyWins || 0}</strong></div>
     `;
