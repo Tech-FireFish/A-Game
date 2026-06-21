@@ -10,6 +10,9 @@
 
     // Handles the actual door effect for locked and unlocked doors.
     function interactWithDoor(op, door) {
+      if (deps.interaction && deps.interaction.interactDoor) {
+        return deps.interaction.interactDoor(op, door);
+      }
       const state = getState();
       if (!state || !door || !op || op.down) return false;
       if (deps.isLockedDigitalDoor(door)) {
@@ -158,6 +161,11 @@
       enemy.armor = enemy.maxArmor;
       enemy.down = false;
       enemy.status = "calm";
+      enemy.alertState = "calm";
+      enemy.alertLocked = false;
+      enemy.alertCooldown = 0;
+      enemy.combatAlertActive = false;
+      enemy.lastAlertTriggerAt = 0;
       enemy.targetId = null;
       enemy.fireTimer = 0;
       enemy.reaction = 0;

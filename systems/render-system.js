@@ -432,6 +432,11 @@
       for (const door of runtime.state.level.doors.filter(shouldDrawObject)) {
         const box = deps.geometry.scaledRect(door);
         const center = deps.geometry.rectCenter(box);
+        if (door.state !== "closed") {
+          drawAnimatedDoor(door, box);
+          drawDoorIndicator(door, center);
+          continue;
+        }
         if (drawSceneDoor(door, box, center)) {
           drawDoorIndicator(door, center);
           continue;
@@ -453,6 +458,42 @@
         ctx.restore();
         drawDoorIndicator(door, center);
       }
+    }
+
+    // Draws animated/open doors rotating 90 degrees clockwise around the short-side hinge.
+    function drawAnimatedDoor(door, box) {
+      const vertical = door.orientation === "vertical";
+      const progress = doorAnimationProgress(door);
+      const angle = progress * Math.PI / 2;
+      const long = doorLong(box);
+      const thickness = Math.max(6, Math.min(box.w, box.h));
+      const hinge = door.hinge || (vertical ? "top" : "left");
+      const pivot = vertical
+        ? { x: box.x + box.w / 2, y: hinge === "bottom" ? box.y + box.h : box.y }
+        : { x: hinge === "right" ? box.x + box.w : box.x, y: box.y + box.h / 2 };
+      const reverse = hinge === "bottom" || hinge === "right";
+      ctx.save();
+      ctx.translate(pivot.x, pivot.y);
+      ctx.rotate(reverse ? -angle : angle);
+      ctx.fillStyle = colors.doorOpen;
+      ctx.strokeStyle = "rgba(8, 14, 12, 0.82)";
+      ctx.lineWidth = 2;
+      if (vertical) {
+        ctx.fillRect(-thickness / 2, reverse ? -long : 0, thickness, long);
+        ctx.strokeRect(-thickness / 2, reverse ? -long : 0, thickness, long);
+      } else {
+        ctx.fillRect(reverse ? -long : 0, -thickness / 2, long, thickness);
+        ctx.strokeRect(reverse ? -long : 0, -thickness / 2, long, thickness);
+      }
+      ctx.restore();
+    }
+
+    // Returns 0 closed, 1 fully open, and interpolated values while moving.
+    function doorAnimationProgress(door) {
+      if (door.state === "open") return 1;
+      if (door.state === "closed") return 0;
+      if (Number.isFinite(door.animProgress)) return Math.max(0, Math.min(1, door.animProgress));
+      return door.state === "opening" ? 0.5 : 0.5;
     }
 
     // Draws camera labels only after a laptop hack has started.

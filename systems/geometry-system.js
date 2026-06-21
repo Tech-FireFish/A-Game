@@ -83,6 +83,11 @@
       return door.state === "closed";
     }
 
+    // Treats stable open/closed doors as interactable; moving doors are ignored.
+    function doorCanInteract(door) {
+      return door && (door.state === "closed" || door.state === "open" || !door.state);
+    }
+
     // Combines walls and closed doors into the active blocker list.
     function blockingRects(level) {
       return [
@@ -203,9 +208,9 @@
       return best;
     }
 
-    // Finds a closed door under a click/touch point.
+    // Finds a stable door under a click/touch point.
     function doorAtPoint(point) {
-      return runtime.state.level.doors.find((door) => doorBlocks(door) && pointInRect(point, inflateRect(scaledRect(door), 6)));
+      return runtime.state.level.doors.find((door) => doorCanInteract(door) && pointInRect(point, inflateRect(scaledRect(door), 6)));
     }
 
     // Finds a window under a click/touch point.
@@ -246,6 +251,7 @@
       scaledPointRectDistance,
       rectCenter,
       doorBlocks,
+      doorCanInteract,
       blockingRects,
       collidesWithMap,
       pointInRect,

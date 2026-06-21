@@ -239,7 +239,7 @@
         elements.debugOverlayCheckbox.disabled = !runtime.state;
       }
       if (elements.hintOpacityRange) elements.hintOpacityRange.value = String(runtime.hintOpacity || 0.42);
-      if (elements.viewRange) elements.viewRange.value = String(runtime.viewValue || 50);
+      if (elements.viewRange) elements.viewRange.value = String(runtime.viewValue || 60);
       if (elements.backgroundMusicRange) elements.backgroundMusicRange.value = String(runtime.backgroundMusicVolume ?? 50);
       // if (elements.pixelArtStyleSelect) elements.pixelArtStyleSelect.value = runtime.pixelArtStyle || "geometry";
       // if (elements.pngRenderingCheckbox) elements.pngRenderingCheckbox.checked = runtime.usePngRendering !== false;
@@ -255,7 +255,7 @@
       runtime.activeOperatorCount = 2;
       runtime.showAllHealth = false;
       runtime.hintOpacity = 0.42;
-      runtime.viewValue = 50;
+      runtime.viewValue = 60;
       runtime.backgroundMusicVolume = 50;
       runtime.pixelArtStyle = "geometry";
       if (runtime.state) {
@@ -276,13 +276,13 @@
       if (elements.enemyTraceSelect) elements.enemyTraceSelect.value = "current";
       if (elements.debugOverlayCheckbox) elements.debugOverlayCheckbox.checked = false;
       if (elements.hintOpacityRange) elements.hintOpacityRange.value = "0.42";
-      if (elements.viewRange) elements.viewRange.value = "50";
+      if (elements.viewRange) elements.viewRange.value = "60";
       if (elements.backgroundMusicRange) elements.backgroundMusicRange.value = "50";
       if (deps.setBackgroundMusicVolume) deps.setBackgroundMusicVolume(50);
       // if (elements.pixelArtStyleSelect) elements.pixelArtStyleSelect.value = "geometry";
       // if (elements.pngRenderingCheckbox) elements.pngRenderingCheckbox.checked = true;
       // if (elements.startPngRenderingCheckbox) elements.startPngRenderingCheckbox.checked = true;
-      if (deps.camera && deps.camera.setViewValue) deps.camera.setViewValue(50);
+      if (deps.camera && deps.camera.setViewValue) deps.camera.setViewValue(60);
       if (runtime.activeMode !== "tutorial" && deps.level && deps.level.restart) deps.level.restart();
       deps.renderEnemyLoadouts();
       if (deps.renderEnemyPersonalities) deps.renderEnemyPersonalities();

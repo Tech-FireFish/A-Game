@@ -4,6 +4,7 @@
   // Builds map object interactions for doors, windows, stairs, items, and tables.
   function create(deps) {
     const range = 54;
+    const doorAnimationDuration = 0.2;
 
     // Interacts with the nearest usable map object around the selected operator.
     function interactNearest() {
@@ -36,13 +37,18 @@
     // Handles locked, closed, and open door interactions.
     function interactDoor(op, door) {
       const state = deps.getState();
+      if (door.state === "opening" || door.state === "closing") {
+        state.message = `${door.id} moving`;
+        deps.updateHud();
+        return true;
+      }
       if (door.state === "open") {
         if (doorBlockedByUnit(door)) {
           state.message = "Door blocked";
           deps.updateHud();
           return true;
         }
-        door.state = "closed";
+        beginDoorTransition(door, "closed");
         deps.audio.play("door-close");
         state.message = `${op.id} closed ${door.id}`;
         deps.updateHud();
@@ -56,12 +62,54 @@
         deps.updateHud();
         return true;
       }
-      door.state = "open";
+      beginDoorTransition(door, "open");
       deps.audio.play("door-open");
       deps.enemyBehavior.noticeDoor(door, op);
       state.message = `${op.id} opened ${door.id}`;
       deps.updateHud();
       return true;
+    }
+
+    // Starts a short open/close transition around the door's configured hinge.
+    function beginDoorTransition(door, targetState) {
+      const opening = targetState === "open";
+      door.state = opening ? "opening" : "closing";
+      door.animDirection = opening ? 1 : -1;
+      door.animDuration = doorAnimationDuration;
+      door.animProgress = Number.isFinite(door.animProgress) ? door.animProgress : (opening ? 0 : 1);
+      door.animTimer = opening ? door.animProgress * doorAnimationDuration : (1 - door.animProgress) * doorAnimationDuration;
+      door.hinge = door.hinge || (door.orientation === "vertical" ? "top" : "left");
+    }
+
+    // Advances all active door animations and settles them into stable states.
+    function updateDoors(dt) {
+      const state = deps.getState();
+      if (!state) return;
+      for (const door of state.level.doors || []) {
+        if (door.state !== "opening" && door.state !== "closing") continue;
+        const duration = door.animDuration || doorAnimationDuration;
+        const direction = door.animDirection || (door.state === "opening" ? 1 : -1);
+        const start = Number.isFinite(door.animProgress) ? door.animProgress : (direction > 0 ? 0 : 1);
+        door.animProgress = Math.max(0, Math.min(1, start + direction * (duration > 0 ? dt / duration : 1)));
+        if (direction > 0 && door.animProgress >= 1) {
+          door.state = "open";
+          door.animDirection = 0;
+          door.animTimer = 0;
+        } else if (direction < 0 && door.animProgress <= 0) {
+          if (doorBlockedByUnit(door)) {
+            door.state = "opening";
+            door.animDirection = 1;
+            door.animProgress = 0.05;
+            door.animTimer = 0;
+            continue;
+          }
+          door.state = "closed";
+          door.animDirection = 0;
+          door.animTimer = 0;
+        } else {
+          door.animTimer = (door.animTimer || 0) + dt;
+        }
+      }
     }
 
     // Opens or vaults through a window depending on its state.
@@ -134,6 +182,7 @@
       const door = nearestDoor(op);
       if (door) {
         if (door.state === "open") return "Press E to close door";
+        if (door.state === "opening" || door.state === "closing") return "Door moving";
         if (deps.geometry.isLockedDigitalDoor(door)) return "Door locked: press E to enter code";
         if (deps.geometry.isDigitalLockDoor(door)) return "Door unlocked: press E to open";
         return "Door nearby: press E to open";
@@ -177,6 +226,7 @@
       let best = null;
       let bestDist = Infinity;
       for (const door of deps.getState().level.doors) {
+        if (!deps.geometry.doorCanInteract(door)) continue;
         const dist = deps.geometry.scaledPointRectDistance(op, door);
         if (dist <= range && dist < bestDist) {
           best = door;
@@ -196,6 +246,8 @@
     return {
       interactNearest,
       interactDoor,
+      beginDoorTransition,
+      updateDoors,
       interactWindow,
       interactStair,
       nearestHint,

@@ -380,7 +380,7 @@ const runtime = {
   endSequenceTimer: null,
   endSequenceStage: "hidden",
   hintOpacity: 0.42,
-  viewValue: 50,
+  viewValue: 60,
   backgroundMusicVolume: 50,
   pixelArtStyle: "geometry",
   showAllHealth: false,
@@ -1259,6 +1259,7 @@ function update(dt) {
   const manualInput = hasManualInput();
   if (state.gameOver) return;
   camera.update(dt);
+  if (interaction && interaction.updateDoors) interaction.updateDoors(dt);
 
   for (const op of state.level.operators) {
     const isManualOperator = op.id === state.selectedId && manualInput;
@@ -1785,7 +1786,8 @@ function initializeSystems() {
     hideMissionBriefing,
     refreshStartMenu,
     menu: {
-      showMain: () => menu && menu.showMain()
+      showMain: () => menu && menu.showMain(),
+      render: () => menu && menu.render()
     },
     updateHud
   });

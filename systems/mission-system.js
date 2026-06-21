@@ -66,6 +66,7 @@
         : { privilegeEarned: 0, rewardsUnlocked: [], complexity: deps.progression ? deps.progression.complexity(state.level) : 0 };
       if (tutorialSuccess && deps.progression && deps.progression.recordTutorial) {
         deps.progression.recordTutorial(runtime.currentLevelMeta);
+        if (deps.menu && deps.menu.render) deps.menu.render();
       }
       const score = previewMode ? { neutralized: runtime.state.enemyDownCount || 0, complexity: progress.complexity || 0, enemyScore: 0, complexityScore: 0, baseScore: 0, total: 0 } : missionScore(result, progress);
       state.missionScore = score;

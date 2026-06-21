@@ -20,6 +20,9 @@
         shootingMode: runtime.state ? runtime.state.shootingMode || "automatic" : "automatic",
         shots: [],
         enemyDownCount: 0,
+        combatAlertActive: false,
+        combatAlertPoint: null,
+        combatAlertTriggeredAt: 0,
         tutorial: null,
         cameraHack: {
           started: false,
@@ -140,6 +143,11 @@
             respawnTimer: 0,
             patrolIndex: 0,
             status: "calm",
+            alertState: "calm",
+            alertLocked: false,
+            alertCooldown: 0,
+            combatAlertActive: false,
+            lastAlertTriggerAt: 0,
             lastKnownOperator: null,
             suspicionTimer: 0,
             searchTarget: null
@@ -158,6 +166,11 @@
         return {
           ...door,
           state: door.state || "closed",
+          animProgress: door.state === "open" ? 1 : 0,
+          animDirection: 0,
+          animTimer: 0,
+          animDuration: 0.2,
+          hinge: door.hinge || (door.orientation === "vertical" ? "top" : "left"),
           password,
           locked: door.lockType === "digital" ? door.locked !== false : Boolean(door.locked)
         };

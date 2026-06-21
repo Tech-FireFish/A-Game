@@ -640,7 +640,7 @@
       if (elements.viewRange) {
         const applyView = () => {
           const next = Number(elements.viewRange.value);
-          const value = Number.isFinite(next) ? next : 50;
+          const value = Number.isFinite(next) ? next : 60;
           deps.settings.requestSettingChange(() => {
             runtime.viewValue = value;
             if (deps.camera && deps.camera.setViewValue) deps.camera.setViewValue(runtime.viewValue);

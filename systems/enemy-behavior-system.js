@@ -8,6 +8,8 @@
     const alertStatus = "alert";
     const returnStatus = "return";
     const downStatus = "down";
+    const alertCooldownThreshold = 1.25;
+    const gunfireHearingRadius = 420;
 
     // Updates one enemy through calm, suspicious, alert, or down behavior.
     function updateEnemy(enemy, dt, combat) {
@@ -17,11 +19,12 @@
         enemy.status = downStatus;
         return;
       }
+      updateAlertGate(enemy, dt);
 
       const weapon = deps.weaponById(enemy.weaponId);
       const seen = findVisibleOperator(enemy, weapon);
       if (seen) {
-        setStatus(enemy, alertStatus, seen);
+        triggerEnemyAlert(enemy, alertStatus, seen);
         enemy.angle = deps.angleTo(enemy, seen);
         combat.fireAtOperator(enemy, seen, weapon, dt);
         return;
@@ -94,11 +97,6 @@
     function setStatus(enemy, status, target) {
       const previousStatus = enemy.status;
       enemy.status = status;
-      if (status === alertStatus && previousStatus !== alertStatus) {
-        deps.audio.play("enemy-alert");
-      } else if (status === suspiciousStatus && previousStatus !== suspiciousStatus) {
-        deps.audio.play("enemy-suspicious");
-      }
       if (status === alertStatus || status === suspiciousStatus) {
         const profile = personalityProfile(enemy);
         const point = target ? { x: target.x, y: target.y } : enemy.lastKnownOperator;
@@ -107,6 +105,48 @@
         enemy.suspicionTimer = status === alertStatus
           ? profile.alertTimer
           : Math.max(enemy.suspicionTimer || 0, profile.suspicionTimer);
+      }
+      if ((status === calmStatus || status === returnStatus) && previousStatus !== status) {
+        enemy.alertState = status;
+      }
+    }
+
+    // Decrements the alert gate so enemies can become eligible for a later alert.
+    function updateAlertGate(enemy, dt) {
+      enemy.alertCooldown = Math.max(0, (enemy.alertCooldown || 0) - dt);
+      const suspicionLow = (enemy.suspicionTimer || 0) <= alertCooldownThreshold;
+      if ((enemy.status === calmStatus || suspicionLow) && !enemy.combatAlertActive) {
+        enemy.alertLocked = false;
+      }
+      if (enemy.status === calmStatus) {
+        enemy.alertState = calmStatus;
+        enemy.combatAlertActive = false;
+      }
+    }
+
+    // Reports whether this enemy can emit a fresh alert/suspicion cue.
+    function canTriggerEnemyAlert(enemy, status, options = {}) {
+      if (!enemy || enemy.down) return false;
+      if (options.silent) return false;
+      if (options.combat && enemy.combatAlertActive) return false;
+      if (enemy.alertLocked && (enemy.suspicionTimer || 0) > alertCooldownThreshold) return false;
+      if (enemy.alertCooldown > 0 && enemy.alertState === status) return false;
+      return enemy.alertState !== status || !enemy.alertLocked;
+    }
+
+    // Applies status, search target, and non-spammy audio feedback for one enemy.
+    function triggerEnemyAlert(enemy, status, target, options = {}) {
+      const shouldPlay = canTriggerEnemyAlert(enemy, status, options);
+      setStatus(enemy, status, target);
+      if (status === alertStatus || status === suspiciousStatus) {
+        enemy.alertState = status;
+        enemy.alertLocked = true;
+        enemy.alertCooldown = status === alertStatus ? 1.8 : 1.2;
+        enemy.lastAlertTriggerAt = Date.now();
+        if (options.combat) enemy.combatAlertActive = true;
+      }
+      if (shouldPlay) {
+        deps.audio.play(status === alertStatus ? "enemy-alert" : "enemy-suspicious");
       }
     }
 
@@ -137,6 +177,9 @@
           startReturn(enemy);
         } else {
           enemy.status = calmStatus;
+          enemy.alertState = calmStatus;
+          enemy.alertLocked = false;
+          enemy.combatAlertActive = false;
           enemy.lastKnownOperator = null;
           enemy.searchTarget = null;
           enemy.returnTarget = null;
@@ -157,6 +200,9 @@
         return;
       }
       enemy.status = calmStatus;
+      enemy.alertState = calmStatus;
+      enemy.alertLocked = false;
+      enemy.combatAlertActive = false;
       enemy.returnTarget = null;
       if (enemy.watch) enemy.angle = deps.angleTo(enemy, enemy.watch);
     }
@@ -269,9 +315,9 @@
       notifyNearby(point, 320, (enemy, distance) => {
         const personality = personalityOf(enemy);
         if ((personality === "aggressive" || personality === "violent") || distance < 180 && deps.hasLineOfSight(enemy, point, deps.getState().level)) {
-          setStatus(enemy, alertStatus, point);
+          triggerEnemyAlert(enemy, alertStatus, point);
         } else {
-          setStatus(enemy, suspiciousStatus, point);
+          triggerEnemyAlert(enemy, suspiciousStatus, point);
         }
       });
     }
@@ -280,21 +326,39 @@
     function noticeShot(shooter, target) {
       if (shooter && shooter.disguised) return;
       const point = shooter || target;
-      notifyNearby(point, 420, (enemy, distance) => {
-        const personality = personalityOf(enemy);
-        if ((personality === "aggressive" || personality === "violent") || distance < 220 && deps.hasLineOfSight(enemy, point, deps.getState().level)) {
-          setStatus(enemy, alertStatus, point);
-        } else {
-          setStatus(enemy, suspiciousStatus, point);
-        }
+      triggerLevelGunfireAlert(point, shooter);
+    }
+
+    // Starts a combat-wide alert if a non-silent shot is heard by nearby defenders.
+    function triggerLevelGunfireAlert(point, shooter) {
+      const state = deps.getState();
+      if (!state || !point) return false;
+      let heard = false;
+      notifyNearby(point, gunfireHearingRadius, () => {
+        heard = true;
       });
+      if (!heard) return false;
+      state.combatAlertActive = true;
+      state.combatAlertPoint = { x: point.x, y: point.y };
+      state.combatAlertTriggeredAt = Date.now();
+      for (const enemy of state.level.enemies) {
+        if (enemy.down) continue;
+        const distance = deps.pointDistance(enemy, point);
+        const personality = personalityOf(enemy);
+        if (distance <= gunfireHearingRadius && ((personality === "aggressive" || personality === "violent") || distance < 220 && deps.hasLineOfSight(enemy, point, state.level))) {
+          triggerEnemyAlert(enemy, alertStatus, point, { combat: true });
+        } else {
+          triggerEnemyAlert(enemy, suspiciousStatus, point, { combat: true });
+        }
+      }
+      return true;
     }
 
     // Pushes a damaged enemy into alert behavior toward the shooter if known.
     function noticeDamage(unit, source) {
       if (!unit || !source || unit.down) return;
       if (unit.kind === "operator") return;
-      setStatus(unit, alertStatus, source);
+      triggerEnemyAlert(unit, alertStatus, source);
     }
 
     // Alerts nearby enemies when another enemy goes down.
@@ -304,7 +368,7 @@
         if (other.id === enemy.id) return;
         const profile = personalityProfile(other);
         if (!profile.reactToDown) return;
-        setStatus(other, personalityOf(other) === "aggressive" ? alertStatus : suspiciousStatus, source || point);
+        triggerEnemyAlert(other, personalityOf(other) === "aggressive" ? alertStatus : suspiciousStatus, source || point);
       });
     }
 
@@ -332,6 +396,9 @@
       moveEnemyToward,
       moveEnemyByPath,
       findPath,
+      canTriggerEnemyAlert,
+      triggerEnemyAlert,
+      triggerLevelGunfireAlert,
       noticeDoor,
       noticeShot,
       noticeDamage,

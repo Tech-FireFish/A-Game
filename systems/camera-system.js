@@ -9,7 +9,7 @@
       zoom: 1.38,
       targetZoom: 1.38,
       defaultZoom: 1.38,
-      viewValue: 50,
+      viewValue: 60,
       shakeTime: 0,
       shakeDuration: 0,
       shakeIntensity: 0
@@ -65,7 +65,7 @@
     // Sets the player-facing view slider and recalculates the camera zoom target.
     function setViewValue(value) {
       const next = Number(value);
-      camera.viewValue = deps.clamp(Number.isFinite(next) ? next : 50, 0, 100);
+      camera.viewValue = deps.clamp(Number.isFinite(next) ? next : 60, 0, 100);
       updateTargetZoom();
       clampToWorld();
     }
