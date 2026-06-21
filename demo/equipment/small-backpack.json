@@ -1,8 +1,0 @@
-{
-  "id": "small-backpack",
-  "name": "Small Backpack",
-  "role": "Light kit with limited storage",
-  "ammoMultiplier": 0.75,
-  "slots": 2,
-  "speedMultiplier": 1
-}

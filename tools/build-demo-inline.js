@@ -5,29 +5,49 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const DEMO_DIR = path.join(ROOT, "demo");
+const INLINE_STYLE_SOURCES = new Set([
+  "styles.css",
+  "css-pixel-art/css-pixel-art.css"
+]);
+const MIRRORED_ASSET_DIRS = [
+  "docs",
+  "sounds",
+  "level",
+  "tutorials",
+  "equipment",
+  "css-pixel-art"
+];
 
 function main() {
   const indexFile = path.join(ROOT, "index.html");
   let html = fs.readFileSync(indexFile, "utf8");
-  html = html.replace(/<link rel="stylesheet" href="styles\.css(?:\?v=\d+)?">/, inlineStyle("styles.css"));
-  html = html.replace(/<link rel="stylesheet" href="css-pixel-art\/css-pixel-art\.css(?:\?v=\d+)?">/, inlineStyle("css-pixel-art/css-pixel-art.css"));
-  html = html.replace(/\s*<link rel="stylesheet" href="mobile\/mobile\.css(?:\?v=\d+)?">/, "");
+  html = inlineStyles(html);
   html = removeMobileControls(html);
 
   const scriptSources = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)]
     .map((match) => match[1].split("?")[0])
     .filter((source) => !source.startsWith("mobile/"));
-  const externalScriptPattern = /    <script src="systems\/audio-system\.js(?:\?v=\d+)?"><\/script>[\s\S]*?    <script src="main\.js(?:\?v=\d+)?"><\/script>/;
   const inlineScripts = [
     demoDataScript(),
     demoDesktopShimScript(),
     ...scriptSources.map((source) => inlineScript(source))
   ].join("\n");
-  html = html.replace(externalScriptPattern, inlineScripts);
+  html = html.replace(/(?:\s*<script src="[^"]+"><\/script>)+\s*$/m, `\n${inlineScripts}\n`);
 
   fs.mkdirSync(DEMO_DIR, { recursive: true });
+  syncDemoAssets();
+  removeDemoRecycle();
   fs.writeFileSync(path.join(DEMO_DIR, "index.html"), html);
   console.log("Rebuilt demo/index.html as an inline standalone file.");
+}
+
+function inlineStyles(html) {
+  return html.replace(/\s*<link rel="stylesheet" href="([^"]+)">/g, (tag, href) => {
+    const source = href.split("?")[0];
+    if (source.startsWith("mobile/")) return "";
+    if (INLINE_STYLE_SOURCES.has(source)) return `\n${inlineStyle(source)}`;
+    return tag;
+  });
 }
 
 function inlineStyle(source) {
@@ -49,6 +69,31 @@ function inlineScript(source) {
 
 function removeMobileControls(html) {
   return html.replace(/\n    <div id="mobileControls" class="mobile-controls hidden"[\s\S]*?\n    <\/div>(?=\n    <section id="endSequenceOverlay")/, "");
+}
+
+function syncDemoAssets() {
+  for (const dir of MIRRORED_ASSET_DIRS) {
+    mirrorDir(path.join(ROOT, dir), path.join(DEMO_DIR, dir));
+  }
+}
+
+function mirrorDir(sourceDir, targetDir) {
+  if (!fs.existsSync(sourceDir)) return;
+  fs.rmSync(targetDir, { recursive: true, force: true });
+  fs.mkdirSync(targetDir, { recursive: true });
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const source = path.join(sourceDir, entry.name);
+    const target = path.join(targetDir, entry.name);
+    if (entry.isDirectory()) {
+      mirrorDir(source, target);
+    } else if (entry.isFile()) {
+      fs.copyFileSync(source, target);
+    }
+  }
+}
+
+function removeDemoRecycle() {
+  fs.rmSync(path.join(DEMO_DIR, "recycle"), { recursive: true, force: true });
 }
 
 function demoDesktopShimScript() {

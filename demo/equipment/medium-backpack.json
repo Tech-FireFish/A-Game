@@ -1,8 +1,0 @@
-{
-  "id": "medium-backpack",
-  "name": "Medium Backpack",
-  "role": "Balanced field storage",
-  "ammoMultiplier": 1,
-  "slots": 4,
-  "speedMultiplier": 0.96
-}
