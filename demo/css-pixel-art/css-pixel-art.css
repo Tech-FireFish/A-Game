@@ -1,0 +1,40 @@
+.css-pixel-art {
+  --pixel-size: 4px;
+  --cols: 20;
+  --rows: 20;
+  position: relative;
+  width: calc(var(--cols) * var(--pixel-size));
+  height: calc(var(--rows) * var(--pixel-size));
+  flex: 0 0 auto;
+  image-rendering: pixelated;
+  isolation: isolate;
+}
+
+.css-pixel-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: rgba(8, 12, 14, 0.42);
+}
+
+.css-pixel-art__cell {
+  position: absolute;
+  left: calc(var(--x) * var(--pixel-size));
+  top: calc(var(--y) * var(--pixel-size));
+  width: var(--pixel-size);
+  height: var(--pixel-size);
+  background-color: var(--c);
+}
+
+.css-pixel-art--profile {
+  --pixel-size: 4px;
+}
+
+.css-pixel-art--detail {
+  --pixel-size: clamp(7px, 0.72vw, 10px);
+}
+
+.store-item-card .css-pixel-art {
+  grid-area: icon;
+}

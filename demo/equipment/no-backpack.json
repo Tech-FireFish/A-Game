@@ -1,0 +1,8 @@
+{
+  "id": "no-backpack",
+  "name": "No Backpack",
+  "role": "No field pack, one document slot",
+  "ammoMultiplier": 1,
+  "slots": 1,
+  "speedMultiplier": 1
+}
