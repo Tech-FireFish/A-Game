@@ -27,6 +27,7 @@
     function defaultDifficultSession() {
       return {
         active: false,
+        configuredEquipmentUpgradeChance: defaultDifficultUpgradeChance,
         equipmentUpgradeChance: defaultDifficultUpgradeChance,
         playerWins: 0,
         enemyWins: 0
@@ -166,6 +167,21 @@
       return getDifficultSessionSnapshot();
     }
 
+    function setDifficultEquipmentUpgradeChance(value) {
+      const next = clampPercent(value);
+      if (!difficultSession.active) difficultSession.active = isDifficultMode();
+      difficultSession.configuredEquipmentUpgradeChance = next;
+      difficultSession.equipmentUpgradeChance = next;
+      if (deps.onChange) deps.onChange(snapshot());
+      return getDifficultSessionSnapshot();
+    }
+
+    function resetDifficultEquipmentUpgradeChance() {
+      difficultSession.equipmentUpgradeChance = clampPercent(difficultSession.configuredEquipmentUpgradeChance);
+      if (deps.onChange) deps.onChange(snapshot());
+      return getDifficultSessionSnapshot();
+    }
+
     function getDifficultSessionSnapshot() {
       return { ...difficultSession };
     }
@@ -201,6 +217,8 @@
       resetDifficultSession,
       recordDifficultResult,
       getDifficultSessionSnapshot,
+      setDifficultEquipmentUpgradeChance,
+      resetDifficultEquipmentUpgradeChance,
       shouldUpgradeEnemyEquipment,
       snapshot
     };

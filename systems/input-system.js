@@ -689,6 +689,22 @@
           deps.updateHud();
         });
       }
+      if (elements.enemyWeaponPossibilityInput) {
+        const applyWeaponPossibility = () => {
+          if (!deps.enemyAlgorithm || !deps.enemyAlgorithm.setDifficultEquipmentUpgradeChance) return;
+          deps.enemyAlgorithm.setDifficultEquipmentUpgradeChance(elements.enemyWeaponPossibilityInput.value);
+          deps.updateHud();
+        };
+        elements.enemyWeaponPossibilityInput.addEventListener("input", applyWeaponPossibility);
+        elements.enemyWeaponPossibilityInput.addEventListener("change", applyWeaponPossibility);
+      }
+      if (elements.enemyWeaponPossibilityResetButton) {
+        elements.enemyWeaponPossibilityResetButton.addEventListener("click", () => {
+          if (!deps.enemyAlgorithm || !deps.enemyAlgorithm.resetDifficultEquipmentUpgradeChance) return;
+          deps.enemyAlgorithm.resetDifficultEquipmentUpgradeChance();
+          deps.updateHud();
+        });
+      }
       // if (elements.pixelArtStyleSelect) {
       //   elements.pixelArtStyleSelect.addEventListener("change", () => {
       //     const value = elements.pixelArtStyleSelect.value;

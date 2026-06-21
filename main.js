@@ -120,6 +120,9 @@ const elements = {
   enemyAlgorithmNonRepeatInput: document.getElementById("enemyAlgorithmNonRepeatInput"),
   enemyAlgorithmResetButton: document.getElementById("enemyAlgorithmResetButton"),
   enemyAlgorithmReadout: document.getElementById("enemyAlgorithmReadout"),
+  enemyWeaponPossibilityInput: document.getElementById("enemyWeaponPossibilityInput"),
+  enemyWeaponPossibilityResetButton: document.getElementById("enemyWeaponPossibilityResetButton"),
+  enemyWeaponPossibilityReadout: document.getElementById("enemyWeaponPossibilityReadout"),
   digitalLockOverlay: document.getElementById("digitalLockOverlay"),
   digitalLockTitle: document.getElementById("digitalLockTitle"),
   digitalLockDisplay: document.getElementById("digitalLockDisplay"),
@@ -1361,18 +1364,27 @@ function renderEnemyAlgorithmSettings() {
   if (elements.enemyAlgorithmNonRepeatInput && document.activeElement !== elements.enemyAlgorithmNonRepeatInput) {
     setValue(elements.enemyAlgorithmNonRepeatInput, snapshot.configuredNonRepeatProbability);
   }
-  if (!elements.enemyAlgorithmReadout) return;
+  if (elements.enemyWeaponPossibilityInput && document.activeElement !== elements.enemyWeaponPossibilityInput) {
+    setValue(elements.enemyWeaponPossibilityInput, difficult.configuredEquipmentUpgradeChance ?? 50);
+  }
   const successes = snapshot.successes || {};
   const weights = snapshot.weights || {};
-  elements.enemyAlgorithmReadout.innerHTML = `
-    <div><span>Current Non-Repetition</span><strong>${snapshot.currentNonRepeatProbability}%</strong></div>
-    <div><span>Retreating</span><strong>Weight ${weights.retreating || 1} / Success ${successes.retreating || 0}</strong></div>
-    <div><span>Shooting</span><strong>Weight ${weights.shooting || 1} / Success ${successes.shooting || 0}</strong></div>
-    <div><span>Calling Support</span><strong>Weight ${weights["calling-support"] || 1} / Success ${successes["calling-support"] || 0}</strong></div>
-    <div><span>Difficult Active</span><strong>${difficult.active ? "Yes" : "No"}</strong></div>
-    <div><span>Difficult Upgrade</span><strong>${difficult.equipmentUpgradeChance ?? 50}%</strong></div>
-    <div><span>Difficult Results</span><strong>Player ${difficult.playerWins || 0} / Enemy ${difficult.enemyWins || 0}</strong></div>
-  `;
+  if (elements.enemyAlgorithmReadout) {
+    elements.enemyAlgorithmReadout.innerHTML = `
+      <div><span>Current Non-Repetition</span><strong>${snapshot.currentNonRepeatProbability}%</strong></div>
+      <div><span>Retreating</span><strong>Weight ${weights.retreating || 1} / Success ${successes.retreating || 0}</strong></div>
+      <div><span>Shooting</span><strong>Weight ${weights.shooting || 1} / Success ${successes.shooting || 0}</strong></div>
+      <div><span>Calling Support</span><strong>Weight ${weights["calling-support"] || 1} / Success ${successes["calling-support"] || 0}</strong></div>
+    `;
+  }
+  if (elements.enemyWeaponPossibilityReadout) {
+    elements.enemyWeaponPossibilityReadout.innerHTML = `
+      <div><span>Difficult Active</span><strong>${difficult.active ? "Yes" : "No"}</strong></div>
+      <div><span>Current Chance</span><strong>${difficult.equipmentUpgradeChance ?? 50}%</strong></div>
+      <div><span>Reset Target</span><strong>${difficult.configuredEquipmentUpgradeChance ?? 50}%</strong></div>
+      <div><span>Difficult Results</span><strong>Player ${difficult.playerWins || 0} / Enemy ${difficult.enemyWins || 0}</strong></div>
+    `;
+  }
 }
 
 // Toggles a class only when the class state is different.

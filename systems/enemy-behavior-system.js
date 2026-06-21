@@ -461,14 +461,28 @@
       for (const enemy of state.level.enemies) {
         if (enemy.down) continue;
         const distance = deps.pointDistance(enemy, point);
+        if (distance > gunfireHearingRadius) continue;
         const personality = personalityOf(enemy);
-        if (distance <= gunfireHearingRadius && ((personality === "aggressive" || personality === "violent") || distance < 220 && deps.hasLineOfSight(enemy, point, state.level))) {
+        if (personality === "aggressive") {
+          setAggressiveSoundSearch(enemy, point);
+        }
+        if ((personality === "aggressive" || personality === "violent") || distance < 220 && deps.hasLineOfSight(enemy, point, state.level)) {
           triggerEnemyAlert(enemy, alertStatus, point, { combat: true });
         } else {
           triggerEnemyAlert(enemy, suspiciousStatus, point, { combat: true });
         }
       }
       return true;
+    }
+
+    // Makes aggressive enemies leave their post and search the origin of a sound.
+    function setAggressiveSoundSearch(enemy, point) {
+      enemy.lastKnownOperator = { x: point.x, y: point.y };
+      enemy.searchTarget = { x: point.x, y: point.y };
+      enemy.returnTarget = null;
+      enemy.chasePath = null;
+      enemy.chaseGoal = null;
+      enemy.suspicionTimer = Math.max(enemy.suspicionTimer || 0, personalityProfile(enemy).suspicionTimer);
     }
 
     // Pushes a damaged enemy into alert behavior toward the shooter if known.
