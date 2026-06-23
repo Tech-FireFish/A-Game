@@ -574,6 +574,17 @@
         elements.cancelSettingsChangeButton.addEventListener("click", deps.settings.cancelPendingSettingChange);
       }
       elements.inventoryButton.addEventListener("click", deps.inventory.openInventory);
+      if (elements.expandedBackpackButton) {
+        elements.expandedBackpackButton.addEventListener("click", () => deps.inventory.openInventory());
+      }
+      if (elements.expandedHotbarSlots) {
+        elements.expandedHotbarSlots.addEventListener("click", (event) => {
+          const slot = event.target.closest("[data-expanded-hotbar-slot]");
+          if (!slot) return;
+          if (slot.classList.contains("empty")) return;
+          deps.inventory.openInventory({ selectedSlot: Number(slot.dataset.expandedHotbarSlot) });
+        });
+      }
       elements.closeInventoryButton.addEventListener("click", deps.inventory.closeInventory);
       elements.inventoryOverlay.addEventListener("click", (event) => {
         if (event.target === elements.inventoryOverlay) deps.inventory.closeInventory();

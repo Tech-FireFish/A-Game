@@ -3600,6 +3600,10 @@ body.game-expanded .expanded-pause-button {
   display: none;
 }
 
+.expanded-inventory-hotbar {
+  display: none;
+}
+
 body.game-expanded .expanded-gameplay-overlay {
   position: absolute;
   left: 16px;
@@ -3668,6 +3672,93 @@ body.game-expanded .expanded-loadout-mini {
   text-align: left;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
   white-space: nowrap;
+}
+
+body.game-expanded .expanded-inventory-hotbar {
+  position: absolute;
+  left: calc(var(--expanded-canvas-left, 0px) + 16px);
+  bottom: calc(var(--expanded-canvas-bottom, 0px) + 96px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(6, 13, 14, 0.68);
+  box-shadow:
+    0 0 0 2px rgba(123, 249, 214, 0.84),
+    4px 4px 0 rgba(0, 0, 0, 0.76);
+  pointer-events: auto;
+}
+
+.expanded-hotbar-slots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.expanded-hotbar-slot,
+.expanded-backpack-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  border: 2px solid rgba(103, 201, 143, 0.9) !important;
+  border-radius: 0 !important;
+  padding: 0;
+  background: rgba(7, 18, 17, 0.94) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.95),
+    inset 0 0 0 2px rgba(114, 183, 206, 0.14) !important;
+  color: #e9fff1;
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.expanded-hotbar-slot.empty {
+  border-color: rgba(95, 108, 112, 0.72) !important;
+  color: rgba(142, 156, 162, 0.64);
+}
+
+.expanded-hotbar-slot:hover,
+.expanded-hotbar-slot:focus-visible,
+.expanded-backpack-button:hover,
+.expanded-backpack-button:focus-visible {
+  border-color: var(--cyan) !important;
+  color: var(--green);
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
+.expanded-hotbar-slot:active,
+.expanded-backpack-button:active {
+  transform: translate(2px, 2px);
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    inset 0 0 0 2px rgba(227, 180, 86, 0.26) !important;
+}
+
+.expanded-hotbar-count {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  min-width: 14px;
+  color: #efffbd;
+  font-size: 0.5rem;
+  text-align: right;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.84);
+}
+
+.expanded-hotbar-empty {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  padding: 0 8px;
+  color: rgba(142, 156, 162, 0.82);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 0.58rem;
 }
 
 body.game-expanded .expanded-gameplay-overlay .operator-health-card,
@@ -6599,6 +6690,7 @@ body.pixel-style-geometry .dev-settings-tabs button.active {
 
 body.pixel-style-geometry:not(.game-expanded) .expanded-gameplay-overlay,
 body.pixel-style-geometry:not(.game-expanded) .expanded-loadout-mini,
+body.pixel-style-geometry:not(.game-expanded) .expanded-inventory-hotbar,
 body.pixel-style-geometry:not(.game-expanded) #hintCard,
 body.pixel-style-geometry:not(.game-expanded) .operator-health-card {
   display: none !important;
@@ -6610,6 +6702,10 @@ body.pixel-style-geometry.game-expanded .expanded-gameplay-overlay {
 
 body.pixel-style-geometry.game-expanded .expanded-loadout-mini {
   display: grid !important;
+}
+
+body.pixel-style-geometry.game-expanded .expanded-inventory-hotbar {
+  display: flex !important;
 }
 
 body.pixel-style-geometry.game-expanded .expanded-gameplay-overlay #hintCard,
@@ -7150,4 +7246,39 @@ body.pixel-style-geometry :where(
     inset 0 0 0 2px rgba(3, 8, 9, 0.88),
     0 0 0 2px rgba(3, 8, 9, 0.98),
     0 0 0 4px rgba(227, 180, 86, 0.38);
+}
+
+body.pixel-style-geometry.game-expanded .expanded-hotbar-slot,
+body.pixel-style-geometry.game-expanded .expanded-backpack-button {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  border: 2px solid rgba(103, 201, 143, 0.9) !important;
+  border-radius: 0 !important;
+  background: rgba(7, 18, 17, 0.94) !important;
+  background-image: none !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.95),
+    inset 0 0 0 2px rgba(114, 183, 206, 0.14) !important;
+  transform: none;
+}
+
+body.pixel-style-geometry.game-expanded .expanded-hotbar-slot:hover,
+body.pixel-style-geometry.game-expanded .expanded-hotbar-slot:focus-visible,
+body.pixel-style-geometry.game-expanded .expanded-backpack-button:hover,
+body.pixel-style-geometry.game-expanded .expanded-backpack-button:focus-visible {
+  border-color: var(--cyan) !important;
+  color: var(--green) !important;
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
+body.pixel-style-geometry.game-expanded .expanded-hotbar-slot:active,
+body.pixel-style-geometry.game-expanded .expanded-backpack-button:active {
+  transform: translate(2px, 2px);
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    inset 0 0 0 2px rgba(227, 180, 86, 0.26) !important;
 }

@@ -166,6 +166,9 @@ const elements = {
   expandedLoadoutMini: document.getElementById("expandedLoadoutMini"),
   expandedLoadoutWeaponArt: document.getElementById("expandedLoadoutWeaponArt"),
   expandedLoadoutAmmo: document.getElementById("expandedLoadoutAmmo"),
+  expandedInventoryHotbar: document.getElementById("expandedInventoryHotbar"),
+  expandedHotbarSlots: document.getElementById("expandedHotbarSlots"),
+  expandedBackpackButton: document.getElementById("expandedBackpackButton"),
   expandedNav: document.getElementById("expandedNav"),
   mobileControls: document.getElementById("mobileControls"),
   mobilePauseButton: document.getElementById("mobilePauseButton"),
@@ -1444,6 +1447,12 @@ function syncExpandedCanvasMetrics() {
 }
 
 // Refreshes labels, loadout controls, health cards, and mission status.
+function renderExpandedInventoryHotbar() {
+  if (inventory && typeof inventory.renderExpandedHotbar === "function") {
+    inventory.renderExpandedHotbar();
+  }
+}
+
 function updateHud(options = {}) {
   const hudStart = performance.now();
   const now = hudStart;
@@ -1475,6 +1484,7 @@ function updateHud(options = {}) {
       equipment.renderEnemyLoadouts();
     }
     if (equipment) equipment.renderExpandedLoadoutMini(null);
+    renderExpandedInventoryHotbar();
     if (elements.hintOpacityValue) setText(elements.hintOpacityValue, `${Math.round(runtime.hintOpacity * 100)}%`);
     if (elements.viewValueLabel) setText(elements.viewValueLabel, Math.round(runtime.viewValue));
     if (elements.backgroundMusicRange && Number(elements.backgroundMusicRange.value) !== runtime.backgroundMusicVolume) {
@@ -1513,6 +1523,7 @@ function updateHud(options = {}) {
   }
   const selected = selectedOperator();
   if (equipment) equipment.renderExpandedLoadoutMini(selected);
+  renderExpandedInventoryHotbar();
   setText(elements.selectedStatusLabel, selected ? selected.id : "None");
   setText(elements.shootingStatusLabel, titleCase(state.shootingMode || "automatic"));
   setText(elements.selectedZoneLabel, selected ? (selected.zone || selected.floor || "Map") : "Map");
@@ -1521,6 +1532,7 @@ function updateHud(options = {}) {
     equipment.renderHealthBoard();
     equipment.renderEnemyLoadouts();
     inventory.renderSummary();
+    renderExpandedInventoryHotbar();
   }
   if (elements.hintText) {
     const hint = selected && interaction ? interaction.nearestHint(selected) : "";

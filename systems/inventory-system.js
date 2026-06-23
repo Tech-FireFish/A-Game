@@ -17,10 +17,14 @@
     }
 
     // Opens the selected operator inventory overlay.
-    function openInventory() {
+    function openInventory(options = {}) {
       const op = deps.selectedOperator();
       if (!op) return;
       ensureSlots(op);
+      const requestedSlot = Number(options.selectedSlot);
+      selectedInventorySlot = Number.isInteger(requestedSlot) && canUseItem(op.inventory.items[requestedSlot])
+        ? requestedSlot
+        : null;
       deps.runtime.inventoryOpen = true;
       deps.runtime.inventoryResumeRunning = Boolean(deps.runtime.state && deps.runtime.state.running);
       if (deps.runtime.state) deps.runtime.state.running = false;
@@ -28,6 +32,7 @@
       deps.elements.inventoryOverlay.classList.remove("hidden");
       if (deps.audio) deps.audio.play("inventory-open");
       renderInventory();
+      renderExpandedHotbar();
       deps.updateHud();
     }
 
@@ -42,6 +47,7 @@
       }
       deps.runtime.inventoryResumeRunning = false;
       if (deps.audio) deps.audio.play("inventory-close");
+      renderExpandedHotbar();
       deps.updateHud();
     }
 
@@ -100,6 +106,22 @@
       `;
     }
 
+    // Renders expanded-mode hotbar slots from the selected operator backpack.
+    function renderExpandedHotbar() {
+      if (!deps.elements.expandedHotbarSlots) return;
+      const op = deps.selectedOperator();
+      if (!op) {
+        deps.elements.expandedHotbarSlots.innerHTML = "";
+        return;
+      }
+      ensureSlots(op);
+      const slots = op.inventory.items
+        .slice(0, Math.min(4, op.inventory.slots))
+        .map((item, index) => renderHotbarSlot(item, index))
+        .join("");
+      deps.elements.expandedHotbarSlots.innerHTML = slots || "<span class=\"expanded-hotbar-empty\">No Pack</span>";
+    }
+
     // Attempts to pick up an item into the selected operator inventory.
     function pickItem(op, item) {
       const state = deps.runtime.state;
@@ -117,6 +139,7 @@
       state.message = `${op.id} picked up ${item.name || item.id}`;
       if (deps.runtime.inventoryOpen) renderInventory();
       renderSummary();
+      renderExpandedHotbar();
       deps.updateHud();
       return true;
     }
@@ -314,6 +337,20 @@
       `;
     }
 
+    // Renders one compact expanded-mode hotbar cell.
+    function renderHotbarSlot(item, index) {
+      if (!item) {
+        return `<button class="expanded-hotbar-slot empty" type="button" data-expanded-hotbar-slot="${index}" aria-label="Empty hotbar slot ${index + 1}"></button>`;
+      }
+      const count = item.quantity > 1 ? `<span class="expanded-hotbar-count">${item.quantity}</span>` : "";
+      return `
+        <button class="expanded-hotbar-slot" type="button" data-expanded-hotbar-slot="${index}" aria-label="${escapeAttr(item.name)}">
+          <span class="expanded-hotbar-icon">${itemIcon(item)}</span>
+          ${count}
+        </button>
+      `;
+    }
+
     // Renders a floating context menu for the selected usable item.
     function renderInventoryActionMenu(op, columns) {
       if (selectedInventorySlot === null) return "";
@@ -384,6 +421,7 @@
       }
       renderInventory();
       renderSummary();
+      renderExpandedHotbar();
       deps.updateHud();
       return true;
     }
@@ -523,6 +561,7 @@
       selectedInventorySlot = null;
       renderInventory();
       renderSummary();
+      renderExpandedHotbar();
       deps.updateHud();
     }
 
@@ -563,6 +602,7 @@
       closeInventory,
       renderInventory,
       renderSummary,
+      renderExpandedHotbar,
       pickItem,
       ensureSlots,
       carriedItems,
