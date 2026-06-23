@@ -1349,6 +1349,8 @@ body.pixel-style-geometry .weapon-image-frame::after {
   text-shadow: 0 0 8px rgba(103, 201, 143, 0.34);
 }
 
+/*
+Previous mission briefing Finish button style disabled:
 .mission-briefing-finish {
   min-height: 48px;
   border: 0 !important;
@@ -1369,6 +1371,55 @@ body.pixel-style-geometry .weapon-image-frame::after {
 
 .mission-briefing-finish:active {
   transform: translate(4px, 1px);
+}
+*/
+
+.mission-briefing-finish {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 2px solid rgba(103, 201, 143, 0.96) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(9, 31, 27, 0.98), rgba(4, 13, 13, 0.98)) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    4px 4px 0 rgba(0, 0, 0, 0.88),
+    inset 0 0 0 2px rgba(114, 183, 206, 0.16) !important;
+  color: rgba(223, 255, 232, 0.98);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.72);
+  image-rendering: pixelated;
+  transition: color 90ms steps(1), transform 90ms steps(1), box-shadow 90ms steps(1), border-color 90ms steps(1);
+}
+
+.mission-briefing-finish:hover,
+.mission-briefing-finish:focus-visible {
+  border-color: var(--cyan) !important;
+  color: var(--green);
+  background:
+    linear-gradient(180deg, rgba(12, 42, 35, 0.98), rgba(5, 18, 17, 0.98)) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    6px 4px 0 rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px rgba(103, 201, 143, 0.28) !important;
+  transform: translateX(2px);
+}
+
+.mission-briefing-finish:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 4px;
+}
+
+.mission-briefing-finish:active {
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    2px 2px 0 rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px rgba(103, 201, 143, 0.36) !important;
+  transform: translate(4px, 2px);
 }
 
 #hintCard,
