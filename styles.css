@@ -1982,17 +1982,24 @@ Previous mission briefing Finish button style disabled:
 }
 
 .inventory-slot-grid {
+  --inventory-slot-size: 38px;
+  --inventory-slot-gap: 6px;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--inventory-cols, 4), 38px);
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--inventory-slot-size), var(--inventory-slot-size)));
+  gap: var(--inventory-slot-gap);
   align-items: start;
+  align-content: start;
+  justify-content: start;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   margin-top: 14px;
   overflow: visible;
 }
 
 .inventory-slot-grid.action-menu-open {
-  padding-bottom: 62px;
+  padding-bottom: 88px;
 }
 
 .inventory-slot {
@@ -4169,10 +4176,6 @@ body.game-expanded.expanded-paused .right-panel {
   .mission-status-grid div:nth-child(2),
   .mission-status-grid div:nth-child(5) {
     grid-column: auto;
-  }
-
-  .inventory-slot-grid {
-    grid-template-columns: repeat(var(--inventory-cols, 2), 38px);
   }
 
   .settings-overlay {

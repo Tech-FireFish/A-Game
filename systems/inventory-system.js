@@ -62,9 +62,8 @@
       const armor = deps.equipment.armorById(op.armorId);
       const backpack = deps.equipment.backpackById(op.backpackId);
       */
-      const columns = gridColumns(op.inventory.slots);
       const slots = op.inventory.items.map((item, index) => renderSlot(item, index)).join("");
-      const actionMenu = renderInventoryActionMenu(op, columns);
+      const actionMenu = renderInventoryActionMenu(op);
       const selectedItem = selectedInventorySlot !== null && op.inventory.items[selectedInventorySlot]
         ? op.inventory.items[selectedInventorySlot]
         : firstCarriedItem(op);
@@ -77,7 +76,7 @@
         Inventory grid summary disabled; preserve slot grid and item detail as the active inventory layout.
         Previous content: .inventory-grid equipment/ammo/slots summary.
         -->
-        <div class="inventory-slot-grid${selectedInventorySlot === null ? "" : " action-menu-open"}" style="--inventory-cols: ${columns}" aria-label="${op.id} backpack slots">
+        <div class="inventory-slot-grid${selectedInventorySlot === null ? "" : " action-menu-open"}" aria-label="${op.id} backpack slots">
           ${slots}
           ${actionMenu}
         </div>
@@ -85,6 +84,30 @@
           ${selectedDetail}
         </div>
       `;
+      syncInventoryLayout();
+    }
+
+    // Repositions the floating item action menu against the real responsive slot layout.
+    function syncInventoryLayout() {
+      if (!deps.runtime.inventoryOpen || !deps.elements.inventoryDetails) return;
+      const grid = deps.elements.inventoryDetails.querySelector(".inventory-slot-grid");
+      const menu = deps.elements.inventoryDetails.querySelector(".inventory-use-selector");
+      const slot = selectedInventorySlot !== null
+        ? deps.elements.inventoryDetails.querySelector(`[data-inventory-slot="${selectedInventorySlot}"]`)
+        : null;
+      if (!grid || !menu || !slot) return;
+      const gridRect = grid.getBoundingClientRect();
+      const slotRect = slot.getBoundingClientRect();
+      const menuWidth = 96;
+      const gap = 6;
+      const centerX = slotRect.left - gridRect.left + slotRect.width / 2;
+      const minX = menuWidth / 2;
+      const maxX = Math.max(minX, grid.clientWidth - menuWidth / 2);
+      const menuX = Math.max(minX, Math.min(maxX, centerX));
+      const menuY = slotRect.bottom - gridRect.top + gap;
+      menu.style.setProperty("--menu-x", `${Math.round(menuX)}px`);
+      menu.style.setProperty("--menu-y", `${Math.round(menuY)}px`);
+      menu.style.setProperty("--menu-width", `${menuWidth}px`);
     }
 
     // Renders the compact sidebar inventory summary.
@@ -352,7 +375,7 @@
     }
 
     // Renders a floating context menu for the selected usable item.
-    function renderInventoryActionMenu(op, columns) {
+    function renderInventoryActionMenu(op) {
       if (selectedInventorySlot === null) return "";
       ensureSlots(op);
       const item = op.inventory.items[selectedInventorySlot];
@@ -360,35 +383,16 @@
         selectedInventorySlot = null;
         return "";
       }
-      const position = actionMenuPosition(selectedInventorySlot, columns);
       const useButton = canUseItem(item)
         ? `<button type="button" data-use-inventory-slot="${selectedInventorySlot}">Use</button>`
         : "";
       return `
-        <div class="inventory-use-selector" role="menu" aria-label="${escapeAttr(item.name)} actions" style="--menu-x: ${position.x}px; --menu-y: ${position.y}px; --menu-width: ${position.width}px;">
+        <div class="inventory-use-selector" role="menu" aria-label="${escapeAttr(item.name)} actions">
           ${useButton}
           <button type="button" data-drop-inventory-slot="${selectedInventorySlot}">Drop</button>
           <button type="button" data-cancel-inventory-use>Cancel</button>
         </div>
       `;
-    }
-
-    // Places the inventory action menu below the clicked slot.
-    function actionMenuPosition(slotIndex, columns) {
-      const slot = 38;
-      const gap = 6;
-      const menuWidth = 96;
-      const col = slotIndex % Math.max(1, columns);
-      const row = Math.floor(slotIndex / Math.max(1, columns));
-      const gridWidth = columns * slot + Math.max(0, columns - 1) * gap;
-      const centerX = col * (slot + gap) + slot / 2;
-      const minX = menuWidth / 2;
-      const maxX = Math.max(minX, gridWidth - menuWidth / 2);
-      return {
-        x: Math.max(minX, Math.min(maxX, centerX)),
-        y: row * (slot + gap) + slot + gap,
-        width: menuWidth
-      };
     }
 
     // Reports whether a stack has an active inventory action.
@@ -568,11 +572,6 @@
       }
     }
 
-    // Chooses a compact column count for the inventory grid.
-    function gridColumns(slots) {
-      return Math.max(2, Math.min(4, Math.ceil(Math.sqrt(slots || 1))));
-    }
-
     // Starts dragging a filled inventory slot.
     function handleDragStart(event) {
       const slot = event.target.closest("[data-inventory-slot]");
@@ -661,6 +660,7 @@
       openInventory,
       closeInventory,
       renderInventory,
+      syncInventoryLayout,
       renderSummary,
       renderExpandedHotbar,
       pickItem,

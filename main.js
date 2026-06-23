@@ -1449,6 +1449,7 @@ function syncExpandedCanvasMetrics() {
   const canvasBottom = Math.max(0, panelRect.bottom - visibleCanvasBottom);
   elements.gamePanel.style.setProperty("--expanded-canvas-left", `${Math.round(canvasLeft)}px`);
   elements.gamePanel.style.setProperty("--expanded-canvas-bottom", `${Math.round(canvasBottom)}px`);
+  if (inventory && typeof inventory.syncInventoryLayout === "function") inventory.syncInventoryLayout();
 }
 
 // Refreshes labels, loadout controls, health cards, and mission status.
