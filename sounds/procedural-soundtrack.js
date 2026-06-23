@@ -7,7 +7,7 @@
   const LOOP_STEPS = 64;
   const LOOKAHEAD_SECONDS = 0.14;
   const SCHEDULE_INTERVAL_MS = 25;
-  const MASTER_OUTPUT_CEILING = 0.58;
+  const MASTER_OUTPUT_CEILING = 0.638;
   const ROOT_MIDI = 38;
 
   const LAYER_IDS = ["ambience", "bass", "percussion", "melody", "warning"];

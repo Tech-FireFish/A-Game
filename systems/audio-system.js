@@ -2,38 +2,20 @@
 
 (function () {
   const LOOP_SOUND_IDS = new Set(["operator-walk", "enemy-walk"]);
-  const WEAPON_SOUND_IDS = new Set(["rifle-shot", "smg-shot", "pistol-shot", "silenced-shot"]);
-  const HIGH_FREQUENCY_SOUND_IDS = new Set([
-    "button-guidance",
-    "rifle-shot",
-    "smg-shot",
-    "pistol-shot",
-    "silenced-shot",
-    "empty-magazine-click",
-    "armor-hit",
-    "body-hit",
-    "melee-hit",
-    "digital-lock-keypad-press",
-    "no-ammo-warning",
-    "low-health-warning",
-    "enemy-alert",
-    "enemy-suspicious"
-  ]);
-  const BUTTON_POOL_SIZE = 3;
-  const WEAPON_POOL_SIZE = 4;
-  const EFFECT_POOL_SIZE = 3;
 
-  // Builds sound loading, browser unlock, and playback helpers.
+  // Builds browser unlock, procedural music, and procedural sound effect helpers.
   function create(deps) {
-    const sounds = new Map();
-    const loops = new Map();
-    const loopActivity = new Map();
+    const soundIds = new Set((deps.soundOptions || []).map((sound) => sound.id));
     let unlocked = false;
     let musicId = null;
     let audioContext = null;
     let soundtrack = null;
+    let proceduralEffects = null;
+    let sfxMasterGain = null;
+    let sfxCompressor = null;
     let musicGameplayState = "menu";
     let musicVolume = volumeToUnit(deps.musicVolume);
+    const loopActivity = new Map();
 
     // Converts the Settings slider range into an audio volume scalar.
     function volumeToUnit(value) {
@@ -42,7 +24,7 @@
       return Math.max(0, Math.min(1, next / 100));
     }
 
-    // Creates the shared Web Audio context used by procedural music after user unlock.
+    // Creates the shared Web Audio context used by procedural audio after user unlock.
     function ensureAudioContext() {
       if (audioContext) return audioContext;
       const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
@@ -53,6 +35,23 @@
         audioContext = null;
       }
       return audioContext;
+    }
+
+    // Builds a separate SFX master path so generated effects stay independent from music volume.
+    function ensureSfxGraph() {
+      const context = ensureAudioContext();
+      if (!context || sfxMasterGain) return sfxMasterGain;
+      sfxMasterGain = context.createGain();
+      sfxCompressor = context.createDynamicsCompressor();
+      sfxMasterGain.gain.value = Number.isFinite(deps.volume) ? Math.max(0, deps.volume) : 0.55;
+      sfxCompressor.threshold.value = -10;
+      sfxCompressor.knee.value = 10;
+      sfxCompressor.ratio.value = 8;
+      sfxCompressor.attack.value = 0.002;
+      sfxCompressor.release.value = 0.12;
+      sfxMasterGain.connect(sfxCompressor);
+      sfxCompressor.connect(context.destination);
+      return sfxMasterGain;
     }
 
     // Builds the layered procedural soundtrack once the Web Audio context exists.
@@ -66,101 +65,22 @@
       return soundtrack;
     }
 
-    // Chooses a small reusable pool size for short one-shot sounds.
-    function poolSizeFor(id) {
-      if (LOOP_SOUND_IDS.has(id)) return 0;
-      if (id === "button-guidance") return BUTTON_POOL_SIZE;
-      if (WEAPON_SOUND_IDS.has(id)) return WEAPON_POOL_SIZE;
-      return HIGH_FREQUENCY_SOUND_IDS.has(id) ? EFFECT_POOL_SIZE : 0;
+    // Builds the procedural SFX generator once the SFX output path exists.
+    function ensureEffects() {
+      if (proceduralEffects) return proceduralEffects;
+      const context = ensureAudioContext();
+      const outputNode = ensureSfxGraph();
+      if (!context || !outputNode || !window.ProceduralEffects) return null;
+      proceduralEffects = window.ProceduralEffects.create({
+        audioContext: context,
+        outputNode
+      });
+      return proceduralEffects;
     }
 
-    // Marks a sound entry ready once any of its preloaded elements can decode.
-    function markReady(entry, audio) {
-      if (audio.__preloadReady) return;
-      audio.__preloadReady = true;
-      entry.loadedCount += 1;
-      entry.status = "ready";
-    }
-
-    // Records preload errors without making gameplay depend on sound success.
-    function markError(entry, audio) {
-      if (audio.__preloadError) return;
-      audio.__preloadError = true;
-      entry.errorCount += 1;
-      if (entry.loadedCount === 0 && entry.errorCount >= entry.totalCount) {
-        entry.status = "error";
-      }
-    }
-
-    // Creates an audio element and connects non-fatal preload diagnostics.
-    function createAudioElement(entry) {
-      const audio = new Audio(entry.file);
-      audio.preload = "auto";
-      entry.totalCount += 1;
-      entry.elements.push(audio);
-      audio.addEventListener("loadeddata", () => markReady(entry, audio), { once: true });
-      audio.addEventListener("canplaythrough", () => markReady(entry, audio), { once: true });
-      audio.addEventListener("error", () => markError(entry, audio), { once: true });
-      return audio;
-    }
-
-    // Requests browser preload for a single element while staying non-fatal.
-    function requestLoad(audio) {
-      try {
-        audio.load();
-      } catch (error) {
-        return;
-      }
-    }
-
-    // Loads each configured audio asset without blocking gameplay on failures.
-    function loadSounds() {
-      for (const sound of deps.soundOptions) {
-        const entry = {
-          id: sound.id,
-          file: sound.file,
-          source: null,
-          pool: [],
-          poolIndex: 0,
-          elements: [],
-          totalCount: 0,
-          loadedCount: 0,
-          errorCount: 0,
-          status: "loading"
-        };
-        entry.source = createAudioElement(entry);
-        sounds.set(sound.id, entry);
-      }
-      preloadAll();
-    }
-
-    // Starts or refreshes preload requests for every configured sound.
+    // Keeps the public preload call for diagnostics; procedural sounds need no fetch/decode pass.
     function preloadAll() {
-      for (const entry of sounds.values()) {
-        requestLoad(entry.source);
-      }
-    }
-
-    // Creates a tiny reuse pool after browser audio has been unlocked.
-    function ensurePool(entry) {
-      const poolSize = poolSizeFor(entry.id);
-      if (!poolSize || entry.pool.length >= poolSize) return;
-      for (let index = entry.pool.length; index < poolSize; index += 1) {
-        const audio = createAudioElement(entry);
-        entry.pool.push(audio);
-        requestLoad(audio);
-      }
-    }
-
-    // Warms source elements and creates only high-frequency pools after unlock.
-    function warmUnlockedAudio() {
-      for (const entry of sounds.values()) {
-        requestLoad(entry.source);
-        if (HIGH_FREQUENCY_SOUND_IDS.has(entry.id)) ensurePool(entry);
-        for (const audio of entry.pool) {
-          try { audio.currentTime = 0; } catch (error) { continue; }
-        }
-      }
+      return true;
     }
 
     // Allows playback after the first user gesture, as required by browsers.
@@ -168,53 +88,21 @@
       if (unlocked) return;
       unlocked = true;
       const context = ensureAudioContext();
+      ensureSfxGraph();
+      ensureEffects();
       if (context && context.state === "suspended") {
         const result = context.resume();
         if (result && typeof result.catch === "function") result.catch(() => {});
       }
-      warmUnlockedAudio();
       if (musicId && musicVolume > 0) playMusic(musicId);
     }
 
-    // Returns a pooled one-shot element, preferring elements that are not busy.
-    function nextPoolAudio(entry) {
-      if (unlocked && HIGH_FREQUENCY_SOUND_IDS.has(entry.id)) ensurePool(entry);
-      if (!entry.pool.length) return null;
-      for (let offset = 0; offset < entry.pool.length; offset += 1) {
-        const index = (entry.poolIndex + offset) % entry.pool.length;
-        const audio = entry.pool[index];
-        const ready = audio.readyState >= 2;
-        if (ready && (audio.paused || audio.ended || audio.currentTime === 0)) {
-          entry.poolIndex = (index + 1) % entry.pool.length;
-          return audio;
-        }
-      }
-      const audio = entry.pool[entry.poolIndex];
-      if (audio.readyState < 2) return null;
-      entry.poolIndex = (entry.poolIndex + 1) % entry.pool.length;
-      return audio;
-    }
-
-    // Plays one sound effect by ID when audio is available.
+    // Plays one generated sound effect by ID when audio is available.
     function play(id) {
-      const entry = sounds.get(id);
-      if (!entry || !unlocked) return;
-      try {
-        const audio = nextPoolAudio(entry) || entry.source;
-        try {
-          audio.pause();
-          audio.currentTime = 0;
-        } catch (error) {
-          requestLoad(audio);
-        }
-        audio.volume = deps.volume;
-        const result = audio.play();
-        if (result && typeof result.catch === "function") {
-          result.catch(() => {});
-        }
-      } catch (error) {
-        return;
-      }
+      if (!unlocked || !soundIds.has(id)) return;
+      const effects = ensureEffects();
+      if (!effects || !effects.has(id)) return;
+      effects.play(id);
     }
 
     // Maps weapon IDs to their matching weapon-fire sound.
@@ -236,42 +124,23 @@
     // Marks a looping movement sound as active for the current frame.
     function noteLoopActivity(id) {
       loopActivity.set(id, 0.18);
-      if (unlocked) {
-        startLoop(id);
-      }
+      if (unlocked) startLoop(id);
     }
 
-    // Starts a looping sound if it is not already running.
+    // Starts a generated movement loop if it is not already running.
     function startLoop(id) {
-      if (loops.has(id)) return;
-      const entry = sounds.get(id);
-      if (!entry) return;
-      try {
-        const audio = entry.source.cloneNode();
-        audio.loop = true;
-        audio.volume = deps.loopVolume;
-        loops.set(id, audio);
-        const result = audio.play();
-        if (result && typeof result.catch === "function") {
-          result.catch(() => stopLoop(id));
-        }
-      } catch (error) {
-        stopLoop(id);
-      }
+      if (!unlocked || !LOOP_SOUND_IDS.has(id) || !soundIds.has(id)) return;
+      const effects = ensureEffects();
+      if (!effects || !effects.has(id)) return;
+      const baseVolume = Number.isFinite(deps.volume) && deps.volume > 0 ? deps.volume : 0.55;
+      const loopVolume = Number.isFinite(deps.loopVolume) ? deps.loopVolume : 0.34;
+      effects.startLoop(id, { volume: Math.max(0, Math.min(1, loopVolume / baseVolume)) });
     }
 
-    // Stops and clears a looping sound.
+    // Stops and clears a generated movement loop.
     function stopLoop(id) {
-      const audio = loops.get(id);
-      if (!audio) return;
-      try {
-        audio.pause();
-        audio.currentTime = 0;
-      } catch (error) {
-        return;
-      } finally {
-        loops.delete(id);
-      }
+      const effects = ensureEffects();
+      if (effects) effects.stopLoop(id);
     }
 
     // Starts or resumes the persistent background music loop after browser unlock.
@@ -331,17 +200,17 @@
       return unlocked;
     }
 
-    // Reports whether a specific sound, or all sounds, has decoded enough data.
+    // Reports whether a generated sound ID is available. No network preload is required.
     function isPreloaded(id) {
       if (id === "background-music") return Boolean(window.ProceduralSoundtrack);
-      if (id) {
-        const entry = sounds.get(id);
-        return Boolean(entry && entry.status === "ready");
-      }
-      return Array.from(sounds.values()).every((entry) => entry.status === "ready" || entry.status === "error");
+      const proceduralIds = window.ProceduralEffects && typeof window.ProceduralEffects.ids === "function"
+        ? new Set(window.ProceduralEffects.ids())
+        : null;
+      if (id) return Boolean(soundIds.has(id) && proceduralIds && proceduralIds.has(id));
+      return Boolean(window.ProceduralEffects && window.ProceduralSoundtrack);
     }
 
-    loadSounds();
+    preloadAll();
 
     return {
       preloadAll,
