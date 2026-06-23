@@ -423,6 +423,7 @@
       if (!runtime.state.level.forceLoadouts) operatorBackpackLoadouts[op.id] = selectedBackpackId;
       deps.shooting.resetAmmo(op);
       runtime.state.message = `${op.id} equipped ${backpack.name}`;
+      if (deps.refreshInventoryViews) deps.refreshInventoryViews();
       deps.updateHud();
     }
 

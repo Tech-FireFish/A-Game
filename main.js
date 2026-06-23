@@ -291,10 +291,10 @@ const STORE_CATALOG = [
   { id: "light-armor", type: "armor", name: "Light Armor", icon: "light-armor", stats: { armor: 25, speedMultiplier: 1 } },
   { id: "medium-armor", type: "armor", name: "Medium Armor", icon: "medium-armor", stats: { armor: 50, speedMultiplier: 0.94 } },
   { id: "heavy-armor", type: "armor", name: "Heavy Armor", icon: "heavy-armor", stats: { armor: 80, speedMultiplier: 0.88, reward: true } },
-  { id: "no-backpack", type: "backpack", name: "No Backpack", icon: "no-backpack", stats: { slots: 1, speedMultiplier: 1, ammoMultiplier: 1 } },
-  { id: "small-backpack", type: "backpack", name: "Small Backpack", icon: "small-backpack", stats: { slots: 2, speedMultiplier: 1.02 } },
-  { id: "medium-backpack", type: "backpack", name: "Medium Backpack", icon: "medium-backpack", stats: { slots: 4, speedMultiplier: 1 } },
-  { id: "large-backpack", type: "backpack", name: "Large Backpack", icon: "large-backpack", stats: { slots: 6, speedMultiplier: 0.96 } },
+  { id: "no-backpack", type: "backpack", name: "No Backpack", icon: "no-backpack", stats: { slots: 5, speedMultiplier: 1, ammoMultiplier: 1 } },
+  { id: "small-backpack", type: "backpack", name: "Small Backpack", icon: "small-backpack", stats: { slots: 10, speedMultiplier: 1.02 } },
+  { id: "medium-backpack", type: "backpack", name: "Medium Backpack", icon: "medium-backpack", stats: { slots: 15, speedMultiplier: 1 } },
+  { id: "large-backpack", type: "backpack", name: "Large Backpack", icon: "large-backpack", stats: { slots: 25, speedMultiplier: 0.96 } },
   { id: "heal-10", type: "item", name: "Field Patch 10%", icon: "heal-10", stats: { healPercent: 10, consumable: true } },
   { id: "heal-50", type: "item", name: "Med Kit 50%", icon: "heal-50", stats: { healPercent: 50, consumable: true } },
   { id: "heal-100", type: "item", name: "Trauma Kit 100%", icon: "heal-100", stats: { healPercent: 100, consumable: true } },
@@ -838,6 +838,11 @@ function applyStoreDefaultsToActiveOperators() {
     op.inventory.items = Array.from({ length: backpack.slots }, (_, index) => (op.inventory.items || [])[index] || null);
     op.speed = (op.baseSpeed || 92) * armor.speedMultiplier * (backpack.speedMultiplier || 1);
     shooting.resetAmmo(op);
+  }
+  if (inventory) {
+    if (runtime.inventoryOpen) inventory.renderInventory();
+    inventory.renderSummary();
+    inventory.renderExpandedHotbar();
   }
   updateHud();
 }
@@ -1712,6 +1717,12 @@ function initializeSystems() {
     progression,
     shooting: {
       resetAmmo: (unit) => shooting && shooting.resetAmmo(unit)
+    },
+    refreshInventoryViews: () => {
+      if (!inventory) return;
+      if (runtime.inventoryOpen) inventory.renderInventory();
+      inventory.renderSummary();
+      inventory.renderExpandedHotbar();
     },
     updateHud
   });

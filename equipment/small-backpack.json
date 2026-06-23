@@ -3,6 +3,6 @@
   "name": "Small Backpack",
   "role": "Light kit with limited storage",
   "ammoMultiplier": 0.75,
-  "slots": 2,
+  "slots": 10,
   "speedMultiplier": 1
 }

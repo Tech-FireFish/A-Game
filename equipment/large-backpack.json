@@ -3,6 +3,6 @@
   "name": "Large Backpack",
   "role": "Large kit with extra ammunition",
   "ammoMultiplier": 1.45,
-  "slots": 6,
+  "slots": 25,
   "speedMultiplier": 0.9
 }
