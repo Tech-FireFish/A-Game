@@ -3538,11 +3538,13 @@ body.game-expanded .shell {
 
 body.game-expanded .brandbar,
 body.game-expanded .left-panel {
-  display: none;
+  display: none !important;
 }
 
 body.game-expanded .brandbar {
-  display: none;
+  display: none !important;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 body.game-expanded .right-panel {
@@ -3562,6 +3564,8 @@ body.game-expanded .play-layout {
 }
 
 body.game-expanded .game-panel {
+  position: relative;
+  z-index: 20;
   display: grid;
   place-items: center;
   width: 100vw;
@@ -3573,8 +3577,8 @@ body.game-expanded .game-panel {
 }
 
 body.game-expanded canvas {
-  width: min(100vw, 150vh);
-  height: min(100vh, 66.6667vw);
+  width: 100vw;
+  height: 66.6667vw;
   max-height: none;
   aspect-ratio: 3 / 2;
   display: block;
@@ -6632,6 +6636,12 @@ body.pixel-style-geometry .number-block-grid button.completed,
 body.pixel-style-geometry #menuTutorialBlocks.number-block-grid button.completed {
   background: linear-gradient(180deg, rgba(96, 198, 137, 0.78), rgba(20, 70, 42, 0.92)) !important;
   color: #e9fff1 !important;
+}
+
+body.pixel-style-geometry.game-expanded .brandbar {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /* Universal pixel controls: excludes intentionally transparent/text-only controls. */

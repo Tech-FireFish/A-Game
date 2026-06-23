@@ -468,8 +468,7 @@
       if (elements.pauseSettingButton) elements.pauseSettingButton.addEventListener("click", deps.menu.openSettingsFromPause);
       if (elements.pauseCollapseButton) {
         elements.pauseCollapseButton.addEventListener("click", () => {
-          deps.menu.closePause({ resume: false });
-          deps.menu.toggleExpanded(false);
+          if (deps.menu.collapseExpandedFromPause) deps.menu.collapseExpandedFromPause();
         });
       }
       if (elements.expandGameButton) elements.expandGameButton.addEventListener("click", () => deps.menu.toggleExpanded());

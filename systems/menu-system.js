@@ -175,6 +175,15 @@
       deps.updateHud();
     }
 
+    // Collapses expanded gameplay from the pause menu; inert in normal mode.
+    function collapseExpandedFromPause() {
+      const expandedActive = Boolean(runtime.expandedGame || document.body.classList.contains("game-expanded"));
+      if (!expandedActive) return false;
+      closePause({ resume: false });
+      toggleExpanded(false);
+      return true;
+    }
+
     // Reports whether the main navigation page is currently visible.
     function isMainOpen() {
       return Boolean(elements.mainMenuOverlay && !elements.mainMenuOverlay.classList.contains("hidden"));
@@ -251,6 +260,7 @@
       openSettingsFromPause,
       togglePause,
       toggleExpanded,
+      collapseExpandedFromPause,
       isMainOpen,
       closeMainOverlay,
       render
