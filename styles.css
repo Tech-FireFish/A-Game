@@ -6624,3 +6624,298 @@ body.pixel-style-geometry #menuTutorialBlocks.number-block-grid button.completed
   background: linear-gradient(180deg, rgba(96, 198, 137, 0.78), rgba(20, 70, 42, 0.92)) !important;
   color: #e9fff1 !important;
 }
+
+/* Universal pixel controls: excludes intentionally transparent/text-only controls. */
+body.pixel-style-geometry button:not(:where(
+  #startMenuOverlay button,
+  .tutorial-dialogue-bar button,
+  #tutorialDialogueNextButton,
+  #storeExitButton,
+  #storePlayButton,
+  #mainMenuBackButton,
+  #mainMenuCloseButton,
+  #endReturnMenuButton,
+  #closeStartInfoButton,
+  #settingsExitToMenuButton,
+  #devSettingsExitToMenuButton,
+  #resetSettingsButton,
+  #closeSettingsButton,
+  #closeDevSettingsButton
+)) {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 2px solid rgba(103, 201, 143, 0.96) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(9, 31, 27, 0.98), rgba(4, 13, 13, 0.98)) !important;
+  background-image:
+    linear-gradient(180deg, rgba(9, 31, 27, 0.98), rgba(4, 13, 13, 0.98)) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    4px 4px 0 rgba(0, 0, 0, 0.88),
+    inset 0 0 0 2px rgba(114, 183, 206, 0.16) !important;
+  color: rgba(223, 255, 232, 0.98);
+  font-family: "PressStart2P", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.72);
+  image-rendering: pixelated;
+  transition: color 90ms steps(1), transform 90ms steps(1), box-shadow 90ms steps(1), border-color 90ms steps(1);
+}
+
+body.pixel-style-geometry button:not(:where(
+  #startMenuOverlay button,
+  .tutorial-dialogue-bar button,
+  #tutorialDialogueNextButton,
+  #storeExitButton,
+  #storePlayButton,
+  #mainMenuBackButton,
+  #mainMenuCloseButton,
+  #endReturnMenuButton,
+  #closeStartInfoButton,
+  #settingsExitToMenuButton,
+  #devSettingsExitToMenuButton,
+  #resetSettingsButton,
+  #closeSettingsButton,
+  #closeDevSettingsButton
+)):hover,
+body.pixel-style-geometry button:not(:where(
+  #startMenuOverlay button,
+  .tutorial-dialogue-bar button,
+  #tutorialDialogueNextButton,
+  #storeExitButton,
+  #storePlayButton,
+  #mainMenuBackButton,
+  #mainMenuCloseButton,
+  #endReturnMenuButton,
+  #closeStartInfoButton,
+  #settingsExitToMenuButton,
+  #devSettingsExitToMenuButton,
+  #resetSettingsButton,
+  #closeSettingsButton,
+  #closeDevSettingsButton
+)):focus-visible {
+  border-color: var(--cyan) !important;
+  color: var(--green);
+  background:
+    linear-gradient(180deg, rgba(12, 42, 35, 0.98), rgba(5, 18, 17, 0.98)) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 42, 35, 0.98), rgba(5, 18, 17, 0.98)) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    6px 4px 0 rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px rgba(103, 201, 143, 0.28) !important;
+  transform: translateX(2px);
+}
+
+body.pixel-style-geometry button:not(:where(
+  #startMenuOverlay button,
+  .tutorial-dialogue-bar button,
+  #tutorialDialogueNextButton,
+  #storeExitButton,
+  #storePlayButton,
+  #mainMenuBackButton,
+  #mainMenuCloseButton,
+  #endReturnMenuButton,
+  #closeStartInfoButton,
+  #settingsExitToMenuButton,
+  #devSettingsExitToMenuButton,
+  #resetSettingsButton,
+  #closeSettingsButton,
+  #closeDevSettingsButton
+)):focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 4px;
+}
+
+body.pixel-style-geometry button:not(:where(
+  #startMenuOverlay button,
+  .tutorial-dialogue-bar button,
+  #tutorialDialogueNextButton,
+  #storeExitButton,
+  #storePlayButton,
+  #mainMenuBackButton,
+  #mainMenuCloseButton,
+  #endReturnMenuButton,
+  #closeStartInfoButton,
+  #settingsExitToMenuButton,
+  #devSettingsExitToMenuButton,
+  #resetSettingsButton,
+  #closeSettingsButton,
+  #closeDevSettingsButton
+)):active {
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.98),
+    2px 2px 0 rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px rgba(103, 201, 143, 0.36) !important;
+  transform: translate(4px, 2px);
+}
+
+body.pixel-style-geometry button:not(:where(
+  #startMenuOverlay button,
+  .tutorial-dialogue-bar button,
+  #tutorialDialogueNextButton,
+  #storeExitButton,
+  #storePlayButton,
+  #mainMenuBackButton,
+  #mainMenuCloseButton,
+  #endReturnMenuButton,
+  #closeStartInfoButton,
+  #settingsExitToMenuButton,
+  #devSettingsExitToMenuButton,
+  #resetSettingsButton,
+  #closeSettingsButton,
+  #closeDevSettingsButton
+)):disabled {
+  border-color: rgba(95, 108, 112, 0.88) !important;
+  background: rgba(17, 22, 24, 0.84) !important;
+  background-image: none !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.7),
+    3px 3px 0 rgba(0, 0, 0, 0.64) !important;
+  color: rgba(142, 156, 162, 0.72) !important;
+  cursor: not-allowed;
+  transform: none;
+}
+
+body.pixel-style-geometry select {
+  appearance: none;
+  min-height: 42px;
+  border: 2px solid rgba(103, 201, 143, 0.9) !important;
+  border-radius: 0 !important;
+  padding: 0 42px 0 12px;
+  background:
+    linear-gradient(135deg, transparent 0 46%, var(--amber) 46% 54%, transparent 54%) right 18px center / 10px 10px no-repeat,
+    linear-gradient(45deg, transparent 0 46%, var(--amber) 46% 54%, transparent 54%) right 12px center / 10px 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(103, 201, 143, 0.12) 0 4px, transparent 4px 8px),
+    rgba(7, 18, 17, 0.94) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.95),
+    inset 0 0 0 2px rgba(114, 183, 206, 0.14) !important;
+  color: rgba(223, 255, 232, 0.98);
+  image-rendering: pixelated;
+}
+
+body.pixel-style-geometry select:hover,
+body.pixel-style-geometry select:focus-visible {
+  border-color: var(--cyan) !important;
+  color: var(--green);
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
+body.pixel-style-geometry select:disabled {
+  border-color: rgba(95, 108, 112, 0.82) !important;
+  background: rgba(17, 22, 24, 0.84) !important;
+  color: rgba(142, 156, 162, 0.72);
+}
+
+body.pixel-style-geometry select option {
+  background: #071211;
+  color: rgba(223, 255, 232, 0.98);
+}
+
+body.pixel-style-geometry select option:checked {
+  background: #244635;
+  color: #e9fff1;
+}
+
+body.pixel-style-geometry input[type="range"] {
+  height: 34px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg, transparent calc(var(--range-progress, 50%) - 2px), rgba(227, 180, 86, 0.98) 0 calc(var(--range-progress, 50%) + 2px), transparent 0),
+    repeating-linear-gradient(90deg, rgba(103, 201, 143, 0.76) 0 8px, rgba(77, 154, 112, 0.76) 8px 12px, rgba(32, 44, 47, 0.9) 12px 16px),
+    linear-gradient(90deg, rgba(103, 201, 143, 0.42) 0 var(--range-progress, 50%), rgba(32, 44, 47, 0.92) 0 100%) !important;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 22px, var(--range-progress, 50%) 14px, 100% 18px;
+  box-shadow:
+    inset 0 0 0 2px rgba(3, 8, 9, 0.95),
+    0 0 0 2px rgba(103, 201, 143, 0.55);
+  appearance: none;
+}
+
+body.pixel-style-geometry input[type="range"]::-webkit-slider-runnable-track {
+  height: 22px;
+  background: transparent;
+}
+
+body.pixel-style-geometry input[type="range"]::-webkit-slider-thumb {
+  width: 18px;
+  height: 26px;
+  margin-top: -2px;
+  border: 2px solid rgba(3, 8, 9, 0.98);
+  border-radius: 0;
+  background: var(--amber);
+  box-shadow:
+    0 0 0 2px rgba(103, 201, 143, 0.86),
+    3px 3px 0 rgba(0, 0, 0, 0.75);
+  appearance: none;
+}
+
+body.pixel-style-geometry input[type="range"]::-moz-range-track {
+  height: 22px;
+  background: transparent;
+}
+
+body.pixel-style-geometry input[type="range"]::-moz-range-progress {
+  height: 14px;
+  background: repeating-linear-gradient(90deg, rgba(103, 201, 143, 0.82) 0 8px, rgba(77, 154, 112, 0.82) 8px 12px);
+}
+
+body.pixel-style-geometry input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 26px;
+  border: 2px solid rgba(3, 8, 9, 0.98);
+  border-radius: 0;
+  background: var(--amber);
+  box-shadow:
+    0 0 0 2px rgba(103, 201, 143, 0.86),
+    3px 3px 0 rgba(0, 0, 0, 0.75);
+}
+
+body.pixel-style-geometry input[type="range"]:hover,
+body.pixel-style-geometry input[type="range"]:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px rgba(3, 8, 9, 0.95),
+    0 0 0 2px var(--cyan),
+    0 0 0 4px rgba(3, 8, 9, 0.8);
+  outline: none;
+}
+
+body.pixel-style-geometry input[type="checkbox"] {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  border: 2px solid rgba(103, 201, 143, 0.9) !important;
+  border-radius: 0 !important;
+  background: rgba(7, 18, 17, 0.94) !important;
+  box-shadow:
+    0 0 0 2px rgba(3, 8, 9, 0.95),
+    inset 0 0 0 2px rgba(114, 183, 206, 0.12);
+}
+
+body.pixel-style-geometry input[type="checkbox"]:checked {
+  background:
+    linear-gradient(90deg, transparent 0 6px, var(--green) 6px 10px, transparent 10px),
+    linear-gradient(0deg, transparent 0 6px, var(--green) 6px 10px, transparent 10px),
+    rgba(8, 31, 24, 0.98) !important;
+}
+
+body.pixel-style-geometry input[type="checkbox"]:hover,
+body.pixel-style-geometry input[type="checkbox"]:focus-visible {
+  border-color: var(--cyan) !important;
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
+body.pixel-style-geometry input[type="checkbox"]:disabled {
+  border-color: rgba(95, 108, 112, 0.82) !important;
+  background: rgba(17, 22, 24, 0.84) !important;
+  box-shadow: 0 0 0 2px rgba(3, 8, 9, 0.68);
+}
