@@ -2000,7 +2000,8 @@ function initializeSystems() {
       enterGame: () => menu && menu.enterGame(),
       isMainOpen: () => menu && menu.isMainOpen(),
       closeMainOverlay: () => menu && menu.closeMainOverlay(),
-      toggleExpanded: (...args) => menu && menu.toggleExpanded(...args)
+      toggleExpanded: (...args) => menu && menu.toggleExpanded(...args),
+      collapseExpandedFromPause: () => menu && menu.collapseExpandedFromPause()
     }
   });
 
