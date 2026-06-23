@@ -513,7 +513,8 @@
           const button = event.target.closest("[data-menu-level]");
           if (!button || button.disabled) return;
           await deps.ensureGameDataReady();
-          await deps.level.loadLevel(button.dataset.menuLevel);
+          const loaded = await deps.level.loadLevel(button.dataset.menuLevel);
+          if (!loaded) return;
           deps.menu.enterGame();
         });
       }
@@ -522,7 +523,8 @@
           const button = event.target.closest("[data-menu-tutorial]");
           if (!button) return;
           await deps.ensureGameDataReady();
-          await deps.level.loadLevel(button.dataset.menuTutorial);
+          const loaded = await deps.level.loadLevel(button.dataset.menuTutorial);
+          if (!loaded) return;
           deps.menu.enterGame();
         });
       }

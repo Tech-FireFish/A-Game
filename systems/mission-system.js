@@ -64,6 +64,10 @@
       const progress = storySuccess && deps.progression
         ? deps.progression.recordMission(runtime.currentLevelMeta, state.level)
         : { privilegeEarned: 0, rewardsUnlocked: [], complexity: deps.progression ? deps.progression.complexity(state.level) : 0 };
+      if (storySuccess) {
+        if (deps.menu && deps.menu.render) deps.menu.render();
+        if (deps.refreshLevelSelectors) deps.refreshLevelSelectors();
+      }
       if (tutorialSuccess && deps.progression && deps.progression.recordTutorial) {
         deps.progression.recordTutorial(runtime.currentLevelMeta);
         if (deps.menu && deps.menu.render) deps.menu.render();
@@ -106,6 +110,7 @@
         elements.nextLevelButton.textContent = nextLevel ? "Next Level" : "Credits";
       }
       if (elements.exitTutorialButton) elements.exitTutorialButton.classList.add("hidden");
+      elements.nextLevelButton.classList.toggle("hidden", result !== "success");
       renderMissionReport(result, progress);
       populateResultSelector();
       elements.banner.classList.remove("hidden");
@@ -155,7 +160,10 @@
         : (runtime.activeMode === "temp" ? (deps.tempLevelOptions || []) : deps.levelOptions);
       elements.resultLevelSelect.innerHTML = options.map((option, index) => {
         const current = option.id === runtime.currentLevelMeta.id ? " selected" : "";
-        return `<option value="${option.id}"${current}>${index + 1}. ${option.title}</option>`;
+        const locked = runtime.activeMode === "level"
+          && deps.progression
+          && !deps.progression.isLevelUnlocked(option.id);
+        return `<option value="${option.id}"${current}${locked ? " disabled" : ""}>${index + 1}. ${option.title}</option>`;
       }).join("");
     }
 

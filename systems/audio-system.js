@@ -43,7 +43,7 @@
       if (!context || sfxMasterGain) return sfxMasterGain;
       sfxMasterGain = context.createGain();
       sfxCompressor = context.createDynamicsCompressor();
-      sfxMasterGain.gain.value = Number.isFinite(deps.volume) ? Math.max(0, deps.volume) : 0.55;
+      sfxMasterGain.gain.value = Number.isFinite(deps.volume) ? Math.max(0, deps.volume) : 0.605;
       sfxCompressor.threshold.value = -10;
       sfxCompressor.knee.value = 10;
       sfxCompressor.ratio.value = 8;
@@ -132,8 +132,8 @@
       if (!unlocked || !LOOP_SOUND_IDS.has(id) || !soundIds.has(id)) return;
       const effects = ensureEffects();
       if (!effects || !effects.has(id)) return;
-      const baseVolume = Number.isFinite(deps.volume) && deps.volume > 0 ? deps.volume : 0.55;
-      const loopVolume = Number.isFinite(deps.loopVolume) ? deps.loopVolume : 0.34;
+      const baseVolume = Number.isFinite(deps.volume) && deps.volume > 0 ? deps.volume : 0.605;
+      const loopVolume = Number.isFinite(deps.loopVolume) ? deps.loopVolume : 0.374;
       effects.startLoop(id, { volume: Math.max(0, Math.min(1, loopVolume / baseVolume)) });
     }
 

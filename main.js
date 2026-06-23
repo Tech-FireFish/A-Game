@@ -1073,7 +1073,8 @@ async function advanceToNextStoryOrEnd() {
   }
   clearStoreMissionReturn();
   await preloadGameData();
-  await level.loadLevel(nextLevel.id);
+  const loaded = await level.loadLevel(nextLevel.id);
+  if (!loaded) return false;
   if (menu) menu.enterGame();
   return true;
 }
@@ -1085,7 +1086,8 @@ async function handleStorePlayButton() {
       const nextLevelId = runtime.storeMissionReturn.nextLevelId;
       clearStoreMissionReturn();
       await preloadGameData();
-      await level.loadLevel(nextLevelId);
+      const loaded = await level.loadLevel(nextLevelId);
+      if (!loaded) return;
       if (menu) menu.enterGame();
       return;
     }
@@ -1227,6 +1229,11 @@ function readResumePoint() {
       clearResumePoint();
       return null;
     }
+    const storyPoint = LEVEL_OPTIONS.some((option) => option.id === parsed.id);
+    if (storyPoint && runtime.gameDataReady && progression && !progression.isLevelUnlocked(parsed.id)) {
+      clearResumePoint();
+      return null;
+    }
     return parsed;
   } catch (error) {
     clearResumePoint();
@@ -1256,10 +1263,11 @@ async function resumeFromStartMenu() {
     if (menu) menu.enterGame();
     return true;
   }
+  await preloadGameData();
   const point = readResumePoint();
   if (!point) return false;
-  await preloadGameData();
-  await level.loadLevel(point.id);
+  const loaded = await level.loadLevel(point.id);
+  if (!loaded) return false;
   if (menu) menu.enterGame();
   return true;
 }
@@ -1680,8 +1688,8 @@ function initializeSystems() {
   runtime.backgroundMusicVolume = loadBackgroundMusicVolume();
   audio = window.AudioSystem.create({
     soundOptions: SOUND_OPTIONS,
-    volume: 0.55,
-    loopVolume: 0.34,
+    volume: 0.605,
+    loopVolume: 0.374,
     musicVolume: runtime.backgroundMusicVolume
   });
   audio.setMusicVolume(runtime.backgroundMusicVolume);
@@ -1721,7 +1729,6 @@ function initializeSystems() {
     runtime,
     elements
   });
-
   equipment = window.EquipmentSystem.create({
     runtime,
     weapons,
@@ -1931,6 +1938,7 @@ function initializeSystems() {
     clearResumePoint,
     hideMissionBriefing,
     refreshStartMenu,
+    refreshLevelSelectors: () => level && level.populateLevelSelect(),
     menu: {
       showMain: () => menu && menu.showMain(),
       render: () => menu && menu.render()
@@ -2196,6 +2204,7 @@ async function preloadGameData() {
     runtime.hudDirty = true;
     runtime.loadoutDirty = true;
     if (menu) menu.render();
+    refreshStartMenu();
     updateHud();
     return true;
   })();
@@ -2233,6 +2242,7 @@ async function loadServerLevelOptions() {
     LEVEL_OPTIONS.splice(0, LEVEL_OPTIONS.length, ...FALLBACK_LEVEL_OPTIONS.map((level) => ({ ...level })));
     console.warn(`Using fallback level list: ${error.message}`);
   }
+  if (progression && progression.syncLevelUnlocks) progression.syncLevelUnlocks(LEVEL_OPTIONS);
 }
 
 function normalizeLevelOption(level) {

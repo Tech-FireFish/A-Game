@@ -7,6 +7,7 @@
     const rewardPrivilege = 2;
     const rewardEquipment = ["advanced-carbine", "compact-pdw", "marksman-pistol", "heavy-armor"];
     const state = load();
+    let configuredLevels = [];
 
     // Loads saved progress from localStorage.
     function load() {
@@ -15,11 +16,12 @@
         return {
           completedLevels: Array.isArray(saved.completedLevels) ? saved.completedLevels : [],
           completedTutorials: Array.isArray(saved.completedTutorials) ? saved.completedTutorials : [],
+          unlockedLevels: Array.isArray(saved.unlockedLevels) ? saved.unlockedLevels : [],
           privilege: Math.max(1, Number(saved.privilege) || 1),
           unlockedEquipment: Array.isArray(saved.unlockedEquipment) ? saved.unlockedEquipment : []
         };
       } catch (error) {
-        return { completedLevels: [], completedTutorials: [], privilege: 1, unlockedEquipment: [] };
+        return { completedLevels: [], completedTutorials: [], unlockedLevels: [], privilege: 1, unlockedEquipment: [] };
       }
     }
 
@@ -37,9 +39,49 @@
       return {
         completedLevels: [...state.completedLevels],
         completedTutorials: [...state.completedTutorials],
+        unlockedLevels: [...state.unlockedLevels],
         privilege: state.privilege,
         unlockedEquipment: [...state.unlockedEquipment]
       };
+    }
+
+    // Reconciles persisted unlock IDs with the current server-provided story order.
+    function syncLevelUnlocks(levelOptions = []) {
+      configuredLevels = levelOptions.filter((level) => level && typeof level.id === "string");
+      const validIds = new Set(configuredLevels.map((level) => level.id));
+      const unlocked = new Set((state.unlockedLevels || []).filter((id) => validIds.has(id)));
+      if (configuredLevels[0]) unlocked.add(configuredLevels[0].id);
+      for (const completedId of state.completedLevels) {
+        const index = configuredLevels.findIndex((level) => level.id === completedId);
+        if (index < 0) continue;
+        unlocked.add(completedId);
+        if (configuredLevels[index + 1]) unlocked.add(configuredLevels[index + 1].id);
+      }
+      const nextUnlocked = configuredLevels
+        .map((level) => level.id)
+        .filter((id) => unlocked.has(id));
+      const changed = JSON.stringify(nextUnlocked) !== JSON.stringify(state.unlockedLevels || []);
+      state.unlockedLevels = nextUnlocked;
+      if (changed) save();
+      return snapshot();
+    }
+
+    // Unlocks the completed story level and its immediate successor.
+    function unlockNextLevel(completedLevelId) {
+      const index = configuredLevels.findIndex((level) => level.id === completedLevelId);
+      if (index < 0) {
+        save();
+        return null;
+      }
+      const nextLevel = configuredLevels[index + 1] || null;
+      const unlocked = new Set(state.unlockedLevels || []);
+      unlocked.add(configuredLevels[index].id);
+      if (nextLevel) unlocked.add(nextLevel.id);
+      state.unlockedLevels = configuredLevels
+        .map((level) => level.id)
+        .filter((id) => unlocked.has(id));
+      save();
+      return nextLevel;
     }
 
     // Computes a simple level complexity score from authored components.
@@ -70,8 +112,9 @@
       */
       if (levelMeta && levelMeta.id && !state.completedLevels.includes(levelMeta.id)) {
         state.completedLevels.push(levelMeta.id);
-        save();
       }
+      if (levelMeta && levelMeta.id) unlockNextLevel(levelMeta.id);
+      else save();
       return {
         privilegeEarned: 0,
         rewardsUnlocked: [],
@@ -102,9 +145,8 @@
     }
 
     // Reports whether a story level is unlocked.
-    function isLevelUnlocked(index) {
-      // Privilege/access progression disabled: story levels are always selectable.
-      return true;
+    function isLevelUnlocked(levelId) {
+      return Boolean(levelId && state.unlockedLevels.includes(levelId));
     }
 
     // Renders privilege status into menus.
@@ -133,6 +175,8 @@
 
     return {
       snapshot,
+      syncLevelUnlocks,
+      unlockNextLevel,
       complexity,
       recordMission,
       recordTutorial,

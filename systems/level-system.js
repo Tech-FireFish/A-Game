@@ -319,6 +319,7 @@
       resizeWorld(runtime.state.level.width, runtime.state.level.height);
       runtime.lastTime = performance.now();
       elements.banner.classList.add("hidden");
+      if (elements.nextLevelButton) elements.nextLevelButton.classList.add("hidden");
       if (elements.exitTutorialButton) elements.exitTutorialButton.classList.add("hidden");
       if (runtime.activeMode !== "tutorial" && elements.tutorialCard) elements.tutorialCard.classList.add("hidden");
       elements.levelTitle.textContent = runtime.currentLevel.title || runtime.currentLevelMeta.title;
@@ -353,6 +354,7 @@
         const option = document.createElement("option");
         option.value = level.id;
         option.textContent = level.title;
+        option.disabled = Boolean(deps.progression && !deps.progression.isLevelUnlocked(level.id));
         elements.levelSelect.append(option);
       }
       if (!elements.tutorialSelect) return;
@@ -378,7 +380,19 @@
       const storyMeta = deps.levelOptions.find((level) => level.id === levelId);
       const tutorialMeta = (deps.tutorialOptions || []).find((level) => level.id === levelId);
       const tempMeta = (deps.tempLevelOptions || []).find((level) => level.id === levelId);
-      const meta = storyMeta || tutorialMeta || tempMeta || deps.levelOptions[0];
+      const meta = storyMeta || tutorialMeta || tempMeta;
+      if (!meta) {
+        elements.bannerTitle.textContent = "Level Load Failed";
+        elements.bannerText.textContent = "The requested level is unavailable.";
+        elements.banner.classList.remove("hidden");
+        return false;
+      }
+      if (storyMeta && deps.progression && !deps.progression.isLevelUnlocked(storyMeta.id)) {
+        elements.bannerTitle.textContent = "Level Locked";
+        elements.bannerText.textContent = "Complete the previous story level to unlock this mission.";
+        elements.banner.classList.remove("hidden");
+        return false;
+      }
       runtime.currentLevelMeta = meta;
       runtime.activeMode = tutorialMeta ? "tutorial" : (tempMeta ? "temp" : "level");
       elements.levelSelect.value = storyMeta ? meta.id : "";
@@ -398,6 +412,7 @@
         runtime.currentLevel.id = runtime.currentLevel.id || meta.id;
         runtime.currentLevel.title = runtime.currentLevel.title || meta.title;
         restart();
+        return true;
       } catch (error) {
         runtime.currentLevel = null;
         runtime.state = null;
@@ -406,6 +421,7 @@
         elements.bannerTitle.textContent = "Level Load Failed";
         elements.bannerText.textContent = error.message;
         elements.banner.classList.remove("hidden");
+        return false;
       } finally {
         elements.levelSelect.disabled = false;
         if (elements.tutorialSelect) elements.tutorialSelect.disabled = false;
@@ -436,29 +452,26 @@
       if (!runtime.currentLevelMeta) return false;
       const nextIndex = currentLevelIndex() + 1;
       if (nextIndex >= deps.levelOptions.length) return false;
-      loadLevel(deps.levelOptions[nextIndex].id);
-      return true;
+      return loadLevel(deps.levelOptions[nextIndex].id);
     }
 
     // Advances to the next tutorial, returning to the first story level when none exist.
     function loadNextTutorial() {
       const options = deps.tutorialOptions || [];
       if (!options.length) {
-        loadFirstLevel();
-        return;
+        return loadFirstLevel();
       }
       if (deps.progression && deps.progression.allTutorialsComplete && deps.progression.allTutorialsComplete(options)) {
-        loadFirstLevel();
-        return;
+        return loadFirstLevel();
       }
       const nextIndex = (currentTutorialIndex() + 1) % options.length;
-      loadLevel(options[nextIndex].id);
+      return loadLevel(options[nextIndex].id);
     }
 
     // Loads the first configured story level.
     function loadFirstLevel() {
-      if (!deps.levelOptions.length) return;
-      loadLevel(deps.levelOptions[0].id);
+      if (!deps.levelOptions.length) return false;
+      return loadLevel(deps.levelOptions[0].id);
     }
 
     return {
