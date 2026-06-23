@@ -514,7 +514,7 @@ function toggleRun() {
   updateHud();
 }
 
-// Writes the current mission status into the centered paper briefing.
+// Writes the current mission status into the centered terminal briefing.
 function renderMissionBriefing() {
   const state = runtime.state;
   if (!state) return;
@@ -532,7 +532,7 @@ function renderMissionBriefing() {
   setText(elements.briefingZoneLabel, selected ? (selected.zone || selected.floor || "Map") : "Map");
 }
 
-// Shows the pre-mission paper briefing and blocks gameplay until Finish.
+// Shows the pre-mission terminal briefing and blocks gameplay until Finish.
 function showMissionBriefing() {
   const state = runtime.state;
   if (!state || !elements.missionBriefingOverlay) return;
@@ -556,7 +556,7 @@ function hideMissionBriefing() {
   }
 }
 
-// Starts gameplay from the paper briefing after a short fade.
+// Starts gameplay from the terminal briefing after a short fade.
 function finishMissionBriefing() {
   const state = runtime.state;
   if (!state || state.gameOver || !runtime.missionBriefingOpen) return;
