@@ -516,12 +516,14 @@
     function renderExpandedLoadoutMini(op) {
       if (!elements.expandedLoadoutMini || !elements.expandedLoadoutWeaponArt || !elements.expandedLoadoutAmmo) return;
       const weapon = op ? weaponById(op.weaponId) : null;
+      const weaponName = weapon ? weapon.name : "No Weapon";
+      elements.expandedLoadoutMini.title = weaponName;
       const weaponId = weapon ? weapon.id : "no-weapon";
-      const artKey = `${weaponId}:${weapon ? weapon.name : "No Weapon"}`;
+      const artKey = `${weaponId}:${weaponName}`;
       if (renderExpandedLoadoutMini.lastArtKey !== artKey) {
         const art = weaponPixelBlockHtml(weaponId, weapon);
         elements.expandedLoadoutWeaponArt.innerHTML = `
-          <div class="expanded-loadout-art-frame" role="img" aria-label="${weapon ? weapon.name : "No weapon"}">
+          <div class="expanded-loadout-art-frame" role="img" aria-label="${weaponName}">
             ${art}
           </div>
         `;

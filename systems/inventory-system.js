@@ -22,7 +22,7 @@
       if (!op) return;
       ensureSlots(op);
       const requestedSlot = Number(options.selectedSlot);
-      selectedInventorySlot = Number.isInteger(requestedSlot) && canUseItem(op.inventory.items[requestedSlot])
+      selectedInventorySlot = Number.isInteger(requestedSlot) && Boolean(op.inventory.items[requestedSlot])
         ? requestedSlot
         : null;
       deps.runtime.inventoryOpen = true;
@@ -56,9 +56,12 @@
       const op = deps.selectedOperator();
       if (!op) return;
       ensureSlots(op);
+      /*
+      Inventory equipment summary disabled; the active inventory view is slot grid plus item detail.
       const weapon = deps.equipment.weaponById(op.weaponId);
       const armor = deps.equipment.armorById(op.armorId);
       const backpack = deps.equipment.backpackById(op.backpackId);
+      */
       const columns = gridColumns(op.inventory.slots);
       const slots = op.inventory.items.map((item, index) => renderSlot(item, index)).join("");
       const actionMenu = renderInventoryActionMenu(op, columns);
@@ -68,15 +71,12 @@
       const selectedDetail = selectedItem
         ? `<strong>${escapeHtml(selectedItem.name)}</strong><span>${escapeHtml(selectedItem.text || selectedItem.type)}</span>`
         : "Empty slots can hold paper clues and future items.";
-      deps.elements.inventoryTitle.textContent = `${op.id} Inventory`;
+      if (deps.elements.inventoryTitle) deps.elements.inventoryTitle.textContent = `${op.id} Inventory`;
       deps.elements.inventoryDetails.innerHTML = `
-        <div class="inventory-grid">
-          <div><span>Weapon</span><strong>${deps.equipment.equipmentIconHtml(weapon.id, weapon.name, "equipment-icon-small")}${weapon.name}</strong></div>
-          <div><span>Armor</span><strong>${deps.equipment.equipmentIconHtml(armor.id, armor.name, "equipment-icon-small")}${armor.name}</strong></div>
-          <div><span>Backpack</span><strong>${deps.equipment.equipmentIconHtml(backpack.id, backpack.name, "equipment-icon-small")}${backpack.name}</strong></div>
-          <div><span>Ammo</span><strong>${op.ammo.magazine}/${weapon.magSize} + ${op.ammo.reserve}</strong></div>
-          <div><span>Slots</span><strong>${occupiedSlots(op)}/${op.inventory.slots}</strong></div>
-        </div>
+        <!--
+        Inventory grid summary disabled; preserve slot grid and item detail as the active inventory layout.
+        Previous content: .inventory-grid equipment/ammo/slots summary.
+        -->
         <div class="inventory-slot-grid${selectedInventorySlot === null ? "" : " action-menu-open"}" style="--inventory-cols: ${columns}" aria-label="${op.id} backpack slots">
           ${slots}
           ${actionMenu}
@@ -326,7 +326,7 @@
         return `<div class="inventory-slot empty" data-inventory-slot="${index}" aria-label="Empty slot ${index + 1}"></div>`;
       }
       const count = item.quantity > 1 ? `<span class="inventory-item-count">${item.quantity}</span>` : "";
-      const selected = selectedInventorySlot === index && canUseItem(item);
+      const selected = selectedInventorySlot === index && item;
       const preview = escapeAttr(firstTwoSentences(item.text || item.name));
       return `
         <div class="inventory-slot${selected ? " selected-action" : ""}" draggable="true" data-inventory-slot="${index}" title="${preview}" data-slot-tip="${preview}">
@@ -356,14 +356,18 @@
       if (selectedInventorySlot === null) return "";
       ensureSlots(op);
       const item = op.inventory.items[selectedInventorySlot];
-      if (!canUseItem(item)) {
+      if (!item) {
         selectedInventorySlot = null;
         return "";
       }
       const position = actionMenuPosition(selectedInventorySlot, columns);
+      const useButton = canUseItem(item)
+        ? `<button type="button" data-use-inventory-slot="${selectedInventorySlot}">Use</button>`
+        : "";
       return `
         <div class="inventory-use-selector" role="menu" aria-label="${escapeAttr(item.name)} actions" style="--menu-x: ${position.x}px; --menu-y: ${position.y}px; --menu-width: ${position.width}px;">
-          <button type="button" data-use-inventory-slot="${selectedInventorySlot}">Use</button>
+          ${useButton}
+          <button type="button" data-drop-inventory-slot="${selectedInventorySlot}">Drop</button>
           <button type="button" data-cancel-inventory-use>Cancel</button>
         </div>
       `;
@@ -426,12 +430,61 @@
       return true;
     }
 
+    // Drops one item from a backpack slot back onto the map as a pickable object.
+    function dropItemSlot(slotIndex) {
+      const state = deps.runtime.state;
+      const op = deps.selectedOperator();
+      if (!state || !state.level || !op || op.down) return false;
+      ensureSlots(op);
+      const item = op.inventory.items[slotIndex];
+      if (!item) return false;
+      const dropped = droppedItemFromStack(item, op, state.level);
+      consumeSlotItem(op, slotIndex);
+      if (!Array.isArray(state.level.items)) state.level.items = [];
+      state.level.items.push(dropped);
+      selectedInventorySlot = null;
+      state.message = `${op.id} dropped ${item.name}`;
+      renderInventory();
+      renderSummary();
+      renderExpandedHotbar();
+      deps.updateHud();
+      return true;
+    }
+
     // Removes one item from a slot, clearing it when quantity reaches zero.
     function consumeSlotItem(op, slotIndex) {
       const item = op.inventory.items[slotIndex];
       if (!item) return;
       item.quantity -= 1;
       if (item.quantity <= 0) op.inventory.items[slotIndex] = null;
+    }
+
+    // Converts one carried stack unit back into a map pickup near the operator.
+    function droppedItemFromStack(item, op, level) {
+      const w = 20;
+      const h = 18;
+      const maxX = Math.max(0, (level.width || 0) - w);
+      const maxY = Math.max(0, (level.height || 0) - h);
+      const x = Math.max(0, Math.min(maxX, (op.x || 0) + 18));
+      const y = Math.max(0, Math.min(maxY, (op.y || 0) + 18));
+      return {
+        id: `${item.id || item.type || "item"}-drop-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        type: item.type || "item",
+        name: item.name || item.id || "Item",
+        text: item.text || "",
+        effect: item.effect || "",
+        healPercent: Number(item.healPercent) || 0,
+        sightBoost: Number(item.sightBoost) || 0,
+        consumable: Boolean(item.consumable),
+        sourceEnemyId: item.sourceEnemyId || "",
+        maxStack: Math.max(1, Number(item.maxStack) || 1),
+        quantity: 1,
+        picked: false,
+        x,
+        y,
+        w,
+        h
+      };
     }
 
     // Keeps inventory hover details short enough for compact slots.
@@ -487,6 +540,13 @@
         useItemSlot(Number(button.dataset.useInventorySlot));
         return;
       }
+      const dropButton = event.target.closest("[data-drop-inventory-slot]");
+      if (dropButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        dropItemSlot(Number(dropButton.dataset.dropInventorySlot));
+        return;
+      }
       const slot = event.target.closest("[data-inventory-slot]");
       const op = deps.selectedOperator();
       if (!slot || !op) {
@@ -497,7 +557,7 @@
       const index = Number(slot.dataset.inventorySlot);
       ensureSlots(op);
       const item = op.inventory.items[index];
-      if (canUseItem(item)) {
+      if (item) {
         selectedInventorySlot = selectedInventorySlot === index ? null : index;
         renderInventory();
         return;
@@ -609,6 +669,7 @@
       occupiedSlots,
       canAddStack,
       useItemSlot,
+      dropItemSlot,
       openEquipmentTable,
       closeEquipmentTable,
       renderEquipmentTable,
