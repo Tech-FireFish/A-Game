@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-    <link rel="stylesheet" href="styles.css?v=59">
+    <link rel="stylesheet" href="styles.css?v=60">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -249,6 +249,10 @@
           <canvas id="game" width="960" height="640" aria-label="Breachline 2D tactical map"></canvas>
           <button id="expandGameButton" class="expand-game-button" type="button">Expand</button>
           <button id="expandedPauseButton" class="expanded-pause-button" type="button">Press Esc to pause</button>
+          <div id="expandedLoadoutMini" class="expanded-loadout-mini" aria-label="Selected weapon and ammunition" aria-live="polite">
+            <div id="expandedLoadoutWeaponArt" class="expanded-loadout-art"></div>
+            <div id="expandedLoadoutAmmo" class="expanded-loadout-ammo">--</div>
+          </div>
           <div id="expandedGameplayOverlay" class="expanded-gameplay-overlay" aria-label="Expanded gameplay status cards">
             <section class="control-card operator-health-card">
               <div class="panel-heading-row">

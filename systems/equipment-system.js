@@ -504,6 +504,32 @@
       elements.weaponPixelPreview.innerHTML += details;
     }
 
+    // Formats compact ammo for expanded mode without rebuilding the full ammo board.
+    function compactAmmoText(op, weapon) {
+      if (!op || !weapon || !op.ammo || weapon.canFire === false || weapon.attackType === "melee") return "--";
+      const reserve = Number.isFinite(op.ammo.reserve) ? op.ammo.reserve : 0;
+      const magazine = Number.isFinite(op.ammo.magazine) ? op.ammo.magazine : 0;
+      return op.ammo.reloading ? `${magazine}/${reserve} RELOAD` : `${magazine}/${reserve}`;
+    }
+
+    // Renders the expanded-only selected weapon and ammo mini display.
+    function renderExpandedLoadoutMini(op) {
+      if (!elements.expandedLoadoutMini || !elements.expandedLoadoutWeaponArt || !elements.expandedLoadoutAmmo) return;
+      const weapon = op ? weaponById(op.weaponId) : null;
+      const weaponId = weapon ? weapon.id : "no-weapon";
+      const artKey = `${weaponId}:${weapon ? weapon.name : "No Weapon"}`;
+      if (renderExpandedLoadoutMini.lastArtKey !== artKey) {
+        const art = weaponPixelBlockHtml(weaponId, weapon);
+        elements.expandedLoadoutWeaponArt.innerHTML = `
+          <div class="expanded-loadout-art-frame" role="img" aria-label="${weapon ? weapon.name : "No weapon"}">
+            ${art}
+          </div>
+        `;
+        renderExpandedLoadoutMini.lastArtKey = artKey;
+      }
+      elements.expandedLoadoutAmmo.textContent = compactAmmoText(op, weapon);
+    }
+
     // Renders magazine and carried bullet indicators for the selected operator.
     function renderAmmoBoard(op) {
       if (!elements.ammoBoard) return;
@@ -631,6 +657,7 @@
       applyOperatorBackpack,
       renderLoadoutPanel,
       renderHealthBoard,
+      renderExpandedLoadoutMini,
       renderWeaponPixelPreview,
       renderWeaponTooltip,
       renderAmmoBoard

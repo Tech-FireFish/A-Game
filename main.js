@@ -2,6 +2,7 @@
 
 const elements = {
   canvas: document.getElementById("game"),
+  gamePanel: document.querySelector(".game-panel"),
   startMenuOverlay: document.getElementById("startMenuOverlay"),
   playMenuButton: document.getElementById("playMenuButton"),
   startSettingButton: document.getElementById("startSettingButton"),
@@ -162,6 +163,9 @@ const elements = {
   pauseCollapseButton: document.getElementById("pauseCollapseButton"),
   expandGameButton: document.getElementById("expandGameButton"),
   expandedPauseButton: document.getElementById("expandedPauseButton"),
+  expandedLoadoutMini: document.getElementById("expandedLoadoutMini"),
+  expandedLoadoutWeaponArt: document.getElementById("expandedLoadoutWeaponArt"),
+  expandedLoadoutAmmo: document.getElementById("expandedLoadoutAmmo"),
   expandedNav: document.getElementById("expandedNav"),
   mobileControls: document.getElementById("mobileControls"),
   mobilePauseButton: document.getElementById("mobilePauseButton"),
@@ -1427,6 +1431,18 @@ function clearHudDirtyFlags(now) {
   runtime.lastHeavyHudTime = now;
 }
 
+// Anchors expanded-only HUD pieces to the visible canvas edge, not the viewport.
+function syncExpandedCanvasMetrics() {
+  if (!elements.canvas || !elements.gamePanel) return;
+  const panelRect = elements.gamePanel.getBoundingClientRect();
+  const canvasRect = elements.canvas.getBoundingClientRect();
+  const canvasLeft = Math.max(0, canvasRect.left - panelRect.left);
+  const visibleCanvasBottom = Math.min(canvasRect.bottom, panelRect.bottom);
+  const canvasBottom = Math.max(0, panelRect.bottom - visibleCanvasBottom);
+  elements.gamePanel.style.setProperty("--expanded-canvas-left", `${Math.round(canvasLeft)}px`);
+  elements.gamePanel.style.setProperty("--expanded-canvas-bottom", `${Math.round(canvasBottom)}px`);
+}
+
 // Refreshes labels, loadout controls, health cards, and mission status.
 function updateHud(options = {}) {
   const hudStart = performance.now();
@@ -1458,6 +1474,7 @@ function updateHud(options = {}) {
       equipment.renderHealthBoard();
       equipment.renderEnemyLoadouts();
     }
+    if (equipment) equipment.renderExpandedLoadoutMini(null);
     if (elements.hintOpacityValue) setText(elements.hintOpacityValue, `${Math.round(runtime.hintOpacity * 100)}%`);
     if (elements.viewValueLabel) setText(elements.viewValueLabel, Math.round(runtime.viewValue));
     if (elements.backgroundMusicRange && Number(elements.backgroundMusicRange.value) !== runtime.backgroundMusicVolume) {
@@ -1495,6 +1512,7 @@ function updateHud(options = {}) {
     elements.debugOverlayCheckbox.disabled = false;
   }
   const selected = selectedOperator();
+  if (equipment) equipment.renderExpandedLoadoutMini(selected);
   setText(elements.selectedStatusLabel, selected ? selected.id : "None");
   setText(elements.shootingStatusLabel, titleCase(state.shootingMode || "automatic"));
   setText(elements.selectedZoneLabel, selected ? (selected.zone || selected.floor || "Map") : "Map");
@@ -1550,6 +1568,7 @@ function updateHud(options = {}) {
     clearHudDirtyFlags(now);
   }
   if (runtime.missionBriefingOpen) renderMissionBriefing();
+  syncExpandedCanvasMetrics();
   recordPerformanceMetric("hudMs", performance.now() - hudStart);
 }
 
@@ -1789,6 +1808,7 @@ function initializeSystems() {
     resizeCanvas: () => {
       if (camera) camera.resizeCanvas();
       if (objectScale) objectScale.update();
+      syncExpandedCanvasMetrics();
     },
     equipment,
     shooting,
@@ -2000,6 +2020,7 @@ function initializeSystems() {
     resizeCanvas: () => {
       if (camera) camera.resizeCanvas();
       if (objectScale) objectScale.update();
+      syncExpandedCanvasMetrics();
     },
     hasResumePoint,
     refreshStartMenu,
@@ -2024,9 +2045,11 @@ function initializeSystems() {
   mobileControls.bindEvents();
   camera.resizeCanvas();
   objectScale.update();
+  syncExpandedCanvasMetrics();
   window.addEventListener("resize", () => {
     camera.resizeCanvas();
     objectScale.update();
+    syncExpandedCanvasMetrics();
   });
 }
 

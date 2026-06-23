@@ -3596,6 +3596,10 @@ body.game-expanded .expanded-pause-button {
   display: none;
 }
 
+.expanded-loadout-mini {
+  display: none;
+}
+
 body.game-expanded .expanded-gameplay-overlay {
   position: absolute;
   left: 16px;
@@ -3607,6 +3611,63 @@ body.game-expanded .expanded-gameplay-overlay {
   max-height: calc(100vh - 88px);
   overflow: visible;
   pointer-events: none;
+}
+
+body.game-expanded .expanded-loadout-mini {
+  position: absolute;
+  left: calc(var(--expanded-canvas-left, 0px) + 16px);
+  bottom: calc(var(--expanded-canvas-bottom, 0px) + 16px);
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 72px auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 8px 12px;
+  background: rgba(6, 13, 14, 0.68);
+  box-shadow:
+    0 0 0 2px rgba(123, 249, 214, 0.84),
+    4px 4px 0 rgba(0, 0, 0, 0.76);
+  color: #cffff1;
+  font-family: "PressStart2P", ui-monospace, monospace;
+  pointer-events: none;
+}
+
+.expanded-loadout-art {
+  width: 64px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 24, 25, 0.82);
+  box-shadow: inset 0 0 0 2px rgba(65, 137, 128, 0.82);
+  overflow: hidden;
+}
+
+.expanded-loadout-art-frame {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 40px;
+}
+
+.expanded-loadout-art .weapon-image-frame {
+  width: 56px;
+  height: 40px;
+}
+
+.expanded-loadout-art .weapon-pixel-art {
+  transform: scale(0.72);
+  transform-origin: center;
+}
+
+.expanded-loadout-ammo {
+  min-width: 112px;
+  color: #efffbd;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  text-align: left;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
 }
 
 body.game-expanded .expanded-gameplay-overlay .operator-health-card,
@@ -6537,12 +6598,17 @@ body.pixel-style-geometry .dev-settings-tabs button.active {
 }
 
 body.pixel-style-geometry:not(.game-expanded) .expanded-gameplay-overlay,
+body.pixel-style-geometry:not(.game-expanded) .expanded-loadout-mini,
 body.pixel-style-geometry:not(.game-expanded) #hintCard,
 body.pixel-style-geometry:not(.game-expanded) .operator-health-card {
   display: none !important;
 }
 
 body.pixel-style-geometry.game-expanded .expanded-gameplay-overlay {
+  display: grid !important;
+}
+
+body.pixel-style-geometry.game-expanded .expanded-loadout-mini {
   display: grid !important;
 }
 
