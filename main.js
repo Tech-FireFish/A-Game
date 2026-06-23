@@ -394,6 +394,8 @@ const runtime = {
   capturingKeyAction: null,
   manualFireHeld: false,
   manualFirePoint: null,
+  cursorWorldPoint: null,
+  cursorInsideCanvas: false,
   operatorCounterEffectUntil: 0,
   activeMode: "level",
   hudDirty: true,
@@ -1285,6 +1287,7 @@ function update(dt) {
   if (state.shootingMode === "manual" && runtime.manualFireHeld && runtime.manualFirePoint) {
     shooting.manualFire(selectedOperator(), runtime.manualFirePoint);
   }
+  updateCursorAim();
   for (const enemy of state.level.enemies) actions.updateEnemy(enemy, dt);
 
   mission.updateObjective();
@@ -1293,6 +1296,18 @@ function update(dt) {
     .filter((shot) => shot.ttl > 0);
   mission.checkMissionEnd();
   updateHud({ allowThrottle: true });
+}
+
+// Keeps the selected operator aimed at the latest known canvas cursor position.
+function updateCursorAim() {
+  const state = runtime.state;
+  if (!state || state.gameOver || !runtime.cursorInsideCanvas || !runtime.cursorWorldPoint) return;
+  const op = selectedOperator();
+  if (!op || op.down) return;
+  op.aim = geometry.angleTo(op, runtime.cursorWorldPoint);
+  if (state.shootingMode === "manual" && runtime.manualFireHeld) {
+    runtime.manualFirePoint = runtime.cursorWorldPoint;
+  }
 }
 
 // Smooths lightweight performance measurements for console diagnostics.

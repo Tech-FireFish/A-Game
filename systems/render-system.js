@@ -465,26 +465,32 @@
       const vertical = door.orientation === "vertical";
       const progress = doorAnimationProgress(door);
       const angle = progress * Math.PI / 2;
-      const long = doorLong(box);
-      const thickness = Math.max(6, Math.min(box.w, box.h));
       const hinge = door.hinge || (vertical ? "top" : "left");
       const pivot = vertical
         ? { x: box.x + box.w / 2, y: hinge === "bottom" ? box.y + box.h : box.y }
         : { x: hinge === "right" ? box.x + box.w : box.x, y: box.y + box.h / 2 };
       const reverse = hinge === "bottom" || hinge === "right";
+      const localRect = vertical
+        ? {
+            x: -box.w / 2,
+            y: reverse ? -box.h : 0,
+            w: box.w,
+            h: box.h
+          }
+        : {
+            x: reverse ? -box.w : 0,
+            y: -box.h / 2,
+            w: box.w,
+            h: box.h
+          };
       ctx.save();
       ctx.translate(pivot.x, pivot.y);
       ctx.rotate(reverse ? -angle : angle);
       ctx.fillStyle = colors.doorOpen;
       ctx.strokeStyle = "rgba(8, 14, 12, 0.82)";
       ctx.lineWidth = 2;
-      if (vertical) {
-        ctx.fillRect(-thickness / 2, reverse ? -long : 0, thickness, long);
-        ctx.strokeRect(-thickness / 2, reverse ? -long : 0, thickness, long);
-      } else {
-        ctx.fillRect(reverse ? -long : 0, -thickness / 2, long, thickness);
-        ctx.strokeRect(reverse ? -long : 0, -thickness / 2, long, thickness);
-      }
+      ctx.fillRect(localRect.x, localRect.y, localRect.w, localRect.h);
+      ctx.strokeRect(localRect.x, localRect.y, localRect.w, localRect.h);
       ctx.restore();
     }
 

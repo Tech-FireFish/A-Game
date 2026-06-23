@@ -51,6 +51,8 @@
       if (!state || state.gameOver || state.shootingMode !== "manual" || event.button !== 0) return;
       if (deps.settings.gameplayPausedByOverlay()) return;
       const pos = deps.geometry.getMouseWorld(event);
+      runtime.cursorWorldPoint = pos;
+      runtime.cursorInsideCanvas = true;
       const clickedOp = state.level.operators.find((op) => !op.down && deps.geometry.pointDistance(op, pos) <= deps.geometry.scaledRadius(op) + 8);
       if (clickedOp) {
         state.selectedId = clickedOp.id;
@@ -65,15 +67,19 @@
       deps.shooting.manualFire(deps.selectedOperator(), pos);
     }
 
-    // Aims the selected operator toward the cursor in manual shooting mode.
+    // Tracks the canvas cursor so the selected operator can aim at it continuously.
     function onCanvasMove(event) {
       const state = runtime.state;
-      if (!state || state.shootingMode !== "manual") return;
+      if (!state || state.gameOver) return;
       if (deps.settings.gameplayPausedByOverlay()) return;
       const op = deps.selectedOperator();
       if (!op || op.down) return;
       const pos = deps.geometry.getMouseWorld(event);
-      runtime.manualFirePoint = pos;
+      runtime.cursorWorldPoint = pos;
+      runtime.cursorInsideCanvas = true;
+      if (state.shootingMode === "manual" && runtime.manualFireHeld) {
+        runtime.manualFirePoint = pos;
+      }
       op.aim = deps.geometry.angleTo(op, pos);
     }
 
@@ -81,6 +87,12 @@
     function stopManualFire() {
       runtime.manualFireHeld = false;
       runtime.manualFirePoint = null;
+    }
+
+    // Stops cursor-follow aiming when the pointer leaves the gameplay canvas.
+    function onCanvasLeave() {
+      runtime.cursorInsideCanvas = false;
+      stopManualFire();
     }
 
     // Plan/execute route clearing disabled.
@@ -249,7 +261,7 @@
       elements.canvas.addEventListener("mousedown", onCanvasMouseDown);
       elements.canvas.addEventListener("mousemove", onCanvasMove);
       elements.canvas.addEventListener("mouseup", stopManualFire);
-      elements.canvas.addEventListener("mouseleave", stopManualFire);
+      elements.canvas.addEventListener("mouseleave", onCanvasLeave);
       elements.canvas.addEventListener("contextmenu", onCanvasContext);
       window.addEventListener("mouseup", stopManualFire);
       elements.operatorHealthBoard.addEventListener("click", (event) => {
