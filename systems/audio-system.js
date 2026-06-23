@@ -30,7 +30,9 @@
     const loopActivity = new Map();
     let unlocked = false;
     let musicId = null;
-    let musicAudio = null;
+    let audioContext = null;
+    let soundtrack = null;
+    let musicGameplayState = "menu";
     let musicVolume = volumeToUnit(deps.musicVolume);
 
     // Converts the Settings slider range into an audio volume scalar.
@@ -38,6 +40,30 @@
       const next = Number(value);
       if (!Number.isFinite(next)) return 0.5;
       return Math.max(0, Math.min(1, next / 100));
+    }
+
+    // Creates the shared Web Audio context used by procedural music after user unlock.
+    function ensureAudioContext() {
+      if (audioContext) return audioContext;
+      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) return null;
+      try {
+        audioContext = new AudioContextCtor();
+      } catch (error) {
+        audioContext = null;
+      }
+      return audioContext;
+    }
+
+    // Builds the layered procedural soundtrack once the Web Audio context exists.
+    function ensureSoundtrack() {
+      if (soundtrack) return soundtrack;
+      const context = ensureAudioContext();
+      if (!context || !window.ProceduralSoundtrack) return null;
+      soundtrack = window.ProceduralSoundtrack.create({ audioContext: context });
+      soundtrack.setVolume(musicVolume);
+      soundtrack.setGameplayState(musicGameplayState);
+      return soundtrack;
     }
 
     // Chooses a small reusable pool size for short one-shot sounds.
@@ -141,6 +167,11 @@
     function unlock() {
       if (unlocked) return;
       unlocked = true;
+      const context = ensureAudioContext();
+      if (context && context.state === "suspended") {
+        const result = context.resume();
+        if (result && typeof result.catch === "function") result.catch(() => {});
+      }
       warmUnlockedAudio();
       if (musicId && musicVolume > 0) playMusic(musicId);
     }
@@ -247,42 +278,23 @@
     function playMusic(id) {
       musicId = id;
       if (!unlocked || musicVolume <= 0) return;
-      const entry = sounds.get(id);
-      if (!entry) return;
-      try {
-        if (!musicAudio || musicAudio.__musicId !== id) {
-          stopMusic();
-          musicAudio = entry.source.cloneNode();
-          musicAudio.__musicId = id;
-          musicAudio.loop = true;
-        }
-        musicAudio.volume = musicVolume;
-        const result = musicAudio.play();
-        if (result && typeof result.catch === "function") {
-          result.catch(() => {});
-        }
-      } catch (error) {
-        return;
-      }
+      if (id !== "background-music") return;
+      const activeSoundtrack = ensureSoundtrack();
+      if (!activeSoundtrack) return;
+      activeSoundtrack.setVolume(musicVolume);
+      activeSoundtrack.setGameplayState(musicGameplayState);
+      activeSoundtrack.start();
     }
 
     // Stops the persistent background music loop without affecting sound effects.
     function stopMusic() {
-      if (!musicAudio) return;
-      try {
-        musicAudio.pause();
-        musicAudio.currentTime = 0;
-      } catch (error) {
-        return;
-      } finally {
-        musicAudio = null;
-      }
+      if (soundtrack) soundtrack.stop();
     }
 
     // Applies the Settings slider volume and starts/stops music as needed.
     function setMusicVolume(value) {
       musicVolume = volumeToUnit(value);
-      if (musicAudio) musicAudio.volume = musicVolume;
+      if (soundtrack) soundtrack.setVolume(musicVolume);
       if (musicVolume <= 0) {
         stopMusic();
       } else if (musicId && unlocked) {
@@ -293,6 +305,12 @@
     // Returns the music volume in the same 0-100 range used by Settings.
     function getMusicVolume() {
       return Math.round(musicVolume * 100);
+    }
+
+    // Fades procedural soundtrack layers to match the current gameplay state.
+    function setMusicGameplayState(state) {
+      musicGameplayState = state || "menu";
+      if (soundtrack) soundtrack.setGameplayState(musicGameplayState);
     }
 
     // Expires movement-loop activity when units stop reporting movement.
@@ -315,6 +333,7 @@
 
     // Reports whether a specific sound, or all sounds, has decoded enough data.
     function isPreloaded(id) {
+      if (id === "background-music") return Boolean(window.ProceduralSoundtrack);
       if (id) {
         const entry = sounds.get(id);
         return Boolean(entry && entry.status === "ready");
@@ -333,6 +352,7 @@
       stopMusic,
       setMusicVolume,
       getMusicVolume,
+      setMusicGameplayState,
       noteLoopActivity,
       startLoop,
       stopLoop,

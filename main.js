@@ -342,8 +342,7 @@ const SOUND_OPTIONS = [
   { id: "objective-secured", file: "sounds/objective-secured.wav" },
   { id: "vip-harmed", file: "sounds/vip-harmed.wav" },
   { id: "low-health-warning", file: "sounds/low-health-warning.wav" },
-  { id: "no-ammo-warning", file: "sounds/no-ammo-warning.wav" },
-  { id: "background-music", file: "sounds/Redline Protocol.mp3" }
+  { id: "no-ammo-warning", file: "sounds/no-ammo-warning.wav" }
 ];
 
 const MOBILE_OBJECT_SCALE_CONFIG = {
@@ -1323,6 +1322,29 @@ function updateCursorAim() {
   }
 }
 
+// Maps current play state into procedural soundtrack layer intensity.
+function syncProceduralMusicState() {
+  if (!audio || typeof audio.setMusicGameplayState !== "function") return;
+  const state = runtime.state;
+  let nextState = "menu";
+  if (state) {
+    const enemies = state.level && Array.isArray(state.level.enemies) ? state.level.enemies : [];
+    const combatActive = Boolean(state.combatAlertActive || enemies.some((enemy) => {
+      return enemy && !enemy.down && (enemy.status === "alert" || enemy.combatAlertActive);
+    }));
+    if (state.gameOver) {
+      nextState = "result";
+    } else if (combatActive) {
+      nextState = "combat";
+    } else if (state.running) {
+      nextState = "mission";
+    } else {
+      nextState = "exploration";
+    }
+  }
+  audio.setMusicGameplayState(nextState);
+}
+
 // Smooths lightweight performance measurements for console diagnostics.
 function recordPerformanceMetric(key, value) {
   const current = runtime.performanceMetrics[key] || 0;
@@ -1476,6 +1498,7 @@ function updateHud(options = {}) {
   const lowHealthExpanded = Boolean(runtime.expandedGame && selectedForEffects && !selectedForEffects.down && selectedForEffects.health <= 25);
   setClass(document.body, "expanded-low-health", lowHealthExpanded);
   setClass(document.body, "expanded-counter-glow", Boolean(runtime.expandedGame && performance.now() < (runtime.operatorCounterEffectUntil || 0)));
+  syncProceduralMusicState();
   if (!state) {
     setText(elements.modeLabel, "Loading");
     setText(elements.objectiveLabel, "Loading");
