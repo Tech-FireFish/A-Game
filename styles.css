@@ -7285,3 +7285,143 @@ body.pixel-style-geometry.game-expanded .expanded-backpack-button:active {
     0 0 0 2px rgba(3, 8, 9, 0.98),
     inset 0 0 0 2px rgba(227, 180, 86, 0.26) !important;
 }
+
+/* Full inventory tactical equipment panel. Scoped to avoid restyling equipment tables. */
+body.pixel-style-geometry #inventoryOverlay .inventory-panel {
+  position: relative;
+  isolation: isolate;
+  border: 4px solid #4f6261 !important;
+  border-image: none !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(rgba(88, 106, 103, 0.12) 2px, transparent 2px) 0 0 / 100% 32px,
+    linear-gradient(90deg, rgba(88, 106, 103, 0.1) 2px, transparent 2px) 0 0 / 32px 100%,
+    linear-gradient(180deg, rgba(19, 27, 29, 0.98), rgba(7, 11, 13, 0.98)) !important;
+  box-shadow:
+    0 0 0 4px #06090a,
+    0 0 0 8px rgba(79, 98, 97, 0.72),
+    inset 0 0 0 4px rgba(6, 9, 10, 0.96),
+    inset 0 0 0 8px rgba(114, 183, 206, 0.08),
+    0 28px 64px rgba(0, 0, 0, 0.58) !important;
+  backdrop-filter: none;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-panel::before,
+body.pixel-style-geometry #inventoryOverlay .inventory-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-panel::before {
+  z-index: 0;
+  background:
+    linear-gradient(90deg, rgba(103, 201, 143, 0.14), transparent 42%) left 18px top 58px / 220px 2px no-repeat,
+    linear-gradient(90deg, transparent, rgba(114, 183, 206, 0.12), transparent) left 0 bottom 62px / 100% 2px no-repeat,
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(255, 255, 255, 0.025) 23px 24px);
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-panel::after {
+  z-index: 2;
+  background:
+    linear-gradient(#7f9693, #7f9693) left 0 top 0 / 34px 6px no-repeat,
+    linear-gradient(#7f9693, #7f9693) left 0 top 0 / 6px 34px no-repeat,
+    linear-gradient(#7f9693, #7f9693) right 0 top 0 / 34px 6px no-repeat,
+    linear-gradient(#7f9693, #7f9693) right 0 top 0 / 6px 34px no-repeat,
+    linear-gradient(#7f9693, #7f9693) left 0 bottom 0 / 34px 6px no-repeat,
+    linear-gradient(#7f9693, #7f9693) left 0 bottom 0 / 6px 34px no-repeat,
+    linear-gradient(#7f9693, #7f9693) right 0 bottom 0 / 34px 6px no-repeat,
+    linear-gradient(#7f9693, #7f9693) right 0 bottom 0 / 6px 34px no-repeat;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-details {
+  background:
+    linear-gradient(180deg, rgba(5, 9, 10, 0.34), rgba(19, 28, 30, 0.16));
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot-grid {
+  padding: 10px;
+  border: 3px solid #263536 !important;
+  background:
+    linear-gradient(rgba(114, 183, 206, 0.08) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgba(114, 183, 206, 0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+    #0a0f11 !important;
+  box-shadow:
+    inset 0 0 0 3px #050809,
+    inset 0 0 0 5px rgba(103, 201, 143, 0.1),
+    0 0 0 2px rgba(5, 8, 9, 0.88);
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot {
+  border: 2px solid #465555 !important;
+  border-radius: 0 !important;
+  background: #121a1d !important;
+  background-image: none !important;
+  box-shadow:
+    inset 0 0 0 2px #070b0d,
+    inset 0 -4px 0 rgba(0, 0, 0, 0.32) !important;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot.empty {
+  background: #0d1214 !important;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot:not(.empty) {
+  border-color: #70817e !important;
+  background: #1a2628 !important;
+  box-shadow:
+    inset 0 0 0 2px #071012,
+    inset 0 0 0 4px rgba(114, 183, 206, 0.08),
+    0 0 0 1px rgba(103, 201, 143, 0.28) !important;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot:hover,
+body.pixel-style-geometry #inventoryOverlay .inventory-slot:focus-visible {
+  border-color: #72b7ce !important;
+  background: #213035 !important;
+  box-shadow:
+    inset 0 0 0 2px #071012,
+    0 0 0 2px rgba(114, 183, 206, 0.42) !important;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot.selected-action {
+  border-color: #67c98f !important;
+  background: #20342d !important;
+  box-shadow:
+    inset 0 0 0 2px #071012,
+    0 0 0 2px rgba(103, 201, 143, 0.88),
+    0 0 0 4px rgba(3, 8, 9, 0.9) !important;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-slot.drop-target {
+  border-color: #e3b456 !important;
+  background: #302819 !important;
+  box-shadow:
+    inset 0 0 0 2px #071012,
+    0 0 0 2px rgba(227, 180, 86, 0.82) !important;
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-item-detail {
+  border: 3px solid #2f3e40 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(114, 183, 206, 0.08) 1px, transparent 1px) 0 0 / 18px 100%,
+    #0c1214 !important;
+  box-shadow:
+    inset 0 0 0 3px #06090a,
+    inset 0 0 0 5px rgba(103, 201, 143, 0.08);
+}
+
+body.pixel-style-geometry #inventoryOverlay .inventory-use-selector {
+  border: 2px solid #72b7ce;
+  background: #071012;
+  box-shadow:
+    0 0 0 2px #050809,
+    inset 0 0 0 2px rgba(103, 201, 143, 0.12);
+}
