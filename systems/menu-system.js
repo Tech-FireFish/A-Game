@@ -170,7 +170,7 @@
       }
       document.body.classList.toggle("game-expanded", next);
       if (elements.expandedNav) elements.expandedNav.classList.toggle("hidden", !next);
-      if (elements.expandGameButton) elements.expandGameButton.textContent = next ? "Collapse" : "Expand";
+      if (elements.expandGameButton) elements.expandGameButton.textContent = "Expand";
       if (deps.resizeCanvas) requestAnimationFrame(deps.resizeCanvas);
       deps.updateHud();
     }

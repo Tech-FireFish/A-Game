@@ -3562,21 +3562,30 @@ body.game-expanded .play-layout {
 }
 
 body.game-expanded .game-panel {
+  display: grid;
+  place-items: center;
   width: 100vw;
   height: 100vh;
   border: 0;
   border-radius: 0;
+  background: #000 !important;
+  overflow: hidden;
 }
 
 body.game-expanded canvas {
-  width: 100vw;
-  height: 100vh;
+  width: min(100vw, 150vh);
+  height: min(100vh, 66.6667vw);
   max-height: none;
-  aspect-ratio: auto;
+  aspect-ratio: 3 / 2;
+  display: block;
+}
+
+body.game-expanded .expand-game-button {
+  display: none !important;
 }
 
 body.game-expanded .expanded-pause-button {
-  display: block;
+  display: none !important;
 }
 
 .expanded-gameplay-overlay {

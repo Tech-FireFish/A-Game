@@ -466,6 +466,12 @@
       if (elements.pauseLevelButton) elements.pauseLevelButton.addEventListener("click", deps.menu.showLevelMenu);
       if (elements.pauseTutorialButton) elements.pauseTutorialButton.addEventListener("click", deps.menu.showTutorialMenu);
       if (elements.pauseSettingButton) elements.pauseSettingButton.addEventListener("click", deps.menu.openSettingsFromPause);
+      if (elements.pauseCollapseButton) {
+        elements.pauseCollapseButton.addEventListener("click", () => {
+          deps.menu.closePause({ resume: false });
+          deps.menu.toggleExpanded(false);
+        });
+      }
       if (elements.expandGameButton) elements.expandGameButton.addEventListener("click", () => deps.menu.toggleExpanded());
       if (elements.expandedPauseButton) elements.expandedPauseButton.addEventListener("click", deps.menu.togglePause);
       if (elements.exitToMenuButton) elements.exitToMenuButton.addEventListener("click", deps.menu.showStart);

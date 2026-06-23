@@ -159,6 +159,7 @@ const elements = {
   pauseLevelButton: document.getElementById("pauseLevelButton"),
   pauseTutorialButton: document.getElementById("pauseTutorialButton"),
   pauseSettingButton: document.getElementById("pauseSettingButton"),
+  pauseCollapseButton: document.getElementById("pauseCollapseButton"),
   expandGameButton: document.getElementById("expandGameButton"),
   expandedPauseButton: document.getElementById("expandedPauseButton"),
   expandedNav: document.getElementById("expandedNav"),
