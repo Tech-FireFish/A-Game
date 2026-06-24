@@ -39,7 +39,7 @@
   "objective": { "x": 600, "y": 360, "radius": 16, "secured": false, "harmed": false },
   "tutorialSteps": [
     { "id": "walk", "title": "Walk", "text": "Use WASD to move ALPHA around the obstacles.", "completeWhen": "movementStarted" },
-    { "id": "sneak", "title": "Sneak", "text": "Hold Left Ctrl while moving to sneak slowly.", "completeWhen": "sneaked" },
+    { "id": "sneak", "title": "Sneak", "text": "Hold Left Alt while moving to sneak slowly.", "completeWhen": "sneaked" },
     { "id": "sprint", "title": "Sprint", "text": "Hold Left Shift while moving to sprint quickly.", "completeWhen": "sprinted" },
     { "id": "finish", "title": "Reach the VIP", "text": "Move to the VIP marker to complete the movement tutorial.", "completeWhen": "objectiveSecured" }
   ]

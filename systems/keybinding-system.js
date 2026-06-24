@@ -3,7 +3,8 @@
 (function () {
   // Builds persistent keyboard remapping and input matching helpers.
   function create(deps) {
-    const storageKey = "breachline-keybindings-v2";
+    const storageKey = "breachline-keybindings-v3";
+    const previousStorageKey = "breachline-keybindings-v2";
     const defaults = {
       moveUp: { label: "Move Up", value: "KeyW", display: "W" },
       moveLeft: { label: "Move Left", value: "KeyA", display: "A" },
@@ -17,7 +18,7 @@
       restart: { label: "Restart", value: "", display: "Unbound" },
       debug: { label: "Debug", value: "F3", display: "F3" },
       settings: { label: "Settings", value: "Escape", display: "Esc" },
-      sneak: { label: "Sneak", value: "ControlLeft", display: "Left Ctrl" },
+      sneak: { label: "Sneak", value: "AltLeft", display: "Left Alt" },
       sprint: { label: "Sprint", value: "ShiftLeft", display: "Left Shift" }
     };
     const bindings = loadBindings();
@@ -41,11 +42,17 @@
     // Loads saved bindings and merges them with defaults.
     function loadBindings() {
       try {
-        const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-        return Object.fromEntries(Object.entries(defaults).map(([action, config]) => {
+        const currentSaved = localStorage.getItem(storageKey);
+        const saved = JSON.parse(currentSaved || localStorage.getItem(previousStorageKey) || "{}");
+        const merged = Object.fromEntries(Object.entries(defaults).map(([action, config]) => {
           const savedConfig = saved[action];
           return [action, savedConfig ? { ...config, ...savedConfig } : { ...config }];
         }));
+        if (!currentSaved) {
+          merged.sneak = { ...defaults.sneak };
+          localStorage.setItem(storageKey, JSON.stringify(merged));
+        }
+        return merged;
       } catch (error) {
         return Object.fromEntries(Object.entries(defaults).map(([action, config]) => [action, { ...config }]));
       }
@@ -71,6 +78,8 @@
       if (event.code === "Escape") return "Esc";
       if (event.code === "ControlLeft") return "Left Ctrl";
       if (event.code === "ControlRight") return "Right Ctrl";
+      if (event.code === "AltLeft") return "Left Alt";
+      if (event.code === "AltRight") return "Right Alt";
       if (event.code === "ShiftLeft") return "Left Shift";
       if (event.code === "ShiftRight") return "Right Shift";
       if (/^Key[A-Z]$/.test(event.code)) return event.code.slice(3);
