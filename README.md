@@ -2,7 +2,7 @@
 
 A top-down tactical breach game built around precise movement, stealth, adaptive enemies, and interactive missions.
 
-![Quick Gameplay Showcase](docs/start-menu-showcase.gif)
+![Quick Gameplay Showcase](docs/start-menu-showcase.png)
 
 ## Overview
 
