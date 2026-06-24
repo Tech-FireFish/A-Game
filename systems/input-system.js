@@ -213,7 +213,7 @@
     function guardBrowserShortcut(event) {
       const code = event.code || "";
       const ctrlLike = event.ctrlKey || event.metaKey;
-      const isolateAllCtrlLike = ctrlLike && (runtime.expandedGame || runtime.mobileMode);
+      const isolateAllCtrlLike = ctrlLike && runtime.expandedGame;
       if (
         deps.keybindings.matches(event, "inventory")
         || deps.keybindings.matches(event, "reload")

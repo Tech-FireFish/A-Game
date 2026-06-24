@@ -6,7 +6,6 @@
     const runtime = deps.runtime;
     const canvas = deps.canvas;
     const twoPi = deps.twoPi;
-    const objectScale = deps.objectScale;
 
     // Converts a browser mouse event into canvas world coordinates.
     function getMouseWorld(event) {
@@ -43,12 +42,11 @@
 
     // Tests a circular unit body against a rectangular blocker.
     function circleRectCollides(circle, rect, padding = 0) {
-      const scaledCircle = objectScale ? objectScale.scaledCircle(circle) : circle;
-      const closestX = clamp(scaledCircle.x, rect.x - padding, rect.x + rect.w + padding);
-      const closestY = clamp(scaledCircle.y, rect.y - padding, rect.y + rect.h + padding);
-      const dx = scaledCircle.x - closestX;
-      const dy = scaledCircle.y - closestY;
-      return dx * dx + dy * dy <= scaledCircle.radius * scaledCircle.radius;
+      const closestX = clamp(circle.x, rect.x - padding, rect.x + rect.w + padding);
+      const closestY = clamp(circle.y, rect.y - padding, rect.y + rect.h + padding);
+      const dx = circle.x - closestX;
+      const dy = circle.y - closestY;
+      return dx * dx + dy * dy <= circle.radius * circle.radius;
     }
 
     // Finds the shortest distance from a point to a rectangle.
@@ -63,17 +61,17 @@
       return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
     }
 
-    // Scales non-wall object rectangles around their center.
+    // Keeps the compatibility geometry API at authored rectangle dimensions.
     function scaledRect(rect) {
-      return objectScale ? objectScale.scaledRect(rect) : rect;
+      return rect;
     }
 
-    // Scales non-wall object radii around their center.
+    // Keeps the compatibility geometry API at authored circle dimensions.
     function scaledRadius(obj) {
-      return objectScale ? objectScale.scaledRadius(obj) : obj.radius;
+      return obj.radius;
     }
 
-    // Measures from a point to a scaled non-wall rectangle.
+    // Measures from a point to an authored non-wall rectangle.
     function scaledPointRectDistance(point, rect) {
       return pointRectDistance(point, scaledRect(rect));
     }

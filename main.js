@@ -170,12 +170,6 @@ const elements = {
   expandedHotbarSlots: document.getElementById("expandedHotbarSlots"),
   expandedBackpackButton: document.getElementById("expandedBackpackButton"),
   expandedNav: document.getElementById("expandedNav"),
-  mobileControls: document.getElementById("mobileControls"),
-  mobilePauseButton: document.getElementById("mobilePauseButton"),
-  mobileMoveJoystick: document.getElementById("mobileMoveJoystick"),
-  mobileJoystickThumb: document.getElementById("mobileJoystickThumb"),
-  mobileInteractButton: document.getElementById("mobileInteractButton"),
-  mobileSwitchButton: document.getElementById("mobileSwitchButton"),
   banner: document.getElementById("banner"),
   bannerTitle: document.getElementById("bannerTitle"),
   bannerText: document.getElementById("bannerText"),
@@ -345,13 +339,6 @@ const SOUND_OPTIONS = [
   { id: "no-ammo-warning", type: "alert" }
 ];
 
-const MOBILE_OBJECT_SCALE_CONFIG = {
-  baseWidth: 1920,
-  baseHeight: 1080,
-  minObjectScale: 0.65,
-  scaleHitboxes: false
-};
-
 const runtime = {
   state: null,
   currentLevel: null,
@@ -381,7 +368,6 @@ const runtime = {
   pauseResumeRunning: false,
   expandedGame: false,
   expandedPaused: false,
-  mobileMode: false,
   gameDataReady: false,
   gameDataLoading: null,
   onboardingReturnToStore: false,
@@ -442,8 +428,6 @@ let cameraHack;
 let tutorial;
 let progression;
 let menu;
-let objectScale;
-let mobileControls;
 let equipment;
 let level;
 let visibility;
@@ -1670,8 +1654,6 @@ function initializeSystems() {
   assertSystem("Tutorial system", window.TutorialSystem);
   assertSystem("Progression system", window.ProgressionSystem);
   assertSystem("Menu system", window.MenuSystem);
-  assertSystem("Object scale system", window.ObjectScaleSystem);
-  assertSystem("Mobile control system", window.MobileControlSystem);
   assertSystem("Audio system", window.AudioSystem);
   assertSystem("Equipment system", window.EquipmentSystem);
   assertSystem("Level system", window.LevelSystem);
@@ -1707,22 +1689,11 @@ function initializeSystems() {
     selectedOperator
   });
 
-  objectScale = window.ObjectScaleSystem.create({
-    config: MOBILE_OBJECT_SCALE_CONFIG,
-    camera,
-    pointRectDistance: (point, rect) => {
-      const closestX = Math.max(rect.x, Math.min(rect.x + rect.w, point.x));
-      const closestY = Math.max(rect.y, Math.min(rect.y + rect.h, point.y));
-      return Math.hypot(point.x - closestX, point.y - closestY);
-    }
-  });
-
   geometry = window.GeometrySystem.create({
     runtime,
     canvas: elements.canvas,
     twoPi: TWO_PI,
-    camera,
-    objectScale
+    camera
   });
 
   progression = window.ProgressionSystem.create({
@@ -1861,7 +1832,6 @@ function initializeSystems() {
     tempLevelOptions: TEMP_LEVEL_OPTIONS,
     resizeCanvas: () => {
       if (camera) camera.resizeCanvas();
-      if (objectScale) objectScale.update();
       syncExpandedCanvasMetrics();
     },
     equipment,
@@ -1924,7 +1894,6 @@ function initializeSystems() {
     runtime,
     elements,
     geometry,
-    objectScale,
     audio,
     levelOptions: LEVEL_OPTIONS,
     tutorialOptions: TUTORIAL_OPTIONS,
@@ -2075,7 +2044,6 @@ function initializeSystems() {
     progression,
     resizeCanvas: () => {
       if (camera) camera.resizeCanvas();
-      if (objectScale) objectScale.update();
       syncExpandedCanvasMetrics();
     },
     hasResumePoint,
@@ -2086,25 +2054,10 @@ function initializeSystems() {
     updateHud
   });
 
-  mobileControls = window.MobileControlSystem.create({
-    runtime,
-    elements,
-    keysDown,
-    menu,
-    shooting,
-    interaction,
-    objectScale,
-    selectedOperator,
-    cycleOperator,
-    updateHud
-  });
-  mobileControls.bindEvents();
   camera.resizeCanvas();
-  objectScale.update();
   syncExpandedCanvasMetrics();
   window.addEventListener("resize", () => {
     camera.resizeCanvas();
-    objectScale.update();
     syncExpandedCanvasMetrics();
   });
 }
@@ -2113,7 +2066,6 @@ window.__breachline = {
   getState: () => runtime.state,
   getWeapons: () => [...weapons.values()],
   getArmors: () => [...armors.values()],
-  getObjectScale: () => objectScale ? objectScale.objectScale() : 1,
   audioPreloadAll: () => audio ? audio.preloadAll() : null,
   isAudioPreloaded: (id) => audio ? audio.isPreloaded(id) : false,
   isAudioUnlocked: () => audio ? audio.isUnlocked() : false,

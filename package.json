@@ -1,7 +1,5 @@
 {
   "scripts": {
-    "start": "node server.js",
-    "simulate": "node tools/simulate-levels.js",
-    "export-scenes": "node tools/export-raw-scenes.js"
+    "start": "node server.js"
   }
 }
