@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Map Movement Simulation</title>
+    <link rel="stylesheet" href="simulation.css">
+  </head>
+  <body>
+    <main class="simulation-shell">
+      <header class="simulation-header">
+        <div>
+          <p class="eyebrow">Map Editor Preview</p>
+          <h1 id="levelTitle">Movement Simulation</h1>
+        </div>
+        <p id="statusLine" role="status">Loading preview...</p>
+      </header>
+
+      <section class="simulation-board" aria-label="Movement simulation board">
+        <canvas id="simulationCanvas" width="1200" height="760"></canvas>
+        <div class="simulation-help">
+          <strong>Controls</strong>
+          <span>WASD / Arrows: move</span>
+          <span>Shift: sprint</span>
+          <span>Ctrl: sneak</span>
+          <span>E / click: toggle nearby door</span>
+          <span>Esc: close preview</span>
+        </div>
+        <div class="simulation-controls" aria-label="View controls">
+          <button id="zoomOutButton" type="button">Shorten View</button>
+          <strong id="zoomValue">100%</strong>
+          <button id="zoomInButton" type="button">Enlarge View</button>
+        </div>
+      </section>
+    </main>
+    <script src="movement-simulation.js"></script>
+  </body>
+</html>
