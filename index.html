@@ -6,7 +6,7 @@
     <title>Delta Geometry</title>
     <link rel="preload" href="docs/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="docs/start-menu-geometry-background.png" as="image">
-    <link rel="stylesheet" href="styles.css?v=64">
+    <link rel="stylesheet" href="styles.css?v=67">
     <link rel="stylesheet" href="css-pixel-art/css-pixel-art.css">
     <link rel="stylesheet" href="mobile/mobile.css">
   </head>
@@ -280,6 +280,7 @@
             <button type="button" data-expanded-action="settings">Settings</button>
           </div>
           -->
+          <!-- Legacy mission result backup.
           <div id="banner" class="banner hidden" role="status" aria-live="polite">
             <strong id="bannerTitle">Mission Complete</strong>
             <span id="bannerText">Restart to run the plan again.</span>
@@ -295,6 +296,28 @@
               <button id="exitToMenuButton" type="button">Exit</button>
               <button id="backToStoreButton" type="button">Go to Store</button>
             </div>
+          </div>
+          -->
+          <div id="banner" class="banner mission-result-board hidden" role="status" aria-live="polite">
+            <header class="mission-result-header">
+              <span class="mission-result-kicker">Mission Report</span>
+              <strong id="bannerTitle">Mission Complete</strong>
+              <span id="bannerText">Restart to run the plan again.</span>
+            </header>
+            <div id="missionReport" class="mission-report"></div>
+            <footer class="mission-result-footer">
+              <label class="level-picker result-level-picker" for="resultLevelSelect">
+                <span>Level</span>
+                <select id="resultLevelSelect"></select>
+              </label>
+              <div class="banner-actions" aria-label="Mission result actions">
+                <button id="nextLevelButton" type="button">Next</button>
+                <button id="exitTutorialButton" class="hidden" type="button">Exit To First Level</button>
+                <button id="bannerRestartButton" type="button">Restart</button>
+                <button id="exitToMenuButton" type="button">Exit</button>
+                <button id="backToStoreButton" type="button">Go to Store</button>
+              </div>
+            </footer>
           </div>
         </section>
 
@@ -754,7 +777,7 @@
     <script src="systems/digital-lock-system.js?v=1"></script>
     <script src="systems/enemy-behavior-system.js?v=5"></script>
     <script src="enemy-algorithm/enemy-algorithm-system.js?v=1"></script>
-    <script src="systems/mission-system.js?v=8"></script>
+    <script src="systems/mission-system.js?v=9"></script>
     <script src="systems/render-system.js?v=7"></script>
     <script src="systems/input-system.js?v=24"></script>
     <script src="systems/action-system.js?v=9"></script>

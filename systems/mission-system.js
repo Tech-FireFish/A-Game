@@ -139,6 +139,8 @@
     function renderMissionReport(result, progress) {
       if (!elements.missionReport) return;
       const score = runtime.state.missionScore || missionScore(result, progress);
+      /*
+      Legacy renderMissionReport template backup:
       elements.missionReport.innerHTML = `
         <div><span>Score Earned</span><strong>${score.total}</strong></div>
         <!-- Score breakdown row disabled by request.
@@ -147,6 +149,25 @@
         <div><span>Enemies Neutralized</span><strong>${score.neutralized}</strong></div>
         <div><span>Complexity</span><strong>${score.complexity}</strong></div>
         <div><span>Report</span><strong>${result === "success" ? "Mission Complete" : "Mission Failed"}</strong></div>
+      `;
+      */
+      elements.missionReport.innerHTML = `
+        <section class="mission-report-tile mission-report-score">
+          <span>Score</span>
+          <strong>${score.total}</strong>
+        </section>
+        <section class="mission-report-tile mission-report-enemies">
+          <span>Enemies Neutralized</span>
+          <strong>${score.neutralized}</strong>
+        </section>
+        <section class="mission-report-tile mission-report-complexity">
+          <span>Complexity</span>
+          <strong>${score.complexity}</strong>
+        </section>
+        <section class="mission-report-tile mission-report-status">
+          <span>Status</span>
+          <strong>${result === "success" ? "Mission Complete" : "Mission Failed"}</strong>
+        </section>
       `;
       // Privilege/access board rendering disabled while progression/access locks are disabled.
       // if (deps.progression && deps.progression.renderPrivilegeBoard) deps.progression.renderPrivilegeBoard();
